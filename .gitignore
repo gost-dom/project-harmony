@@ -1,2 +1,4 @@
 meet-the-locals
-tmp
+
+node_modules/
+tmp/
