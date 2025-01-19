@@ -1,4 +1,4 @@
-module meet-the-locals
+module harmony
 
 go 1.23.4
 

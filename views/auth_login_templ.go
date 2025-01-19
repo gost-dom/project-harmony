@@ -64,7 +64,7 @@ func login_body(redirectUrl string, formData LoginFormData) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full m-auto flex flex-col items-center\"><div class=\"my-4 font-bold text-2xl dark:text-white\">Meet the Locals</div><div class=\"bg-white rounded-lg shadow-md border md:mt-0 w-full sm:max-w-xl\n  xl:p-0 dark:bg-gray-800 dark:border-gray-700\"><div class=\"p-6 space-y-4 md:space-y-6 sm:p-8\"><h1 class=\"text-center\ntext-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:text-white\n        \">Login</h1><form class=\"space-y-4 md:space-y-6\" hx-post=\"/auth/login\" hx-swap=\"outerHTML\"><input type=\"hidden\" name=\"redirectUrl\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full m-auto flex flex-col items-center\"><div class=\"my-4 font-bold text-2xl dark:text-white\">Project Harmony</div><div class=\"bg-white rounded-lg shadow-md border md:mt-0 w-full sm:max-w-xl\n  xl:p-0 dark:bg-gray-800 dark:border-gray-700\"><div class=\"p-6 space-y-4 md:space-y-6 sm:p-8\"><h1 class=\"text-center\ntext-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:text-white\n        \">Login</h1><form class=\"space-y-4 md:space-y-6\" hx-post=\"/auth/login\" hx-swap=\"outerHTML\"><input type=\"hidden\" name=\"redirectUrl\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

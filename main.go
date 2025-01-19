@@ -1,7 +1,7 @@
 package main
 
 import (
-	"meet-the-locals/views"
+	"harmony/views"
 	"net/http"
 
 	"github.com/a-h/templ"
