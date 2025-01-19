@@ -8,13 +8,14 @@ import (
 )
 
 func main() {
-	// server := http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-	// 	res.Write([]byte("<html><body><h1>Foo bar!</h1></body></html>"))
-	// })
-
 	component := views.Index()
 
-	server := templ.Handler(component)
+	http.DefaultServeMux.Handle("GET /{$}", templ.Handler(component))
+	// http.DefaultServeMux.Handle("GET /static/", http.FileServer(http.FS(static)))
+	http.DefaultServeMux.Handle(
+		"/static/",
+		http.StripPrefix("/static", http.FileServer(http.Dir("static"))),
+	)
 
-	http.ListenAndServe("0.0.0.0:8081", server)
+	http.ListenAndServe("0.0.0.0:8081", http.DefaultServeMux)
 }

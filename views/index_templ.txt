@@ -1,1 +1,1 @@
-<!doctype html><html><head></head><body><h1>Hello, World!</h1></body></html>
+<h1 class=\"text-4xl font-bold text-center py-4\">Meet the Locals</h1><p>Letting the locals help you get a memorable trip.</p>

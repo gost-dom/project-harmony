@@ -1,0 +1,2 @@
+<!doctype html><html><head><link rel=\"stylesheet\" href=\"/static/css/tailwind.css\"></head><body class=\"bg-orange-50 min-h-screen\"><main class=\"container mx-auto py-4\">
+</main></body></html>
