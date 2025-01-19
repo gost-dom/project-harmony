@@ -1,10 +1,8 @@
 package main
 
 import (
-	"harmony/views"
+	"harmony/server"
 	"net/http"
-
-	"github.com/a-h/templ"
 )
 
 func noCache(h http.Handler) http.Handler {
@@ -15,15 +13,5 @@ func noCache(h http.Handler) http.Handler {
 }
 
 func main() {
-	component := views.Index()
-	login := views.AuthLogin()
-
-	http.DefaultServeMux.Handle("GET /{$}", templ.Handler(component))
-	http.DefaultServeMux.Handle("GET /login/{$}", templ.Handler(login))
-	http.DefaultServeMux.Handle(
-		"/static/",
-		http.StripPrefix("/static", http.FileServer(http.Dir("static"))),
-	)
-
-	http.ListenAndServe("0.0.0.0:8081", noCache(http.DefaultServeMux))
+	http.ListenAndServe("0.0.0.0:8081", server.New())
 }

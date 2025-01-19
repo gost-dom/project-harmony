@@ -9,6 +9,7 @@ module.exports = {
       ...colors,
       primary: colors.slate,
       secondary: colors.orange,
+      ctabase: colors.indigo,
       cta: colors.indigo[600],
     },
   },
