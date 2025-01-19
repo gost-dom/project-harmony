@@ -1,6 +1,7 @@
-.PHONY: run
-run:
-	templ generate --watch --proxy="http://localhost:8081" --cmd="go run ."
+# start all 5 watch processes in parallel.
+.PHONY: live live/templ live/server live/tailwind live/sync_assets
+live: 
+	make -j4 live/templ live/server live/tailwind live/sync_assets
 	#
 # run templ generation in watch mode to detect all .templ files and 
 # re-create _templ.txt files on change, then send reload event to browser. 
@@ -35,6 +36,3 @@ live/sync_assets:
 	--build.include_dir "static" \
 	--build.include_ext "js,css"
 
-# start all 5 watch processes in parallel.
-live: 
-	make -j4 live/templ live/server live/tailwind live/sync_assets
