@@ -2,4 +2,21 @@ module harmony
 
 go 1.23.4
 
-require github.com/a-h/templ v0.3.819
+require (
+	github.com/a-h/templ v0.3.819
+	github.com/stroiman/go-dom/browser v0.0.0-20250119142044-ac0813c01ddb
+)
+
+require (
+	github.com/ericchiang/css v1.4.0 // indirect
+	github.com/tommie/v8go v0.28.0 // indirect
+	github.com/tommie/v8go/deps/android_amd64 v0.0.0-20250116090852-b2a925bc7092 // indirect
+	github.com/tommie/v8go/deps/android_arm64 v0.0.0-20250116090852-b2a925bc7092 // indirect
+	github.com/tommie/v8go/deps/darwin_amd64 v0.0.0-20250116090852-b2a925bc7092 // indirect
+	github.com/tommie/v8go/deps/darwin_arm64 v0.0.0-20250116090852-b2a925bc7092 // indirect
+	github.com/tommie/v8go/deps/linux_amd64 v0.0.0-20250116090852-b2a925bc7092 // indirect
+	github.com/tommie/v8go/deps/linux_arm64 v0.0.0-20250116090852-b2a925bc7092 // indirect
+	golang.org/x/net v0.34.0 // indirect
+)
+
+replace github.com/tommie/v8go => github.com/stroiman/v8go v0.0.0-20250116094955-dcf3ee9ea30c
