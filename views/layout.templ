@@ -9,11 +9,45 @@ templ layout(c contents) {
 	<html>
 		<head>
 			<link rel="stylesheet" href="/static/css/tailwind.css"/>
+			<meta charset="utf-8"/>
+			<meta
+				name="viewport"
+				content="width=device-width, initial-scale=1"
+			/>
+			<title>Meet the Locals</title>
 		</head>
-		<body class="bg-orange-50 min-h-screen">
-			<main class="container mx-auto py-4">
-				@c.body
-			</main>
+		<body class="bg-secondary-50 dark:bg-stone-800">
+			<div class="min-h-screen flex flex-col">
+				<!--
+				<header class="bg-primary-600 text-zinc-50 p-4 font-bold">
+					Meet the Locals
+				</header>
+        -->
+				<div
+					id="body-root"
+					class="flex-grow flex items-stretch flex-col"
+					hx-swap-oob="true"
+				>
+					@c.body
+				</div>
+				<!--
+				<footer
+					class="bg-primary-600 text-white p-4 border-t
+      border-primary-800"
+				>Footer content</footer>
+        -->
+			</div>
 		</body>
 	</html>
+	<!--
+    .min-h-screen.flex.flex-col
+      header.bg-primary-600.text-zinc-50.p-4.font-bold
+        | Meet the Locals
+
+      div#body-root.flex-grow.flex.items-stretch.flex-col(hx-swap-oob='true')
+        block content
+
+      footer.bg-primary-600.text-white.p-4.border-t.border-primary-800
+        | Footer content
+        -->
 }

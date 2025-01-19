@@ -33,7 +33,7 @@ func layout(c contents) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html><head><link rel=\"stylesheet\" href=\"/static/css/tailwind.css\"></head><body class=\"bg-orange-50 min-h-screen\"><main class=\"container mx-auto py-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html><head><link rel=\"stylesheet\" href=\"/static/css/tailwind.css\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Meet the Locals</title></head><body class=\"bg-secondary-50 dark:bg-stone-800\"><div class=\"min-h-screen flex flex-col\"><!--\n\t\t\t\t<header class=\"bg-primary-600 text-zinc-50 p-4 font-bold\">\n\t\t\t\t\tMeet the Locals\n\t\t\t\t</header>\n        --><div id=\"body-root\" class=\"flex-grow flex items-stretch flex-col\" hx-swap-oob=\"true\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -41,7 +41,7 @@ func layout(c contents) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</main></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><!--\n\t\t\t\t<footer\n\t\t\t\t\tclass=\"bg-primary-600 text-white p-4 border-t\n      border-primary-800\"\n\t\t\t\t>Footer content</footer>\n        --></div></body></html><!--\n    .min-h-screen.flex.flex-col\n      header.bg-primary-600.text-zinc-50.p-4.font-bold\n        | Meet the Locals\n\n      div#body-root.flex-grow.flex.items-stretch.flex-col(hx-swap-oob='true')\n        block content\n\n      footer.bg-primary-600.text-white.p-4.border-t.border-primary-800\n        | Footer content\n        -->")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
