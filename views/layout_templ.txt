@@ -1,0 +1,2 @@
+<!doctype html><html><head><link rel=\"stylesheet\" href=\"/static/css/tailwind.css\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Harmony</title></head><body class=\"bg-secondary-50 dark:bg-stone-800\"><div class=\"min-h-screen flex flex-col\"><div id=\"body-root\" class=\"flex-grow flex items-stretch flex-col\" hx-swap-oob=\"true\">
+</div><!--\n\t\t\t\t<footer\n\t\t\t\t\tclass=\"bg-primary-600 text-white p-4 border-t\n      border-primary-800\"\n\t\t\t\t>Footer content</footer>\n        --></div></body></html>

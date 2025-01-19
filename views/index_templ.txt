@@ -1,1 +1,1 @@
-<!doctype html><html><head></head><body><h1>Hello, World!</h1></body></html>
+<div class=\"container mx-auto py-4\"><h1 class=\"text-4xl font-bold text-center py-4\">Harmony</h1><p>This is just a demo</p></div>

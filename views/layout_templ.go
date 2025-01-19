@@ -8,7 +8,11 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func Index() templ.Component {
+type contents struct {
+	body templ.Component
+}
+
+func layout(c contents) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,36 +33,15 @@ func Index() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = layout(contents{body: body()}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html><head><link rel=\"stylesheet\" href=\"/static/css/tailwind.css\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Harmony</title></head><body class=\"bg-secondary-50 dark:bg-stone-800\"><div class=\"min-h-screen flex flex-col\"><div id=\"body-root\" class=\"flex-grow flex items-stretch flex-col\" hx-swap-oob=\"true\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		return nil
-	})
-}
-
-func body() templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
+		templ_7745c5c3_Err = c.body.Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var2 == nil {
-			templ_7745c5c3_Var2 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"container mx-auto py-4\"><h1 class=\"text-4xl font-bold text-center py-4\">Harmony</h1><p>This is just a demo</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><!--\n\t\t\t\t<footer\n\t\t\t\t\tclass=\"bg-primary-600 text-white p-4 border-t\n      border-primary-800\"\n\t\t\t\t>Footer content</footer>\n        --></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
