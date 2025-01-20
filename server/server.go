@@ -20,7 +20,7 @@ func New() http.Handler {
 
 	mux := http.NewServeMux()
 	mux.Handle("GET /{$}", templ.Handler(component))
-	mux.Handle("GET /login/{$}", templ.Handler(login))
+	mux.Handle("GET /auth/login/{$}", templ.Handler(login))
 	mux.Handle(
 		"/static/",
 		http.StripPrefix("/static", http.FileServer(http.Dir("static"))),
