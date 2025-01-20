@@ -1,17 +1,28 @@
 package server
 
 import (
-	"harmony/views"
+	"fmt"
+	"harmony/internal/project"
+	"harmony/internal/server/views"
 	"net/http"
+	"path/filepath"
 
 	"github.com/a-h/templ"
 )
 
 func noCache(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Request", r.URL.Path)
 		w.Header().Add("cache-control", "no-cache")
 		h.ServeHTTP(w, r)
 	})
+}
+
+func staticFilesPath() string {
+	root := project.Root()
+
+	return filepath.Join(root, "static")
+
 }
 
 func New() http.Handler {
@@ -22,8 +33,9 @@ func New() http.Handler {
 	mux.Handle("GET /{$}", templ.Handler(component))
 	mux.Handle("GET /auth/login/{$}", templ.Handler(login))
 	mux.Handle(
-		"/static/",
-		http.StripPrefix("/static", http.FileServer(http.Dir("static"))),
+		"GET /static/",
+		http.StripPrefix("/static", http.FileServer(
+			http.Dir(staticFilesPath()))),
 	)
 	return noCache(mux)
 }

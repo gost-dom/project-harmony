@@ -1,8 +1,9 @@
 package main
 
 import (
-	"harmony/server"
 	"net/http"
+
+	"harmony/internal/server"
 )
 
 func noCache(h http.Handler) http.Handler {
