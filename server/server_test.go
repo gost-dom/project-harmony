@@ -19,4 +19,5 @@ func TestCanServe(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Print(h1.OuterHTML())
+	t.Fatal("Foo")
 }
