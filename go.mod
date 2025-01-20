@@ -8,7 +8,10 @@ require (
 )
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/ericchiang/css v1.4.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/tommie/v8go v0.28.0 // indirect
 	github.com/tommie/v8go/deps/android_amd64 v0.0.0-20250116090852-b2a925bc7092 // indirect
 	github.com/tommie/v8go/deps/android_arm64 v0.0.0-20250116090852-b2a925bc7092 // indirect
@@ -17,6 +20,7 @@ require (
 	github.com/tommie/v8go/deps/linux_amd64 v0.0.0-20250116090852-b2a925bc7092 // indirect
 	github.com/tommie/v8go/deps/linux_arm64 v0.0.0-20250116090852-b2a925bc7092 // indirect
 	golang.org/x/net v0.34.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 replace github.com/tommie/v8go => github.com/stroiman/v8go v0.0.0-20250116094955-dcf3ee9ea30c
