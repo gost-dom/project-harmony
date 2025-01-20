@@ -2,7 +2,7 @@ package server_test
 
 import (
 	"fmt"
-	"harmony/server"
+	"harmony/internal/server"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
