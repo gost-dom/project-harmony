@@ -25,5 +25,5 @@ func New() http.Handler {
 		"/static/",
 		http.StripPrefix("/static", http.FileServer(http.Dir("static"))),
 	)
-	return mux
+	return noCache(mux)
 }
