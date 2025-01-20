@@ -31,41 +31,26 @@ text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:te
 						name="redirectUrl"
 						value={ redirectUrl }
 					/>
-					<div>
-						<label
-							class="block text-sm font-medium text-gray-900 dark:text-white"
-							for="email"
-						>Email</label>
-						<input
-							class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg
-  focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5
-  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
-  dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-							id="email"
-							type="email"
-							name="email"
-							required
-							value={ formData.email }
-						/>
-					</div>
-					<div>
-						<label
-							class="block text-sm font-medium text-gray-900 dark:text-white"
-							for="password"
-						>Password</label>
-						<input
-							class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg
-  focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5
-  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
-  dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-							id="email"
-							type="email"
-							name="password"
-							required
-							value={ formData.password }
-							placeholder="••••••••"
-						/>
-					</div>
+					@field(fieldOptions{
+						inputOptions: inputOptions{
+							id:        "email",
+							name:      "email",
+							inputType: "text",
+							required:  true,
+							value:     formData.password,
+						},
+						label: "Email"})
+					@field(fieldOptions{
+						inputOptions: inputOptions{
+							id:          "email",
+							name:        "email",
+							inputType:   "password",
+							required:    true,
+							value:       formData.email,
+							placeholder: "••••••••",
+						},
+						label: "Password",
+					})
 					if formData.invalidCredentials {
 						<div class="text-red-700">Email or password did not match</div>
 					}

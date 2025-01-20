@@ -77,43 +77,43 @@ func login_body(redirectUrl string, formData LoginFormData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><div><label class=\"block text-sm font-medium text-gray-900 dark:text-white\" for=\"email\">Email</label> <input class=\"bg-gray-50 border border-gray-300 text-gray-900 rounded-lg\n  focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5\n  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400\n  dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500\" id=\"email\" type=\"email\" name=\"email\" required value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(formData.email)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/auth_login.templ`, Line: 48, Col: 29}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"></div><div><label class=\"block text-sm font-medium text-gray-900 dark:text-white\" for=\"password\">Password</label> <input class=\"bg-gray-50 border border-gray-300 text-gray-900 rounded-lg\n  focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5\n  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400\n  dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500\" id=\"email\" type=\"email\" name=\"password\" required value=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(formData.password)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/auth_login.templ`, Line: 65, Col: 32}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		templ_7745c5c3_Err = field(fieldOptions{
+			inputOptions: inputOptions{
+				id:        "email",
+				name:      "email",
+				inputType: "text",
+				required:  true,
+				value:     formData.password,
+			},
+			label: "Email"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" placeholder=\"••••••••\"></div>")
+		templ_7745c5c3_Err = field(fieldOptions{
+			inputOptions: inputOptions{
+				id:          "email",
+				name:        "email",
+				inputType:   "password",
+				required:    true,
+				value:       formData.email,
+				placeholder: "••••••••",
+			},
+			label: "Password",
+		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if formData.invalidCredentials {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"text-red-700\">Email or password did not match</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"text-red-700\">Email or password did not match</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"flex items-center justify-between\"><div class=\"flex items-start\"><!--\n\t\t\t\t\t\t<div class=\"flex items-center h-5\">\n\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\tclass=\"w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800\"\n\t\t\t\t\t\t\t\ttype=\"checkbox\"\n\t\t\t\t\t\t\t\tid=\"remember\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"ml-3 text-sm\">\n\t\t\t\t\t\t\t<label\n\t\t\t\t\t\t\t\tclass=\"block text-sm font-medium  text-gray-500 dark:text-gray-300\"\n\t\t\t\t\t\t\t\tfor=\"remember\"\n\t\t\t\t\t\t\t>Remember me</label>\n\t\t\t\t\t\t</div>\n            --></div><!--\n\t\t\t\t\t<a href=\"#\" class=\"text-sm font-medium text-primary-600 hover:underline dark:text-primary-500\">Forgot password?</a>\n          --></div><button type=\"submit\" class=\"w-full text-white bg-cta hover:bg-primary-700 focus:ring-4\n    focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm\n    px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700\n    dark:focus:ring-primary-800\">Sign in</button><!--\n    <p class=\"text-sm font-light text-gray-500 dark:text-gray-400\">\n        Don’t have an account yet? <a href=\"#\" class=\"font-medium text-primary-600 hover:underline dark:text-primary-500\">Sign up</a>\n    </p>\n    --></form></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex items-center justify-between\"><div class=\"flex items-start\"><!--\n\t\t\t\t\t\t<div class=\"flex items-center h-5\">\n\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\tclass=\"w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800\"\n\t\t\t\t\t\t\t\ttype=\"checkbox\"\n\t\t\t\t\t\t\t\tid=\"remember\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"ml-3 text-sm\">\n\t\t\t\t\t\t\t<label\n\t\t\t\t\t\t\t\tclass=\"block text-sm font-medium  text-gray-500 dark:text-gray-300\"\n\t\t\t\t\t\t\t\tfor=\"remember\"\n\t\t\t\t\t\t\t>Remember me</label>\n\t\t\t\t\t\t</div>\n            --></div><!--\n\t\t\t\t\t<a href=\"#\" class=\"text-sm font-medium text-primary-600 hover:underline dark:text-primary-500\">Forgot password?</a>\n          --></div><button type=\"submit\" class=\"w-full text-white bg-cta hover:bg-primary-700 focus:ring-4\n    focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm\n    px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700\n    dark:focus:ring-primary-800\">Sign in</button><!--\n    <p class=\"text-sm font-light text-gray-500 dark:text-gray-400\">\n        Don’t have an account yet? <a href=\"#\" class=\"font-medium text-primary-600 hover:underline dark:text-primary-500\">Sign up</a>\n    </p>\n    --></form></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
