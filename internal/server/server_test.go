@@ -22,7 +22,7 @@ func TestCanServe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, "Project harmony", h1.TextContent())
+	assert.Equal(t, "Project Harmony", h1.TextContent())
 }
 
 type NavigateToLoginSuite struct {
