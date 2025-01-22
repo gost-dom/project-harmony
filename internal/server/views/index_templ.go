@@ -58,7 +58,7 @@ func body() templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"container mx-auto py-4\"><h1 class=\"text-4xl font-bold text-center py-4\">Project harmony</h1><p>This is just a demo</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"container mx-auto py-4\"><h1 class=\"text-4xl font-bold text-center py-4\">Project Harmony</h1><p>This is just a demo</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
