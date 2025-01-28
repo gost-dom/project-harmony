@@ -1,15 +1,15 @@
 package server_test
 
 import (
-	"fmt"
 	"harmony/internal/server"
+	"net/http"
 	"testing"
 
+	"github.com/gost-dom/browser/browser"
+	"github.com/gost-dom/browser/browser/dom"
+	"github.com/gost-dom/browser/browser/html"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"github.com/stroiman/go-dom/browser"
-	"github.com/stroiman/go-dom/browser/dom"
-	"github.com/stroiman/go-dom/browser/html"
 )
 
 func TestCanServe(t *testing.T) {
@@ -30,6 +30,22 @@ type NavigateToLoginSuite struct {
 	win html.Window
 }
 
+type RequestRecorder struct {
+	Handler  http.Handler
+	Requests []*http.Request
+}
+
+func (r *RequestRecorder) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	r.Requests = append(r.Requests, req)
+	r.Handler.ServeHTTP(w, req)
+}
+
+func (r RequestRecorder) requestCount() int { return len(r.Requests) }
+
+func (s NavigateToLoginSuite) Q() QueryHelper {
+	return QueryHelper{s.T(), s.win.Document()}
+}
+
 func (s *NavigateToLoginSuite) SetupTest() {
 	var err error
 	b := browser.NewBrowserFromHandler(server.New())
@@ -38,17 +54,41 @@ func (s *NavigateToLoginSuite) SetupTest() {
 }
 
 func (s *NavigateToLoginSuite) TestClickLoginLink() {
-	as, err := s.win.Document().QuerySelectorAll("a")
-	assert.NoError(s.T(), err)
-	for _, a := range as.All() {
-		fmt.Println("Found link", a.TextContent())
-		if a.TextContent() == "Login" {
-			fmt.Println("Click!!", a.(dom.Element).OuterHTML())
-			a.(html.HTMLElement).Click()
-			break
+	loginLink := s.Q().FindLinkWithName("Login")
+	loginLink.Click()
+	// We should be on the login path
+	assert.Equal(s.T(), "/auth/login", s.win.Location().Pathname())
+	// TODO: Verify that the window doesn't navigate
+}
+
+type QueryHelper struct {
+	T         *testing.T
+	Container dom.ElementContainer
+}
+
+func (h QueryHelper) FindLinkWithName(name string) html.HTMLAnchorElement {
+	as, err := h.Container.QuerySelectorAll("a")
+	assert.NoError(h.T, err)
+	var res *html.HTMLAnchorElement
+	for _, e := range as.All() {
+		a, ok := e.(html.HTMLAnchorElement)
+		if !ok {
+			h.T.Fatalf(
+				"Something very very wrong in the dom. Element was found as an 'a', but not an HTMLAnchorElement: %s",
+				e,
+			)
+		}
+		if a.TextContent() == name {
+			if res != nil {
+				h.T.Fatalf("Expected to find one anchor with name, '%s'. Found multiple", name)
+			}
+			res = &a
 		}
 	}
-	assert.Equal(s.T(), "/auth/login", s.win.Location().Pathname())
+	if res == nil {
+		h.T.Fatalf("Expected to find one anchor with name, '%s'. Found none", name)
+	}
+	return *res
 }
 
 func TestNavigateToLogin(t *testing.T) {
