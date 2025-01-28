@@ -4,6 +4,7 @@ go 1.23.4
 
 require (
 	github.com/a-h/templ v0.3.819
+	github.com/gost-dom/browser/browser v0.0.0-20250128113526-e87d1d4ecaff
 	github.com/stretchr/testify v1.10.0
 )
 
