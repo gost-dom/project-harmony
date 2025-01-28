@@ -4,8 +4,8 @@ go 1.23.4
 
 require (
 	github.com/a-h/templ v0.3.819
-	github.com/stroiman/go-dom/browser v0.0.0-20250119142044-ac0813c01ddb
 	github.com/stretchr/testify v1.10.0
+	github.com/stroiman/go-dom/browser v0.0.0-20250119142044-ac0813c01ddb
 )
 
 require (
@@ -23,4 +23,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/tommie/v8go => github.com/stroiman/v8go v0.0.0-20250116094955-dcf3ee9ea30c
+replace github.com/tommie/v8go => github.com/stroiman/v8go v0.0.0-20250127134419-01d759522fb4
