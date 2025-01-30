@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/gost-dom/browser/browser"
-	"github.com/gost-dom/browser/browser/dom"
-	"github.com/gost-dom/browser/browser/html"
+	"github.com/gost-dom/browser"
+	"github.com/gost-dom/browser/dom"
+	"github.com/gost-dom/browser/html"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
