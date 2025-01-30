@@ -1,3 +1,3 @@
 #!/bin/sh
-go mod edit -replace="github.com/gost-dom/browser/browser=github.com/stroiman/go-dom/browser@move-project-to-gost"
+go mod edit -replace="github.com/gost-dom/browser=github.com/gost-dom/browser@latest"
 go mod tidy
