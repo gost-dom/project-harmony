@@ -1,4 +1,4 @@
 #!/bin/sh
-go mod edit -replace="github.com/gost-dom/browser/browser=$HOME/go/src/github/stroiman/go-dom/browser"
+go mod edit -replace="github.com/gost-dom/browser=$HOME/go/src/github.com/gost-dom/browser"
 go mod tidy
 
