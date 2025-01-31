@@ -1,21 +1,20 @@
 package server_test
 
 import (
+	"fmt"
 	"harmony/internal/server"
-	"log/slog"
 	"net/http"
 	"testing"
 
 	"github.com/gost-dom/browser"
 	"github.com/gost-dom/browser/dom"
 	"github.com/gost-dom/browser/html"
-	"github.com/gost-dom/browser/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
 func init() {
-	logger.SetDefault(slog.Default())
+	//logger.SetDefault(slog.Default())
 }
 
 func TestCanServe(t *testing.T) {
@@ -60,11 +59,33 @@ func (s *NavigateToLoginSuite) SetupTest() {
 }
 
 func (s *NavigateToLoginSuite) TestClickLoginLink() {
+	fmt.Println("*** BOOOOOOOOOOOOOOOOOOOOOOH")
+	c := make(chan struct{})
+	s.win.AddEventListener("htmx:afterOnLoad", dom.NewEventHandlerFunc(func(e dom.Event) error {
+		fmt.Println("EVENT!!!!")
+		c <- struct{}{}
+		return nil
+	}))
+
 	loginLink := s.Q().FindLinkWithName("Login")
 	loginLink.Click()
 	// We should be on the login path
 	assert.Equal(s.T(), "/auth/login", s.win.Location().Pathname())
+	// fmt.Println(s.win.Document().Body().OuterHTML())
+	mainHeading := getMainHeading(s.T(), s.win)
+	assert.Equal(s.T(), "Login", mainHeading.TextContent())
 	// TODO: Verify that the window doesn't navigate
+
+	fmt.Println("TEST IS DONE DONE DONE\n\n----")
+}
+
+func getMainHeading(t *testing.T, w html.Window) dom.Element {
+	ee, err := w.Document().QuerySelectorAll("h1")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, ee.Length(), "Expected exactly one <h1> element in the document")
+	e, ok := ee.Item(0).(dom.Element)
+	assert.True(t, ok, "The found <h1> was expected to be e dom Element")
+	return e
 }
 
 func (s *NavigateToLoginSuite) TestLoginFlow() {
