@@ -4,7 +4,7 @@ go 1.23.4
 
 require (
 	github.com/a-h/templ v0.3.819
-	github.com/gost-dom/browser v0.0.0-20250130153737-68ab15fe76f1
+	github.com/gost-dom/browser v0.0.0-20250130223504-95817d940f11
 	github.com/stretchr/testify v1.10.0
 )
 
@@ -24,3 +24,5 @@ require (
 )
 
 replace github.com/tommie/v8go => github.com/stroiman/v8go v0.0.0-20250127134419-01d759522fb4
+
+replace github.com/gost-dom/browser => /Users/stroiman/go/src/github.com/gost-dom/browser
