@@ -25,6 +25,6 @@ require (
 
 replace github.com/tommie/v8go => github.com/stroiman/v8go v0.0.0-20250127134419-01d759522fb4
 
-replace github.com/gost-dom/browser => /Users/stroiman/go/src/github.com/gost-dom/browser
-
 replace github.com/ericchiang/css => github.com/gost-dom/css v0.0.0-20250131142618-e71a4110d83f
+
+replace github.com/gost-dom/browser => /Users/peter/go/src/github.com/gost-dom/browser
