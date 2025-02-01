@@ -2,15 +2,21 @@ package server_test
 
 import (
 	"harmony/internal/server"
+	"log/slog"
 	"net/http"
 	"testing"
 
 	"github.com/gost-dom/browser"
 	"github.com/gost-dom/browser/dom"
 	"github.com/gost-dom/browser/html"
+	"github.com/gost-dom/browser/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
+
+func init() {
+	logger.SetDefault(slog.Default())
+}
 
 func TestCanServe(t *testing.T) {
 	b := browser.NewBrowserFromHandler(server.New())
@@ -58,6 +64,21 @@ func (s *NavigateToLoginSuite) TestClickLoginLink() {
 	loginLink.Click()
 	// We should be on the login path
 	assert.Equal(s.T(), "/auth/login", s.win.Location().Pathname())
+	// TODO: Verify that the window doesn't navigate
+}
+
+func (s *NavigateToLoginSuite) TestLoginFlow() {
+	c := make(chan struct{})
+	s.win.AddEventListener("htmx:afterSettle", dom.NewEventHandlerFunc(func(e dom.Event) error {
+		c <- struct{}{}
+		return nil
+	}))
+	loginLink := s.Q().FindLinkWithName("Go to hosting")
+
+	loginLink.Click()
+	// <-c
+	// We should be on the login path
+	assert.Equal(s.T(), "/auth/login", s.win.Location().Pathname(), "Location after host")
 	// TODO: Verify that the window doesn't navigate
 }
 
