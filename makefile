@@ -37,5 +37,6 @@ live/sync_assets:
 	--build.include_ext "js,css"
 
 live/kill:
-	killall templ
-	killall main
+	killall templ || echo "Cannot kill templ"
+	killall main || echo "Cannot kill main"
+	killall air || echo "Cannot kill air"
