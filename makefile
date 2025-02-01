@@ -40,3 +40,6 @@ live/kill:
 	killall templ || echo "Cannot kill templ"
 	killall main || echo "Cannot kill main"
 	killall air || echo "Cannot kill air"
+
+test:
+	gow -s -P "Start suite" -S "Suite done" test -vet=off ./...
