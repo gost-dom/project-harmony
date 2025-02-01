@@ -1,3 +1,4 @@
 #!/bin/sh
-go mod edit -replace="github.com/gost-dom/browser=github.com/gost-dom/browser@latest"
+go mod edit -dropreplace="github.com/gost-dom/browser"
 go mod tidy
+go get -u github.com/gost-dom/browser
