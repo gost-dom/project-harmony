@@ -87,6 +87,7 @@ func login_body(redirectUrl string, formData LoginFormData) templ.Component {
 				name:      "email",
 				inputType: "text",
 				required:  true,
+				autofocus: true,
 				value:     formData.password,
 			},
 			label: "Email"}).Render(ctx, templ_7745c5c3_Buffer)
