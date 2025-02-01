@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"harmony/internal/project"
 	"harmony/internal/server/views"
@@ -18,12 +19,7 @@ func noCache(h http.Handler) http.Handler {
 	})
 }
 
-func staticFilesPath() string {
-	root := project.Root()
-
-	return filepath.Join(root, "static")
-
-}
+func staticFilesPath() string { return filepath.Join(project.Root(), "static") }
 
 func New() http.Handler {
 	component := views.Index()
@@ -34,7 +30,7 @@ func New() http.Handler {
 	mux.Handle("GET /auth/login/{$}", templ.Handler(login))
 	mux.HandleFunc("GET /host/{$}", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("hx-push-url", "/auth/login")
-		w.WriteHeader(200)
+		login.Render(context.Background(), w)
 	})
 	mux.Handle(
 		"GET /static/",

@@ -3,18 +3,20 @@ package server_test
 import (
 	"fmt"
 	"harmony/internal/server"
+	"log/slog"
 	"net/http"
 	"testing"
 
 	"github.com/gost-dom/browser"
 	"github.com/gost-dom/browser/dom"
 	"github.com/gost-dom/browser/html"
+	"github.com/gost-dom/browser/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
 func init() {
-	//logger.SetDefault(slog.Default())
+	logger.SetDefault(slog.Default())
 }
 
 func TestCanServe(t *testing.T) {
@@ -76,7 +78,6 @@ func (s *NavigateToLoginSuite) TestClickLoginLink() {
 	assert.Equal(s.T(), "Login", mainHeading.TextContent())
 	// TODO: Verify that the window doesn't navigate
 
-	fmt.Println("TEST IS DONE DONE DONE\n\n----")
 }
 
 func getMainHeading(t *testing.T, w html.Window) dom.Element {
@@ -90,17 +91,21 @@ func getMainHeading(t *testing.T, w html.Window) dom.Element {
 
 func (s *NavigateToLoginSuite) TestLoginFlow() {
 	c := make(chan struct{})
-	s.win.AddEventListener("htmx:afterSettle", dom.NewEventHandlerFunc(func(e dom.Event) error {
-		c <- struct{}{}
+	loginLink := s.Q().FindLinkWithName("Go to hosting")
+	s.win.AddEventListener("htmx:load", dom.NewEventHandlerFunc(func(e dom.Event) error {
+		go func() { c <- struct{}{} }()
 		return nil
 	}))
-	loginLink := s.Q().FindLinkWithName("Go to hosting")
 
 	loginLink.Click()
-	// <-c
+	<-c
 	// We should be on the login path
 	assert.Equal(s.T(), "/auth/login", s.win.Location().Pathname(), "Location after host")
+	mainHeading := getMainHeading(s.T(), s.win)
+	assert.Equal(s.T(), "Login", mainHeading.TextContent())
 	// TODO: Verify that the window doesn't navigate
+
+	fmt.Println("TEST IS DONE DONE DONE\n\n----")
 }
 
 type QueryHelper struct {
