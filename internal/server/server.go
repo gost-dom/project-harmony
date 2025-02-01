@@ -32,6 +32,10 @@ func New() http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("GET /{$}", templ.Handler(component))
 	mux.Handle("GET /auth/login/{$}", templ.Handler(login))
+	mux.HandleFunc("GET /host/{$}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("hx-push-url", "/auth/login")
+		w.WriteHeader(200)
+	})
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(
