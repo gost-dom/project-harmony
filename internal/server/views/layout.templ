@@ -58,7 +58,10 @@ dark:focus:ring-blue-800 ml-auto"
         -->
 			</div>
 			<script>
-        htmx.logAll();
+        // htmx.logAll();
+        window.addEventListener("error",(err) => {
+          console.error("SCRIPT ERROR!", err)
+        })
       </script>
 		</body>
 	</html>

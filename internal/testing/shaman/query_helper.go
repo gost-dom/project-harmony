@@ -47,10 +47,8 @@ func GetName(e dom.Element) string {
 				return label.TextContent()
 			}
 		}
-	case "BUTTON":
-		return e.TextContent()
 	}
-	return ""
+	return e.TextContent()
 }
 
 // Finds elements by their accessibility name. I.e., an associated label, the
