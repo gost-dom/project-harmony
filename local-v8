@@ -1,0 +1,3 @@
+#!/bin/sh
+go mod edit -replace="github.com/tommie/v8go=$HOME/go/src/github.com/stroiman/v8go"
+go mod tidy
