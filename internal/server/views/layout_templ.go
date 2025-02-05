@@ -41,7 +41,7 @@ func layout(c contents) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><!--\n\t\t\t\t<footer\n\t\t\t\t\tclass=\"bg-primary-600 text-white p-4 border-t\n      border-primary-800\"\n\t\t\t\t>Footer content</footer>\n        --></div><script>\n        htmx.logAll();\n      </script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><!--\n\t\t\t\t<footer\n\t\t\t\t\tclass=\"bg-primary-600 text-white p-4 border-t\n      border-primary-800\"\n\t\t\t\t>Footer content</footer>\n        --></div><script>\n        // htmx.logAll();\n        window.addEventListener(\"error\",(err) => {\n          console.error(\"SCRIPT ERROR!\", err)\n        })\n      </script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

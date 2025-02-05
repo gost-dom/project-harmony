@@ -25,30 +25,37 @@ templ login_body(redirectUrl string, formData LoginFormData) {
 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:text-white
         "
 				>Login</h1>
-				<form class="space-y-4 md:space-y-6" hx-post="/auth/login" hx-swap="outerHTML">
+				<form
+					id="login-form"
+					class="space-y-4 md:space-y-6"
+					hx-post="/auth/login"
+					hx-swap="innerHTML"
+				>
+					<!--
 					<input
 						type="hidden"
 						name="redirectUrl"
 						value={ redirectUrl }
 					/>
+          -->
 					@field(fieldOptions{
 						inputOptions: inputOptions{
 							id:        "email",
 							name:      "email",
 							inputType: "text",
 							required:  true,
-							autofocus: true,
-							value:     formData.password,
+							// autofocus: true,
+							value: formData.email,
 						},
 						label: "Email"})
 					@field(fieldOptions{
 						inputOptions: inputOptions{
-							id:          "email",
-							name:        "email",
+							id:          "password",
+							name:        "password",
 							inputType:   "password",
 							required:    true,
-							value:       formData.email,
 							placeholder: "••••••••",
+							value:       formData.password,
 						},
 						label: "Password",
 					})
@@ -78,6 +85,7 @@ text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:te
           -->
 					</div>
 					<button
+						id="submit-login-form-button"
 						type="submit"
 						class="w-full text-white bg-cta hover:bg-primary-700 focus:ring-4
     focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm
