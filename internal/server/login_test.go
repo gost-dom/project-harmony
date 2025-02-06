@@ -18,8 +18,9 @@ type LoginPageSuite struct {
 	suite.Suite
 	gomega.Gomega
 	shaman.QueryHelper
-	win    html.Window
-	events chan dom.Event
+	win       html.Window
+	events    chan dom.Event
+	loginForm LoginForm
 }
 
 func (s *LoginPageSuite) SetupTest() {
@@ -40,6 +41,7 @@ func (s *LoginPageSuite) SetupTest() {
 	s.QueryHelper = shaman.NewQueryHelper(s.T())
 	s.QueryHelper.Container = win.Document()
 	s.WaitFor("htmx:load")
+	s.loginForm = LoginForm{s.Scope(shaman.ByRole(ariarole.Form))}
 }
 
 func (s *LoginPageSuite) WaitFor(event string) {
@@ -54,25 +56,17 @@ func (s *LoginPageSuite) TestMissingUsername() {}
 func (s *LoginPageSuite) TestMissingPassword() {}
 
 func (s *LoginPageSuite) TestValidCredentialsRedirects() {
-	email := s.Get(shaman.ByRole(ariarole.Textbox), shaman.ByName("Email"))
-	pw := s.Get(shaman.ByRole(ariarole.PasswordText), shaman.ByName("Password"))
-	submit := s.Get(shaman.ByRole(ariarole.Button), shaman.ByName("Sign in"))
-
-	email.SetAttribute("value", "valid-user@example.com")
-	pw.SetAttribute("value", "s3cret")
-	submit.Click()
+	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
+	s.loginForm.Password().SetAttribute("value", "s3cret")
+	s.loginForm.SubmitBtn().Click()
 
 	s.Equal("/host", s.win.Location().Pathname())
 }
 
 func (s *LoginPageSuite) TestInvalidCredentials() {
-	email := s.Get(shaman.ByRole(ariarole.Textbox), shaman.ByName("Email"))
-	pw := s.Get(shaman.ByRole(ariarole.PasswordText), shaman.ByName("Password"))
-	submit := s.Get(shaman.ByRole(ariarole.Button), shaman.ByName("Sign in"))
-
-	email.SetAttribute("value", "bad-user@example.com")
-	pw.SetAttribute("value", "s3cret")
-	submit.Click()
+	s.loginForm.Email().SetAttribute("value", "bad-user@example.com")
+	s.loginForm.Password().SetAttribute("value", "s3cret")
+	s.loginForm.SubmitBtn().Click()
 
 	s.Expect(s.win.Location().Href()).To(gomega.Equal("/auth/login"))
 	s.Equal("/auth/login", s.win.Location().Href())
