@@ -11,13 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type QueryHelper struct {
-	t         *testing.T
-	Container dom.ElementContainer
-}
-
-func NewQueryHelper(t *testing.T) QueryHelper { return QueryHelper{t: t} }
-
+// options treats multiple options as one, simplifying the search for multiple
+// options, as well as stringifying multiple options.
 type options []ElementPredicate
 
 func (o options) IsMatch(e dom.Element) bool {
@@ -40,6 +35,13 @@ func (o options) String() string {
 	}
 	return strings.Join(names, ", ")
 }
+
+type QueryHelper struct {
+	t         *testing.T
+	Container dom.ElementContainer
+}
+
+func NewQueryHelper(t *testing.T) QueryHelper { return QueryHelper{t: t} }
 
 func (h QueryHelper) All() iter.Seq[dom.Element] {
 	return func(yield func(dom.Element) bool) {
@@ -117,4 +119,10 @@ func (h QueryHelper) FindLinkWithName(name string) html.HTMLAnchorElement {
 		t.Fatalf("Expected to find one anchor with name, '%s'. Found none", name)
 	}
 	return res
+}
+
+func (h QueryHelper) Scope(opts ...ElementPredicate) QueryHelper {
+	r := NewQueryHelper(h.t)
+	r.Container = h.Get(opts...)
+	return r
 }

@@ -13,10 +13,11 @@ const (
 	// None represents an element that doesn't have a role specified.
 	None         Role = ""
 	Alert        Role = "alert"
-	Link         Role = "link"
 	Button       Role = "button"
-	Textbox      Role = "textbox"
+	Form         Role = "form"
+	Link         Role = "link"
 	PasswordText Role = "password text"
+	Textbox      Role = "textbox"
 )
 
 func GetElementRole(e dom.Element) Role {
@@ -44,6 +45,8 @@ func GetElementRole(e dom.Element) Role {
 		return Button
 	case "A":
 		return Link
+	case "FORM":
+		return Form
 	}
 	return None
 }
