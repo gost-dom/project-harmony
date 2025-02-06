@@ -101,7 +101,7 @@ func (s *NavigateToLoginSuite) TestLoginFlow() {
 	assert.Equal(s.T(), "Login", mainHeading.TextContent())
 
 	s.Get(shaman.ByRole(ariarole.Textbox), shaman.ByName("Email")).
-		SetAttribute("value", "user@example.com")
+		SetAttribute("value", "valid-user@example.com")
 
 	s.Get(shaman.ByRole(ariarole.PasswordText), shaman.ByName("Password")).
 		SetAttribute("value", "s3cret")

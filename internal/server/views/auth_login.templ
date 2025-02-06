@@ -5,9 +5,9 @@ templ AuthLogin() {
 }
 
 type LoginFormData struct {
-	email              string
-	password           string
-	invalidCredentials bool
+	Email              string
+	Password           string
+	InvalidCredentials bool
 }
 
 templ login_body(redirectUrl string, formData LoginFormData) {
@@ -31,40 +31,46 @@ text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:te
 					hx-post="/auth/login"
 					hx-swap="innerHTML"
 				>
-					<!--
-					<input
-						type="hidden"
-						name="redirectUrl"
-						value={ redirectUrl }
-					/>
-          -->
-					@field(fieldOptions{
-						inputOptions: inputOptions{
-							id:        "email",
-							name:      "email",
-							inputType: "text",
-							required:  true,
-							// autofocus: true,
-							value: formData.email,
-						},
-						label: "Email"})
-					@field(fieldOptions{
-						inputOptions: inputOptions{
-							id:          "password",
-							name:        "password",
-							inputType:   "password",
-							required:    true,
-							placeholder: "••••••••",
-							value:       formData.password,
-						},
-						label: "Password",
-					})
-					if formData.invalidCredentials {
-						<div class="text-red-700">Email or password did not match</div>
-					}
-					<div class="flex items-center justify-between">
-						<div class="flex items-start">
-							<!--
+					@LoginForm(redirectUrl, formData)
+				</form>
+			</div>
+		</div>
+	</div>
+}
+
+templ LoginForm(redirectUrl string, formData LoginFormData) {
+	<input
+		type="hidden"
+		name="redirectUrl"
+		value={ redirectUrl }
+	/>
+	@field(fieldOptions{
+		inputOptions: inputOptions{
+			id:        "email",
+			name:      "email",
+			inputType: "text",
+			required:  true,
+			// autofocus: true,
+			value: formData.Email,
+		},
+		label: "Email"})
+	@field(fieldOptions{
+		inputOptions: inputOptions{
+			id:          "password",
+			name:        "password",
+			inputType:   "password",
+			required:    true,
+			placeholder: "••••••••",
+			value:       formData.Password,
+		},
+		label: "Password",
+	})
+	if formData.InvalidCredentials {
+		<div role="alert" class="text-red-700">Email or password did not match</div>
+	}
+	<div class="flex items-center justify-between">
+		<div class="flex items-start">
+			<!--
 						<div class="flex items-center h-5">
 							<input
 								class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
@@ -79,28 +85,24 @@ text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:te
 							>Remember me</label>
 						</div>
             -->
-						</div>
-						<!--
+		</div>
+		<!--
 					<a href="#" class="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">Forgot password?</a>
           -->
-					</div>
-					<button
-						id="submit-login-form-button"
-						type="submit"
-						class="w-full text-white bg-cta hover:bg-primary-700 focus:ring-4
+	</div>
+	<button
+		id="submit-login-form-button"
+		type="submit"
+		class="w-full text-white bg-cta hover:bg-primary-700 focus:ring-4
     focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm
     px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700
     dark:focus:ring-primary-800"
-					>
-						Sign in
-					</button>
-					<!--
+	>
+		Sign in
+	</button>
+	<!--
     <p class="text-sm font-light text-gray-500 dark:text-gray-400">
         Don’t have an account yet? <a href="#" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Sign up</a>
     </p>
     -->
-				</form>
-			</div>
-		</div>
-	</div>
 }
