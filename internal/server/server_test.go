@@ -38,8 +38,7 @@ type NavigateToLoginSuite struct {
 	suite.Suite
 	Sync sync.EventSync
 	shaman.QueryHelper
-	win    html.Window
-	cancel func()
+	win html.Window
 }
 
 type RequestRecorder struct {
@@ -73,7 +72,7 @@ func (s *NavigateToLoginSuite) SetupTest() {
 }
 
 func (s *NavigateToLoginSuite) TestClickLoginLink() {
-	s.Q().FindLinkWithName("Login").Click()
+	s.Q().Get(ByRole(ariarole.Link), ByName("Login")).Click()
 	assert.Equal(s.T(), "/auth/login", s.win.Location().Pathname())
 	mainHeading := getMainHeading(s.T(), s.win)
 	assert.Equal(s.T(), "Login", mainHeading.TextContent())
