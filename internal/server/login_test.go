@@ -5,6 +5,8 @@ import (
 	"harmony/internal/server"
 	ariarole "harmony/internal/testing/aria-role"
 	"harmony/internal/testing/shaman"
+	. "harmony/internal/testing/shaman/predicates"
+	"harmony/internal/testing/shaman/sync"
 	"testing"
 
 	"github.com/gost-dom/browser"
@@ -19,69 +21,10 @@ type LoginPageSuite struct {
 	suite.Suite
 	gomega.Gomega
 	shaman.QueryHelper
-	Sync
+	sync.EventSync
 	win       html.Window
 	events    chan dom.Event
 	loginForm LoginForm
-}
-
-// Sync is a helper to wait for the window to dispatch certain events. This
-// helps syncrhonizing test with HTMX events, so as to not proceed with the
-// test, until HTMX has settled.
-//
-// Test code can call [Sync.WaitFor] to wait for an event. Events must be waited
-// for in the order they are dispatched,
-//
-// Good events to wait for (this is just meant as a starting point)
-//   - htmx:load - when HTMX has loaded, and processed all relevant nodes
-//   - htmx:afterSettle - when has swapped innerHTML
-//
-// Note: It appears that HTMX dispatches different events depending on the
-// hx-swap value, so keep that in mind.
-//
-// Tip: On the fron-end, you can call `htmx.logAll()` to see which events it
-// emits.
-type Sync struct {
-	events chan dom.Event
-}
-
-// Waits for an event with a specific [dom.Event.Type] to be dispatched. This
-// must be called in the order the events are dispatched. Any event before the
-// one listening for will be discarded.
-//
-// For HTMX events, there would normally be causality, i.e., htmx:beforeSwap is
-// dispatched before htmx:afterSwap, so you can call this twice in the right
-// order.
-//
-// If you need to wait for two events with no causality, you will need to use to
-// syncers. But please write a message in the [discussions], as it's quite
-// possible the sync would need some kind of fork for this scenario to work
-// properly
-//
-// [discussions]: https://github.com/orgs/gost-dom/discussions
-func (s Sync) WaitFor(type_ string) dom.Event {
-	for e := range s.events {
-		if e.Type() == type_ {
-			return e
-		}
-	}
-	return nil
-}
-
-func SetupSync(w html.Window) (res Sync) {
-	// I'm sure there's a better way to do this, but we want to put the events
-	// into a queue without blocking the sender, but a listener will block until
-	// the event they are interested in
-	res.events = make(chan dom.Event, 100)
-	w.SetCatchAllHandler(dom.NewEventHandlerFunc(func(e dom.Event) error {
-		select {
-		case res.events <- e:
-		default:
-			panic("Event buffer full")
-		}
-		return nil
-	}))
-	return
 }
 
 func (s *LoginPageSuite) SetupTest() {
@@ -98,13 +41,13 @@ func (s *LoginPageSuite) SetupTest() {
 	//
 	// Technically, you can create an empty browser, setup sync, and navigate. But
 	// that opens a blank page, and a script context, which is a bit wasted.
-	s.Sync = SetupSync(win)
+	s.EventSync = sync.SetupEventSync(win)
 	s.NoError(err)
 	s.win = win
 	s.QueryHelper = shaman.NewQueryHelper(s.T())
 	s.QueryHelper.Container = win.Document()
 	s.WaitFor("htmx:load")
-	s.loginForm = LoginForm{s.Scope(shaman.ByRole(ariarole.Form))}
+	s.loginForm = LoginForm{s.Scope(ByRole(ariarole.Form))}
 }
 
 func (s *LoginPageSuite) TestMissingUsername() {
@@ -149,7 +92,7 @@ func (s *LoginPageSuite) TestInvalidCredentials() {
 	s.Expect(s.win.Location().Href()).To(gomega.Equal("/auth/login"))
 	s.Equal("/auth/login", s.win.Location().Href())
 
-	alert := s.Get(shaman.ByRole(ariarole.Alert))
+	alert := s.Get(ByRole(ariarole.Alert))
 
 	s.Expect(alert).To(matchers.HaveTextContent(gomega.ContainSubstring(
 		"Email or password did not match")))
@@ -164,13 +107,13 @@ type LoginForm struct {
 }
 
 func (f LoginForm) Email() dom.Element {
-	return f.Get(shaman.ByRole(ariarole.Textbox), shaman.ByName("Email"))
+	return f.Get(ByRole(ariarole.Textbox), ByName("Email"))
 }
 
 func (f LoginForm) Password() dom.Element {
-	return f.Get(shaman.ByRole(ariarole.PasswordText), shaman.ByName("Password"))
+	return f.Get(ByRole(ariarole.PasswordText), ByName("Password"))
 }
 
 func (f LoginForm) SubmitBtn() dom.Element {
-	return f.Get(shaman.ByRole(ariarole.Button), shaman.ByName("Sign in"))
+	return f.Get(ByRole(ariarole.Button), ByName("Sign in"))
 }

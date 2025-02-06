@@ -5,6 +5,7 @@ import (
 	"harmony/internal/server"
 	ariarole "harmony/internal/testing/aria-role"
 	"harmony/internal/testing/shaman"
+	. "harmony/internal/testing/shaman/predicates"
 	"net/http"
 	"testing"
 	"time"
@@ -94,21 +95,21 @@ func getMainHeading(t *testing.T, w html.Window) dom.Element {
 
 func (s *NavigateToLoginSuite) TestLoginFlow() {
 	s.Sync.WaitFor("htmx:afterSettle", func() {
-		s.Get(shaman.ByRole(ariarole.Link), shaman.ByName("Go to hosting")).Click()
+		s.Get(ByRole(ariarole.Link), ByName("Go to hosting")).Click()
 	})
 	assert.Equal(s.T(), "/auth/login", s.win.Location().Pathname(), "Location after host")
 	mainHeading := getMainHeading(s.T(), s.win)
 	assert.Equal(s.T(), "Login", mainHeading.TextContent())
 
-	s.Get(shaman.ByRole(ariarole.Textbox), shaman.ByName("Email")).
+	s.Get(ByRole(ariarole.Textbox), ByName("Email")).
 		SetAttribute("value", "valid-user@example.com")
 
-	s.Get(shaman.ByRole(ariarole.PasswordText), shaman.ByName("Password")).
+	s.Get(ByRole(ariarole.PasswordText), ByName("Password")).
 		SetAttribute("value", "s3cret")
 
 	s.Sync.WaitFor("htmx:afterSettle", func() {
 		// fmt.Println("\n\n--- CLICK BUTTON\n\n-")
-		s.Get(shaman.ByRole(ariarole.Button), shaman.ByName("Sign in")).Click()
+		s.Get(ByRole(ariarole.Button), ByName("Sign in")).Click()
 		// form := s.win.Document().GetElementById("login-form").(html.HTMLFormElement)
 		// form.RequestSubmit(nil)
 	})
