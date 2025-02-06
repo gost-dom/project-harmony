@@ -52,6 +52,9 @@ accessible design.
 This package contains helpers for querying the DOM. The shaman helps drive
 ghosts away (couldn't call it excorsist, too complicated to type in Go code).
 
+This would eventually be extracted to a separate project; this just serves as a
+place to experiment with patterns.
+
 All of these are incomplete, and just works on the element types that are
 actually used in this codebase
 
