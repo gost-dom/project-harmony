@@ -24,7 +24,7 @@ func init() {
 
 func TestCanServe(t *testing.T) {
 	b := browser.NewBrowserFromHandler(server.New())
-	w, err := b.Open("/")
+	w, err := b.Open("http://localhost:1234/") // host is imaginary - just need to exist
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func (s *NavigateToLoginSuite) SetupTest() {
 	var err error
 	s.QueryHelper = shaman.NewQueryHelper(s.T())
 	b := browser.NewBrowserFromHandler(server.New())
-	s.win, err = b.Open("/")
+	s.win, err = b.Open("http://localhost:1234/")
 	var ctx context.Context
 	ctx, s.cancel = context.WithTimeout(context.Background(), 100*time.Millisecond)
 	s.Sync = shaman.NewSync(ctx, s.T())
@@ -108,12 +108,9 @@ func (s *NavigateToLoginSuite) TestLoginFlow() {
 		SetAttribute("value", "s3cret")
 
 	s.Sync.WaitFor("htmx:afterSettle", func() {
-		// fmt.Println("\n\n--- CLICK BUTTON\n\n-")
 		s.Get(ByRole(ariarole.Button), ByName("Sign in")).Click()
-		// form := s.win.Document().GetElementById("login-form").(html.HTMLFormElement)
-		// form.RequestSubmit(nil)
 	})
-	assert.Equal(s.T(), "/host", s.win.Location().Href())
+	assert.Equal(s.T(), "/host", s.win.Location().Pathname())
 }
 
 func TestNavigateToLogin(t *testing.T) {

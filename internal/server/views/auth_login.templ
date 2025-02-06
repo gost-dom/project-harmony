@@ -1,7 +1,7 @@
 package views
 
-templ AuthLogin() {
-	@layout(contents{body: login_body("", LoginFormData{})})
+templ AuthLogin(redirectUrl string) {
+	@layout(contents{body: login_body(redirectUrl, LoginFormData{})})
 }
 
 type LoginFormData struct {
