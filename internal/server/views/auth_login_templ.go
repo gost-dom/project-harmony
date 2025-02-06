@@ -136,12 +136,14 @@ func LoginForm(redirectUrl string, formData LoginFormData) templ.Component {
 		}
 		templ_7745c5c3_Err = field(fieldOptions{
 			inputOptions: inputOptions{
-				id:        "email",
-				name:      "email",
-				inputType: "text",
-				required:  true,
+				id:              "email",
+				name:            "email",
+				inputType:       "text",
+				required:        true,
+				validationError: "Email is required",
 				// autofocus: true,
 				value:      formData.Email,
+				invalid:    formData.EmailMissing,
 				attributes: invalid(formData.EmailMissing),
 			},
 			label: "Email"}).Render(ctx, templ_7745c5c3_Buffer)
@@ -150,13 +152,15 @@ func LoginForm(redirectUrl string, formData LoginFormData) templ.Component {
 		}
 		templ_7745c5c3_Err = field(fieldOptions{
 			inputOptions: inputOptions{
-				id:          "password",
-				name:        "password",
-				inputType:   "password",
-				required:    true,
-				placeholder: "••••••••",
-				value:       formData.Password,
-				attributes:  invalid(formData.PasswordMissing),
+				id:              "password",
+				name:            "password",
+				inputType:       "password",
+				validationError: "Password is required",
+				required:        true,
+				placeholder:     "••••••••",
+				value:           formData.Password,
+				invalid:         formData.PasswordMissing,
+				attributes:      invalid(formData.PasswordMissing),
 			},
 			label: "Password",
 		}).Render(ctx, templ_7745c5c3_Buffer)

@@ -51,3 +51,24 @@ accessible design.
 
 This package contains helpers for querying the DOM. The shaman helps drive
 ghosts away (couldn't call it excorsist, too complicated to type in Go code).
+
+## Running
+
+There's a makefile with a "live" target as the default target, which starts the
+server with live-reload capabilities on port 7331.
+
+## Testing frameworks
+
+The structure use [testify](https://github.com/stretchr/testify) suites.
+
+For assertions, the suite uses mostly testify, but a few use gomega.
+[gomega](https://onsi.github.io/gomega). Gomega allows creation of custom
+matches, that can significantly increase the expressiveness of tests, hiding
+irrelevant details. 
+
+E.g., checking the the value of an attribute of a variable of type `Node`
+requires 3 check, one for type cast, one of the presence of the attribute, and
+one for the value of the attribute.
+
+Use whatever you want; this is meant as a source of test patterns, and as such
+try to cover multiple ways to achieve the result.

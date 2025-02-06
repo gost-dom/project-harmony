@@ -2,6 +2,7 @@ package shaman
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gost-dom/browser/dom"
 )
@@ -29,4 +30,19 @@ func GetName(e dom.Element) string {
 		}
 	}
 	return e.TextContent()
+}
+
+func GetDescription(e dom.Element) string {
+	if id, ok := e.GetAttribute("aria-describedby"); ok {
+		ids := strings.Split(id, " ")
+		ss := make([]string, 0, len(ids))
+		for _, id := range ids {
+			if e := e.OwnerDocument().GetElementById(id); e != nil {
+				ss = append(ss, e.TextContent())
+			}
+		}
+		return strings.Join(ss, "\n")
+	}
+	s, _ := e.GetAttribute("aria-description")
+	return s
 }
