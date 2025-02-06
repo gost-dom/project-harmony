@@ -2,7 +2,6 @@ package shaman
 
 import (
 	"fmt"
-	ariarole "harmony/internal/testing/aria-role"
 	"iter"
 	"strings"
 	"testing"
@@ -19,52 +18,9 @@ type QueryHelper struct {
 
 func NewQueryHelper(t *testing.T) QueryHelper { return QueryHelper{t: t} }
 
-type ElementPredicate interface{ IsMatch(dom.Element) bool }
+type options []ElementPredicate
 
-type ByRole ariarole.Role
-
-func (r ByRole) IsMatch(e dom.Element) bool {
-	return ariarole.GetElementRole(e) == ariarole.Role(r)
-}
-func (r ByRole) String() string { return fmt.Sprintf("By role: %s", string(r)) }
-
-// Gets the by their accessibility name of an element. I.e., an associated
-// label, the value of an aria-label, or the text-content of an element
-// referenced by an aria-labelledby property
-func GetName(e dom.Element) string {
-	// TODO: This should be exposed as IDL attributes
-	if l, ok := e.GetAttribute("aria-label"); ok {
-		return l
-	}
-	doc := e.OwnerDocument()
-	if l, ok := e.GetAttribute("aria-labelledby"); ok {
-		if labelElm := doc.GetElementById(l); labelElm != nil {
-			return labelElm.TextContent()
-		}
-	}
-	switch e.TagName() {
-	case "INPUT":
-		if id, ok := e.GetAttribute("id"); ok {
-			if label, _ := doc.QuerySelector(fmt.Sprintf("label[for='%s']", id)); label != nil {
-				return label.TextContent()
-			}
-		}
-	}
-	return e.TextContent()
-}
-
-// Finds elements by their accessibility name. I.e., an associated label, the
-// value of an aria-label, or the text-content of an element referenced by an
-// aria-labelledby property
-type ByName string
-
-func (n ByName) IsMatch(e dom.Element) bool { return GetName(e) == string(n) }
-
-func (n ByName) String() string { return fmt.Sprintf("By accessibility name: %s", string(n)) }
-
-type Options []ElementPredicate
-
-func (o Options) IsMatch(e dom.Element) bool {
+func (o options) IsMatch(e dom.Element) bool {
 	for _, o := range o {
 		if !o.IsMatch(e) {
 			return false
@@ -73,7 +29,7 @@ func (o Options) IsMatch(e dom.Element) bool {
 	return true
 }
 
-func (o Options) String() string {
+func (o options) String() string {
 	names := make([]string, len(o))
 	for i, o := range o {
 		if s, ok := o.(fmt.Stringer); ok {
@@ -102,8 +58,8 @@ func (h QueryHelper) All() iter.Seq[dom.Element] {
 	}
 }
 
-func (h QueryHelper) FindAll(options ...ElementPredicate) iter.Seq[dom.Element] {
-	opt := Options(options)
+func (h QueryHelper) FindAll(opts ...ElementPredicate) iter.Seq[dom.Element] {
+	opt := options(opts)
 	return func(yield func(dom.Element) bool) {
 		next, done := iter.Pull(h.All())
 		defer done()
@@ -124,16 +80,16 @@ func (h QueryHelper) FindAll(options ...ElementPredicate) iter.Seq[dom.Element] 
 // Get returns the element that matches the options. Exactly one element is
 // expected to exist in the dom mathing the options. If zero, or more than one
 // are found, a fatal error is generated.
-func (h QueryHelper) Get(options ...ElementPredicate) dom.Element {
-	next, stop := iter.Pull(h.FindAll(options...))
+func (h QueryHelper) Get(opts ...ElementPredicate) dom.Element {
+	next, stop := iter.Pull(h.FindAll(opts...))
 	defer stop()
 	if v, ok := next(); ok {
 		if _, ok := next(); ok {
-			h.t.Fatalf("Multiple elements matching options: %s", Options(options))
+			h.t.Fatalf("Multiple elements matching options: %s", options(opts))
 		}
 		return v
 	}
-	h.t.Fatalf("No elements mathing options: %s", Options(options))
+	h.t.Fatalf("No elements mathing options: %s", options(opts))
 	return nil
 }
 
