@@ -62,24 +62,28 @@ templ LoginForm(redirectUrl string, formData LoginFormData) {
 	/>
 	@field(fieldOptions{
 		inputOptions: inputOptions{
-			id:        "email",
-			name:      "email",
-			inputType: "text",
-			required:  true,
+			id:              "email",
+			name:            "email",
+			inputType:       "text",
+			required:        true,
+			validationError: "Email is required",
 			// autofocus: true,
 			value:      formData.Email,
+			invalid:    formData.EmailMissing,
 			attributes: invalid(formData.EmailMissing),
 		},
 		label: "Email"})
 	@field(fieldOptions{
 		inputOptions: inputOptions{
-			id:          "password",
-			name:        "password",
-			inputType:   "password",
-			required:    true,
-			placeholder: "••••••••",
-			value:       formData.Password,
-			attributes:  invalid(formData.PasswordMissing),
+			id:              "password",
+			name:            "password",
+			inputType:       "password",
+			validationError: "Password is required",
+			required:        true,
+			placeholder:     "••••••••",
+			value:           formData.Password,
+			invalid:         formData.PasswordMissing,
+			attributes:      invalid(formData.PasswordMissing),
 		},
 		label: "Password",
 	})

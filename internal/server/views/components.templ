@@ -1,14 +1,16 @@
 package views
 
 type inputOptions struct {
-	id          string
-	name        string
-	inputType   string
-	value       string
-	placeholder string
-	required    bool
-	autofocus   bool
-	attributes  templ.Attributes
+	id              string
+	name            string
+	inputType       string
+	value           string
+	placeholder     string
+	validationError string
+	required        bool
+	autofocus       bool
+	invalid         bool
+	attributes      templ.Attributes
 }
 
 templ input(o inputOptions) {
@@ -34,11 +36,20 @@ type fieldOptions struct {
 }
 
 templ field(o fieldOptions) {
+	{{
+	var descId string = o.id + "-missing"
+	if o.invalid {
+		o.attributes["aria-describedby"] = descId
+	}
+	}}
 	<div>
 		<label
 			class="block text-sm font-medium text-gray-900 dark:text-white"
 			for={ o.id }
 		>{ o.label }</label>
 		@input(o.inputOptions)
+		if o.invalid {
+			<div id={ descId }>{ o.validationError }</div>
+		}
 	</div>
 }
