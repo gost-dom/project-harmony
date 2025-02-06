@@ -1,8 +1,9 @@
-package shaman
+package predicates
 
 import (
 	"fmt"
 	ariarole "harmony/internal/testing/aria-role"
+	"harmony/internal/testing/shaman"
 
 	"github.com/gost-dom/browser/dom"
 )
@@ -17,7 +18,7 @@ import (
 // "accessibility name", which is why this is called name, not label.
 type ByName string
 
-func (n ByName) IsMatch(e dom.Element) bool { return GetName(e) == string(n) }
+func (n ByName) IsMatch(e dom.Element) bool { return shaman.GetName(e) == string(n) }
 
 func (n ByName) String() string { return fmt.Sprintf("By accessibility name: %s", string(n)) }
 

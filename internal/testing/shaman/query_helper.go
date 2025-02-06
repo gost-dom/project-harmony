@@ -11,6 +11,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// An ElementPredicate is a type that checks if an element matches certain
+// criteria, and is used to fine elements in the dom. E.g., finding the input
+// element with the label "email".
+//
+// An implementation of ElementPredicate should also implement [fmt.Stringer],
+// describing what the predicate is looking for. This provides better error
+// messages for failed queries.
+type ElementPredicate interface{ IsMatch(dom.Element) bool }
+
+// An ElementPredicateFunc wraps a single function as a predicate to be used
+// with [QueryHelper.FindAll] or [QueryHelper.Get].
+//
+// It is better to create a type implementing both [ElementPredicate] AND
+// [fmt.Stringer], as it allows for better error messages when expected elements
+// cannot be found.
+//
+// This type is exposed for the sake of easier prototyping of test code.
+type ElementPredicateFunc func(dom.Element) bool
+
+func (f ElementPredicateFunc) IsMatch(e dom.Element) bool { return f(e) }
+
 // options treats multiple options as one, simplifying the search for multiple
 // options, as well as stringifying multiple options.
 type options []ElementPredicate
