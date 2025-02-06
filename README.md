@@ -52,6 +52,34 @@ accessible design.
 This package contains helpers for querying the DOM. The shaman helps drive
 ghosts away (couldn't call it excorsist, too complicated to type in Go code).
 
+All of these are incomplete, and just works on the element types that are
+actually used in this codebase
+
+### EventSync
+
+Helps synchronize to events, e.g., don't start clicking elements until HTMX has
+installed event handlers
+
+### QueryHelper
+
+Helps func multiple, or single elements mathching a set of predicates.
+Predicates are specified in the predicates packages. This was it's own package,
+primarily as you might want to dot-import these for readability; so not pollute
+global scope in one file.
+
+### aria-role
+
+Contains definitions of aria roles, and a function to determine the role of a
+specific element.
+
+### Various helpers
+
+`GetName`, `GetDescription`. Gets the accessibility name, as well as the
+description for various elements. Can be used for querying, or veriying.
+
+The examples use `GetName` for querying elements, and `GetDescription` to verify
+error messages are attached to input fields.
+
 ## Running
 
 There's a makefile with a "live" target as the default target, which starts the
