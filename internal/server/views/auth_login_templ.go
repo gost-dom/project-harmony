@@ -39,8 +39,18 @@ func AuthLogin() templ.Component {
 
 type LoginFormData struct {
 	Email              string
+	EmailMissing       bool
 	Password           string
+	PasswordMissing    bool
 	InvalidCredentials bool
+}
+
+func boolToString(b bool) string {
+	if b {
+		return "true"
+	} else {
+		return "false"
+	}
 }
 
 func login_body(redirectUrl string, formData LoginFormData) templ.Component {
@@ -80,6 +90,12 @@ func login_body(redirectUrl string, formData LoginFormData) templ.Component {
 	})
 }
 
+func invalid(v bool) (res templ.Attributes) {
+	return templ.Attributes{
+		"aria-invalid": boolToString(v),
+	}
+}
+
 func LoginForm(redirectUrl string, formData LoginFormData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -108,7 +124,7 @@ func LoginForm(redirectUrl string, formData LoginFormData) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(redirectUrl)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/auth_login.templ`, Line: 45, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/auth_login.templ`, Line: 61, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -125,7 +141,8 @@ func LoginForm(redirectUrl string, formData LoginFormData) templ.Component {
 				inputType: "text",
 				required:  true,
 				// autofocus: true,
-				value: formData.Email,
+				value:      formData.Email,
+				attributes: invalid(formData.EmailMissing),
 			},
 			label: "Email"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -139,6 +156,7 @@ func LoginForm(redirectUrl string, formData LoginFormData) templ.Component {
 				required:    true,
 				placeholder: "••••••••",
 				value:       formData.Password,
+				attributes:  invalid(formData.PasswordMissing),
 			},
 			label: "Password",
 		}).Render(ctx, templ_7745c5c3_Buffer)

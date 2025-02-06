@@ -6,8 +6,18 @@ templ AuthLogin() {
 
 type LoginFormData struct {
 	Email              string
+	EmailMissing       bool
 	Password           string
+	PasswordMissing    bool
 	InvalidCredentials bool
+}
+
+func boolToString(b bool) string {
+	if b {
+		return "true"
+	} else {
+		return "false"
+	}
 }
 
 templ login_body(redirectUrl string, formData LoginFormData) {
@@ -38,6 +48,12 @@ text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:te
 	</div>
 }
 
+func invalid(v bool) (res templ.Attributes) {
+	return templ.Attributes{
+		"aria-invalid": boolToString(v),
+	}
+}
+
 templ LoginForm(redirectUrl string, formData LoginFormData) {
 	<input
 		type="hidden"
@@ -51,7 +67,8 @@ templ LoginForm(redirectUrl string, formData LoginFormData) {
 			inputType: "text",
 			required:  true,
 			// autofocus: true,
-			value: formData.Email,
+			value:      formData.Email,
+			attributes: invalid(formData.EmailMissing),
 		},
 		label: "Email"})
 	@field(fieldOptions{
@@ -62,6 +79,7 @@ templ LoginForm(redirectUrl string, formData LoginFormData) {
 			required:    true,
 			placeholder: "••••••••",
 			value:       formData.Password,
+			attributes:  invalid(formData.PasswordMissing),
 		},
 		label: "Password",
 	})

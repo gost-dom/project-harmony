@@ -52,13 +52,33 @@ func (s *LoginPageSuite) WaitFor(event string) {
 	}
 }
 
-func (s *LoginPageSuite) TestMissingUsername() {}
-func (s *LoginPageSuite) TestMissingPassword() {}
+func (s *LoginPageSuite) TestMissingUsername() {
+	s.loginForm.Password().SetAttribute("value", "s3cret")
+	s.loginForm.SubmitBtn().Click()
+	s.WaitFor("htmx:afterSettle")
+
+	s.Equal("/auth/login", s.win.Location().Href())
+
+	s.Expect(s.loginForm.Email()).To(matchers.HaveAttribute("aria-invalid", "true"))
+	s.Expect(s.loginForm.Password()).ToNot(matchers.HaveAttribute("aria-invalid", "true"))
+}
+
+func (s *LoginPageSuite) TestMissingPassword() {
+	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
+	s.loginForm.SubmitBtn().Click()
+	s.WaitFor("htmx:afterSettle")
+
+	s.Equal("/auth/login", s.win.Location().Href())
+
+	s.Expect(s.loginForm.Email()).ToNot(matchers.HaveAttribute("aria-invalid", "true"))
+	s.Expect(s.loginForm.Password()).To(matchers.HaveAttribute("aria-invalid", "true"))
+}
 
 func (s *LoginPageSuite) TestValidCredentialsRedirects() {
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
+	s.WaitFor("htmx:afterSettle")
 
 	s.Equal("/host", s.win.Location().Pathname())
 }
@@ -67,6 +87,7 @@ func (s *LoginPageSuite) TestInvalidCredentials() {
 	s.loginForm.Email().SetAttribute("value", "bad-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
+	s.WaitFor("htmx:afterSettle")
 
 	s.Expect(s.win.Location().Href()).To(gomega.Equal("/auth/login"))
 	s.Equal("/auth/login", s.win.Location().Href())
