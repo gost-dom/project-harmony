@@ -1,14 +1,13 @@
 package server_test
 
 import (
-	"context"
 	"harmony/internal/server"
 	ariarole "harmony/internal/testing/aria-role"
 	"harmony/internal/testing/shaman"
 	. "harmony/internal/testing/shaman/predicates"
+	"harmony/internal/testing/shaman/sync"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/gost-dom/browser"
 	"github.com/gost-dom/browser/dom"
@@ -37,7 +36,7 @@ func TestCanServe(t *testing.T) {
 
 type NavigateToLoginSuite struct {
 	suite.Suite
-	Sync shaman.Sync
+	Sync sync.EventSync
 	shaman.QueryHelper
 	win    html.Window
 	cancel func()
@@ -66,13 +65,10 @@ func (s *NavigateToLoginSuite) SetupTest() {
 	s.QueryHelper = shaman.NewQueryHelper(s.T())
 	b := browser.NewBrowserFromHandler(server.New())
 	s.win, err = b.Open("http://localhost:1234/")
-	var ctx context.Context
-	ctx, s.cancel = context.WithTimeout(context.Background(), 100*time.Millisecond)
-	s.Sync = shaman.NewSync(ctx, s.T())
-	s.Sync.Target = s.win
+	s.Sync = sync.SetupEventSync(s.win)
 	s.QueryHelper.Container = s.win.Document()
 
-	s.Sync.WaitFor("htmx:load", func() {})
+	s.Sync.WaitFor("htmx:load")
 	assert.NoError(s.T(), err)
 }
 
@@ -94,9 +90,8 @@ func getMainHeading(t *testing.T, w html.Window) dom.Element {
 }
 
 func (s *NavigateToLoginSuite) TestLoginFlow() {
-	s.Sync.WaitFor("htmx:afterSettle", func() {
-		s.Get(ByRole(ariarole.Link), ByName("Go to hosting")).Click()
-	})
+	s.Get(ByRole(ariarole.Link), ByName("Go to hosting")).Click()
+	s.Sync.WaitFor("htmx:afterSettle")
 	assert.Equal(s.T(), "/auth/login", s.win.Location().Pathname(), "Location after host")
 	mainHeading := getMainHeading(s.T(), s.win)
 	assert.Equal(s.T(), "Login", mainHeading.TextContent())
@@ -107,9 +102,8 @@ func (s *NavigateToLoginSuite) TestLoginFlow() {
 	s.Get(ByRole(ariarole.PasswordText), ByName("Password")).
 		SetAttribute("value", "s3cret")
 
-	s.Sync.WaitFor("htmx:afterSettle", func() {
-		s.Get(ByRole(ariarole.Button), ByName("Sign in")).Click()
-	})
+	s.Get(ByRole(ariarole.Button), ByName("Sign in")).Click()
+	s.Sync.WaitFor("htmx:afterSettle")
 	assert.Equal(s.T(), "/host", s.win.Location().Pathname())
 }
 
