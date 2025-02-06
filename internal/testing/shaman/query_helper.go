@@ -7,8 +7,6 @@ import (
 	"testing"
 
 	"github.com/gost-dom/browser/dom"
-	"github.com/gost-dom/browser/html"
-	"github.com/stretchr/testify/assert"
 )
 
 // An ElementPredicate is a type that checks if an element matches certain
@@ -114,32 +112,6 @@ func (h QueryHelper) Get(opts ...ElementPredicate) dom.Element {
 	}
 	h.t.Fatalf("No elements mathing options: %s", options(opts))
 	return nil
-}
-
-func (h QueryHelper) FindLinkWithName(name string) html.HTMLAnchorElement {
-	as, err := h.Container.QuerySelectorAll("a")
-	t := h.t
-	assert.NoError(t, err)
-	var res html.HTMLAnchorElement
-	for _, e := range as.All() {
-		a, ok := e.(html.HTMLAnchorElement)
-		if !ok {
-			t.Fatalf(
-				"Something very very wrong in the dom. Element was found as an 'a', but not an HTMLAnchorElement: %s",
-				e,
-			)
-		}
-		if a.TextContent() == name {
-			if res != nil {
-				t.Fatalf("Expected to find one anchor with name, '%s'. Found multiple", name)
-			}
-			res = a
-		}
-	}
-	if res == nil {
-		t.Fatalf("Expected to find one anchor with name, '%s'. Found none", name)
-	}
-	return res
 }
 
 func (h QueryHelper) Scope(opts ...ElementPredicate) QueryHelper {
