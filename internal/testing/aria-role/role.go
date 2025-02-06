@@ -12,6 +12,7 @@ type Role string
 const (
 	// None represents an element that doesn't have a role specified.
 	None         Role = ""
+	Alert        Role = "alert"
 	Link         Role = "link"
 	Button       Role = "button"
 	Textbox      Role = "textbox"

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	ariarole "harmony/internal/testing/aria-role"
 	"iter"
+	"strings"
 	"testing"
 
 	"github.com/gost-dom/browser/dom"
@@ -18,13 +19,14 @@ type QueryHelper struct {
 
 func NewQueryHelper(t *testing.T) QueryHelper { return QueryHelper{t: t} }
 
-type ElementPredicate func(dom.Element) bool
+type ElementPredicate interface{ IsMatch(dom.Element) bool }
 
-func ByRole(role ariarole.Role) ElementPredicate {
-	return func(e dom.Element) bool {
-		return ariarole.GetElementRole(e) == role
-	}
+type ByRole ariarole.Role
+
+func (r ByRole) IsMatch(e dom.Element) bool {
+	return ariarole.GetElementRole(e) == ariarole.Role(r)
 }
+func (r ByRole) String() string { return fmt.Sprintf("By role: %s", string(r)) }
 
 // Gets the by their accessibility name of an element. I.e., an associated
 // label, the value of an aria-label, or the text-content of an element
@@ -54,8 +56,33 @@ func GetName(e dom.Element) string {
 // Finds elements by their accessibility name. I.e., an associated label, the
 // value of an aria-label, or the text-content of an element referenced by an
 // aria-labelledby property
-func ByName(name string) ElementPredicate {
-	return func(e dom.Element) bool { return GetName(e) == name }
+type ByName string
+
+func (n ByName) IsMatch(e dom.Element) bool { return GetName(e) == string(n) }
+
+func (n ByName) String() string { return fmt.Sprintf("By accessibility name: %s", string(n)) }
+
+type Options []ElementPredicate
+
+func (o Options) IsMatch(e dom.Element) bool {
+	for _, o := range o {
+		if !o.IsMatch(e) {
+			return false
+		}
+	}
+	return true
+}
+
+func (o Options) String() string {
+	names := make([]string, len(o))
+	for i, o := range o {
+		if s, ok := o.(fmt.Stringer); ok {
+			names[i] = s.String()
+		} else {
+			names[i] = "Unknown predicate. No String()"
+		}
+	}
+	return strings.Join(names, ", ")
 }
 
 func (h QueryHelper) All() iter.Seq[dom.Element] {
@@ -76,22 +103,19 @@ func (h QueryHelper) All() iter.Seq[dom.Element] {
 }
 
 func (h QueryHelper) FindAll(options ...ElementPredicate) iter.Seq[dom.Element] {
+	opt := Options(options)
 	return func(yield func(dom.Element) bool) {
 		next, done := iter.Pull(h.All())
 		defer done()
-	loop:
 		for {
 			e, ok := next()
 			if !ok {
 				return
 			}
-			for _, o := range options {
-				if !o(e) {
-					continue loop
+			if opt.IsMatch(e) {
+				if !yield(e) {
+					return
 				}
-			}
-			if !yield(e) {
-				return
 			}
 		}
 	}
@@ -105,11 +129,11 @@ func (h QueryHelper) Get(options ...ElementPredicate) dom.Element {
 	defer stop()
 	if v, ok := next(); ok {
 		if _, ok := next(); ok {
-			h.t.Fatal("Multiple elements matching options")
+			h.t.Fatalf("Multiple elements matching options: %s", Options(options))
 		}
 		return v
 	}
-	h.t.Fatal("No elements mathing options")
+	h.t.Fatalf("No elements mathing options: %s", Options(options))
 	return nil
 }
 
