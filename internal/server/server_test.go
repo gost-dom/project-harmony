@@ -68,14 +68,14 @@ func (s *NavigateToLoginSuite) SetupTest() {
 	s.QueryHelper.Container = s.win.Document()
 
 	s.Sync.WaitFor("htmx:load")
-	assert.NoError(s.T(), err)
+	s.NoError(err)
 }
 
 func (s *NavigateToLoginSuite) TestClickLoginLink() {
 	s.Q().Get(ByRole(ariarole.Link), ByName("Login")).Click()
-	assert.Equal(s.T(), "/auth/login", s.win.Location().Pathname())
+	s.Equal("/auth/login", s.win.Location().Pathname())
 	mainHeading := getMainHeading(s.T(), s.win)
-	assert.Equal(s.T(), "Login", mainHeading.TextContent())
+	s.Equal("Login", mainHeading.TextContent())
 	// TODO: Verify that the window doesn't navigate
 }
 
@@ -91,9 +91,9 @@ func getMainHeading(t *testing.T, w html.Window) dom.Element {
 func (s *NavigateToLoginSuite) TestLoginFlow() {
 	s.Get(ByRole(ariarole.Link), ByName("Go to hosting")).Click()
 	s.Sync.WaitFor("htmx:afterSettle")
-	assert.Equal(s.T(), "/auth/login", s.win.Location().Pathname(), "Location after host")
+	s.Equal("/auth/login", s.win.Location().Pathname(), "Location after host")
 	mainHeading := getMainHeading(s.T(), s.win)
-	assert.Equal(s.T(), "Login", mainHeading.TextContent())
+	s.Equal("Login", mainHeading.TextContent())
 
 	s.Get(ByRole(ariarole.Textbox), ByName("Email")).
 		SetAttribute("value", "valid-user@example.com")
@@ -103,7 +103,7 @@ func (s *NavigateToLoginSuite) TestLoginFlow() {
 
 	s.Get(ByRole(ariarole.Button), ByName("Sign in")).Click()
 	s.Sync.WaitFor("htmx:afterSettle")
-	assert.Equal(s.T(), "/host", s.win.Location().Pathname())
+	s.Equal("/host", s.win.Location().Pathname())
 }
 
 func TestNavigateToLogin(t *testing.T) {
