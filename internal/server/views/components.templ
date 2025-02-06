@@ -8,6 +8,7 @@ type inputOptions struct {
 	placeholder string
 	required    bool
 	autofocus   bool
+	attributes  templ.Attributes
 }
 
 templ input(o inputOptions) {
@@ -23,6 +24,7 @@ templ input(o inputOptions) {
 		value={ o.value }
 		placeholder={ o.placeholder }
 		autofocus?={ o.autofocus }
+		{ o.attributes... }
 	/>
 }
 

@@ -44,15 +44,22 @@ func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	if r.FormValue("email") == "valid-user@example.com" {
+	if r.FormValue("email") == "valid-user@example.com" && r.FormValue("password") == "s3cret" {
 		s.loggedIn = true
 		w.Header().Add("hx-push-url", "/host")
 	} else {
-		views.LoginForm("", views.LoginFormData{
+		data := views.LoginFormData{
 			Email:              "",
 			Password:           "",
 			InvalidCredentials: true,
-		}).Render(r.Context(), w)
+		}
+		if r.FormValue("email") == "" {
+			data.EmailMissing = true
+		}
+		if r.FormValue("password") == "" {
+			data.PasswordMissing = true
+		}
+		views.LoginForm("", data).Render(r.Context(), w)
 	}
 }
 
