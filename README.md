@@ -11,7 +11,14 @@ application uses
 > This is early version, with very hacked backend, e.g., a global boolean if you
 > are logged in. Focus right now is on expressive test cases.
 
-## Login flow
+## The tests
+
+Note: Code will likely be restructured, so if the files don't exist; they have
+been moved.
+
+### Login flow
+
+This is in `server_test.go`
 
 This verifies the overall login flow, that requesting a private resource goes
 through a login page, but the user eventually ends up on the requested page
@@ -38,7 +45,9 @@ jar, and any session cookies are to be considered an implementation detail.
 > implementation details to verify security properties of the cookies, e.g.,
 > `http-only`, `secure`, no leaking of information, etc.
 
-## Login page
+### Login page
+
+This is in `login_test.go`
 
 These tests verify the login page specifically, including required fields,
 validation errors, etc.
