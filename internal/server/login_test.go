@@ -80,7 +80,7 @@ func (s *LoginPageSuite) TestValidCredentialsRedirects() {
 	s.loginForm.SubmitBtn().Click()
 	s.WaitFor("htmx:afterSettle")
 
-	s.Equal("/host", s.win.Location().Pathname())
+	s.Equal("/", s.win.Location().Pathname())
 }
 
 func (s *LoginPageSuite) TestInvalidCredentials() {

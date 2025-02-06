@@ -2,9 +2,11 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"harmony/internal/project"
 	"harmony/internal/server/views"
 	"net/http"
+	"net/url"
 	"path/filepath"
 
 	"github.com/a-h/templ"
@@ -12,7 +14,6 @@ import (
 
 func noCache(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// fmt.Println("Request", r.Method, r.URL.Path)
 		w.Header().Add("cache-control", "no-cache")
 		h.ServeHTTP(w, r)
 	})
@@ -31,12 +32,11 @@ type Server struct {
 	loggedIn bool
 }
 
-var login = views.AuthLogin()
-
 func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 	if !s.loggedIn {
-		w.Header().Add("hx-push-url", "/auth/login")
-		login.Render(r.Context(), w)
+		fmtNewLocation := fmt.Sprintf("/auth/login?redirectUrl=%s", url.QueryEscape("/hosts"))
+		w.Header().Add("hx-push-url", fmtNewLocation)
+		views.AuthLogin("/host").Render(r.Context(), w)
 	} else {
 		views.HostsPage().Render(r.Context(), w)
 	}
@@ -44,9 +44,15 @@ func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	if r.FormValue("email") == "valid-user@example.com" && r.FormValue("password") == "s3cret" {
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	redirectUrl := r.FormValue("redirectUrl")
+	if redirectUrl == "" {
+		redirectUrl = "/"
+	}
+	if email == "valid-user@example.com" && password == "s3cret" {
 		s.loggedIn = true
-		w.Header().Add("hx-push-url", "/host")
+		w.Header().Add("hx-push-url", redirectUrl)
 	} else {
 		data := views.LoginFormData{
 			Email:              "",
@@ -59,7 +65,7 @@ func (s *Server) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("password") == "" {
 			data.PasswordMissing = true
 		}
-		views.LoginForm("", data).Render(r.Context(), w)
+		views.LoginForm(redirectUrl, data).Render(r.Context(), w)
 	}
 }
 
@@ -72,7 +78,11 @@ func New() http.Handler {
 		false,
 	}
 	mux.Handle("GET /{$}", templ.Handler(component))
-	mux.Handle("GET /auth/login/{$}", templ.Handler(login))
+	mux.HandleFunc("GET /auth/login/{$}", func(w http.ResponseWriter, r *http.Request) {
+		redirectUrl := r.URL.Query().Get("redirectUrl")
+		views.AuthLogin(redirectUrl).Render(r.Context(), w)
+
+	})
 	mux.HandleFunc("POST /auth/login", server.PostAuthLogin)
 	mux.HandleFunc("GET /host/{$}", server.GetHost)
 	mux.Handle(
