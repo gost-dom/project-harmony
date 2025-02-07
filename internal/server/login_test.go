@@ -2,12 +2,14 @@ package server_test
 
 import (
 	"fmt"
+	"testing"
+
 	"harmony/internal/server"
+	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
 	"harmony/internal/testing/shaman"
 	. "harmony/internal/testing/shaman/predicates"
 	"harmony/internal/testing/shaman/sync"
-	"testing"
 
 	"github.com/gost-dom/browser"
 	"github.com/gost-dom/browser/dom"
@@ -46,7 +48,7 @@ func (s *LoginPageSuite) SetupTest() {
 	s.win = win
 	s.Scope = shaman.NewScope(s.T(), win.Document())
 	s.WaitFor("htmx:load")
-	s.loginForm = LoginForm{s.Subscope(ByRole(ariarole.Form))}
+	s.loginForm = NewLoginForm(s.Scope)
 }
 
 func (s *LoginPageSuite) TestMissingUsername() {
@@ -99,20 +101,4 @@ func (s *LoginPageSuite) TestInvalidCredentials() {
 
 func TestLoginPage(t *testing.T) {
 	suite.Run(t, new(LoginPageSuite))
-}
-
-type LoginForm struct {
-	shaman.Scope
-}
-
-func (f LoginForm) Email() dom.Element {
-	return f.Get(ByRole(ariarole.Textbox), ByName("Email"))
-}
-
-func (f LoginForm) Password() dom.Element {
-	return f.Get(ByRole(ariarole.PasswordText), ByName("Password"))
-}
-
-func (f LoginForm) SubmitBtn() dom.Element {
-	return f.Get(ByRole(ariarole.Button), ByName("Sign in"))
 }
