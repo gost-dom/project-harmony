@@ -19,7 +19,7 @@ import (
 type ElementPredicate interface{ IsMatch(dom.Element) bool }
 
 // An ElementPredicateFunc wraps a single function as a predicate to be used
-// with [QueryHelper.FindAll] or [QueryHelper.Get].
+// with [Scope.FindAll] or [Scope.Get].
 //
 // It is better to create a type implementing both [ElementPredicate] AND
 // [fmt.Stringer], as it allows for better error messages when expected elements
@@ -55,21 +55,26 @@ func (o options) String() string {
 	return strings.Join(names, ", ")
 }
 
-type QueryHelper struct {
+// Scope represents a subset of a page, and can be used to find elements withing
+// that scope.
+type Scope struct {
 	t         *testing.T
 	Container dom.ElementContainer
 }
 
-func NewQueryHelper(t *testing.T) QueryHelper { return QueryHelper{t: t} }
+func NewScope(t *testing.T, c dom.ElementContainer) Scope {
+	return Scope{t: t, Container: c}
+}
 
-func (h QueryHelper) All() iter.Seq[dom.Element] {
+// All returns an iterator over all elements in scope.
+func (h Scope) All() iter.Seq[dom.Element] {
 	return func(yield func(dom.Element) bool) {
 		for _, c := range h.Container.ChildNodes().All() {
 			if e, ok := c.(dom.Element); ok {
 				if !yield(e) {
 					return
 				}
-				for cc := range (QueryHelper{h.t, e}).All() {
+				for cc := range (Scope{h.t, e}).All() {
 					if !yield(cc) {
 						return
 					}
@@ -79,7 +84,7 @@ func (h QueryHelper) All() iter.Seq[dom.Element] {
 	}
 }
 
-func (h QueryHelper) FindAll(opts ...ElementPredicate) iter.Seq[dom.Element] {
+func (h Scope) FindAll(opts ...ElementPredicate) iter.Seq[dom.Element] {
 	opt := options(opts)
 	return func(yield func(dom.Element) bool) {
 		next, done := iter.Pull(h.All())
@@ -101,7 +106,7 @@ func (h QueryHelper) FindAll(opts ...ElementPredicate) iter.Seq[dom.Element] {
 // Get returns the element that matches the options. Exactly one element is
 // expected to exist in the dom mathing the options. If zero, or more than one
 // are found, a fatal error is generated.
-func (h QueryHelper) Get(opts ...ElementPredicate) dom.Element {
+func (h Scope) Get(opts ...ElementPredicate) dom.Element {
 	next, stop := iter.Pull(h.FindAll(opts...))
 	defer stop()
 	if v, ok := next(); ok {
@@ -114,8 +119,6 @@ func (h QueryHelper) Get(opts ...ElementPredicate) dom.Element {
 	return nil
 }
 
-func (h QueryHelper) Scope(opts ...ElementPredicate) QueryHelper {
-	r := NewQueryHelper(h.t)
-	r.Container = h.Get(opts...)
-	return r
+func (h Scope) Subscope(opts ...ElementPredicate) Scope {
+	return NewScope(h.t, h.Get(opts...))
 }

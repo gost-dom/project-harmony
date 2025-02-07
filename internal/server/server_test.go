@@ -37,7 +37,7 @@ func TestCanServe(t *testing.T) {
 type NavigateToLoginSuite struct {
 	suite.Suite
 	Sync sync.EventSync
-	shaman.QueryHelper
+	shaman.Scope
 	win html.Window
 }
 
@@ -53,19 +53,18 @@ func (r *RequestRecorder) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func (r RequestRecorder) requestCount() int { return len(r.Requests) }
 
-func (s *NavigateToLoginSuite) Q() shaman.QueryHelper {
-	q := shaman.NewQueryHelper(s.T())
-	q.Container = s.win.Document()
+func (s *NavigateToLoginSuite) Q() shaman.Scope {
+	q := shaman.NewScope(s.T(), s.win.Document())
 	return q
 }
 
 func (s *NavigateToLoginSuite) SetupTest() {
 	var err error
-	s.QueryHelper = shaman.NewQueryHelper(s.T())
 	b := browser.NewBrowserFromHandler(server.New())
 	s.win, err = b.Open("http://localhost:1234/")
+	s.Scope = shaman.NewScope(s.T(), s.win.Document())
 	s.Sync = sync.SetupEventSync(s.win)
-	s.QueryHelper.Container = s.win.Document()
+	s.Scope.Container = s.win.Document()
 
 	s.Sync.WaitFor("htmx:load")
 	s.NoError(err)

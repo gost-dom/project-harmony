@@ -20,7 +20,7 @@ import (
 type LoginPageSuite struct {
 	suite.Suite
 	gomega.Gomega
-	shaman.QueryHelper
+	shaman.Scope
 	sync.EventSync
 	win       html.Window
 	events    chan dom.Event
@@ -44,10 +44,9 @@ func (s *LoginPageSuite) SetupTest() {
 	s.EventSync = sync.SetupEventSync(win)
 	s.NoError(err)
 	s.win = win
-	s.QueryHelper = shaman.NewQueryHelper(s.T())
-	s.QueryHelper.Container = win.Document()
+	s.Scope = shaman.NewScope(s.T(), win.Document())
 	s.WaitFor("htmx:load")
-	s.loginForm = LoginForm{s.Scope(ByRole(ariarole.Form))}
+	s.loginForm = LoginForm{s.Subscope(ByRole(ariarole.Form))}
 }
 
 func (s *LoginPageSuite) TestMissingUsername() {
@@ -103,7 +102,7 @@ func TestLoginPage(t *testing.T) {
 }
 
 type LoginForm struct {
-	shaman.QueryHelper
+	shaman.Scope
 }
 
 func (f LoginForm) Email() dom.Element {
