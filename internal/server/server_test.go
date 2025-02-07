@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"harmony/internal/server"
+	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
 	"harmony/internal/testing/shaman"
 	. "harmony/internal/testing/shaman/predicates"
@@ -94,14 +95,12 @@ func (s *NavigateToLoginSuite) TestLoginFlow() {
 	mainHeading := getMainHeading(s.T(), s.win)
 	s.Equal("Login", mainHeading.TextContent())
 
-	s.Get(ByRole(ariarole.Textbox), ByName("Email")).
-		SetAttribute("value", "valid-user@example.com")
-
-	s.Get(ByRole(ariarole.PasswordText), ByName("Password")).
-		SetAttribute("value", "s3cret")
-
-	s.Get(ByRole(ariarole.Button), ByName("Sign in")).Click()
+	loginForm := NewLoginForm(s.Scope)
+	loginForm.Email().SetAttribute("value", "valid-user@example.com")
+	loginForm.Password().SetAttribute("value", "s3cret")
+	loginForm.SubmitBtn().Click()
 	s.Sync.WaitFor("htmx:afterSettle")
+
 	s.Equal("/host", s.win.Location().Pathname())
 }
 

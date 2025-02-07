@@ -8,6 +8,7 @@ import (
 	"github.com/gost-dom/browser/dom"
 )
 
+// A helper to make test code interacting with the login form more expressive.
 type LoginForm struct {
 	shaman.Scope
 }
