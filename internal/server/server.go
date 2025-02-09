@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"harmony/internal/project"
 	"harmony/internal/server/views"
@@ -23,11 +24,29 @@ func staticFilesPath() string { return filepath.Join(project.Root(), "static") }
 
 type Account struct{}
 
-type Authenticator interface {
-	Authenticate(context.Context, string, string) *Account
+type authenticator struct{}
+
+func (a authenticator) Authenticate(
+	ctx context.Context,
+	username string,
+	password string,
+) (account Account, err error) {
+	if username == "valid-user@example.com" && password == "s3cret" {
+		account = Account{}
+	} else {
+		err = ErrBadCredentials
+	}
+	return
 }
 
+type Authenticator interface {
+	Authenticate(context.Context, string, string) (Account, error)
+}
+
+var ErrBadCredentials = errors.New("authenticate: Bad credentials")
+
 type Server struct {
+	Authenticator Authenticator
 	http.Handler
 	loggedIn bool
 }
@@ -50,7 +69,7 @@ func (s *Server) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 	if redirectUrl == "" {
 		redirectUrl = "/"
 	}
-	if email == "valid-user@example.com" && password == "s3cret" {
+	if _, err := s.Authenticator.Authenticate(r.Context(), email, password); err == nil {
 		s.loggedIn = true
 		w.Header().Add("hx-push-url", redirectUrl)
 	} else {
@@ -74,6 +93,7 @@ func New() http.Handler {
 
 	mux := http.NewServeMux()
 	server := &Server{
+		authenticator{},
 		noCache(mux),
 		false,
 	}
