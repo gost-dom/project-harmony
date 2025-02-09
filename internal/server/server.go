@@ -88,7 +88,7 @@ func (s *Server) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func New() http.Handler {
+func New() *Server {
 	component := views.Index()
 
 	mux := http.NewServeMux()
