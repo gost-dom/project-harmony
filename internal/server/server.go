@@ -122,7 +122,7 @@ func New() *Server {
 		),
 	}
 	mux.Handle("GET /{$}", templ.Handler(component))
-	mux.HandleFunc("GET /auth/login/{$}", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /auth/login", func(w http.ResponseWriter, r *http.Request) {
 		redirectUrl := r.URL.Query().Get("redirectUrl")
 		views.AuthLogin(redirectUrl).Render(r.Context(), w)
 
