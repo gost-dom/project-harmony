@@ -50,10 +50,15 @@ type Authenticator interface {
 
 var ErrBadCredentials = errors.New("authenticate: Bad credentials")
 
-type Server struct {
-	Authenticator Authenticator
-	http.Handler
+type SessionManager struct {
 	sessionStore sessions.Store
+}
+
+type Server struct {
+	http.Handler
+	SessionManager SessionManager
+	AuthRouter     *AuthRouter
+	sessionStore   sessions.Store
 }
 
 type sessionName string
@@ -77,11 +82,17 @@ func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
+type AuthRouter struct {
+	*http.ServeMux
+	Authenticator Authenticator
+	SessionStore  sessions.Store
+}
+
+func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 	// Get a session. We're ignoring the error resulted from decoding an
 	// existing session: Get() always returns a session, even if empty.
 
-	session, _ := s.sessionStore.Get(r, sessionNameAuth)
+	session, _ := s.SessionStore.Get(r, sessionNameAuth)
 	r.ParseForm()
 	email := r.FormValue("email")
 	password := r.FormValue("password")
@@ -110,24 +121,37 @@ func (s *Server) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func New() *Server {
-	component := views.Index()
-
-	mux := http.NewServeMux()
-	server := &Server{
-		Handler: noCache(mux),
-		sessionStore: memstore.NewMemStore(
-			[]byte("authkey123"),
-			[]byte("enckey12341234567890123456789012"),
-		),
+func NewAuthRouter(store sessions.Store, auth Authenticator) *AuthRouter {
+	result := &AuthRouter{
+		ServeMux:      http.NewServeMux(),
+		Authenticator: auth,
+		SessionStore:  store,
 	}
-	mux.Handle("GET /{$}", templ.Handler(component))
-	mux.HandleFunc("GET /auth/login", func(w http.ResponseWriter, r *http.Request) {
+	result.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
 		redirectUrl := r.URL.Query().Get("redirectUrl")
 		views.AuthLogin(redirectUrl).Render(r.Context(), w)
 
 	})
-	mux.HandleFunc("POST /auth/login", server.PostAuthLogin)
+	result.HandleFunc("POST /login", result.PostAuthLogin)
+	return result
+}
+
+func New() *Server {
+	component := views.Index()
+
+	sessionStore := memstore.NewMemStore(
+		[]byte("authkey123"),
+		[]byte("enckey12341234567890123456789012"),
+	)
+	mux := http.NewServeMux()
+	server := &Server{
+		AuthRouter:     NewAuthRouter(sessionStore, authenticator{}),
+		Handler:        noCache(mux),
+		SessionManager: SessionManager{sessionStore},
+		sessionStore:   sessionStore,
+	}
+	mux.Handle("/auth/", http.StripPrefix("/auth", server.AuthRouter))
+	mux.Handle("GET /{$}", templ.Handler(component))
 	mux.HandleFunc("GET /host/{$}", server.GetHost)
 	mux.Handle(
 		"GET /static/",

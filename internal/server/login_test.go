@@ -38,7 +38,7 @@ func (s *LoginPageSuite) SetupTest() {
 	s.events = make(chan dom.Event, 100)
 	serv := server.New()
 	s.authMock = mocks.NewAuthenticator(s.T())
-	serv.Authenticator = s.authMock
+	serv.AuthRouter.Authenticator = s.authMock
 	b := browser.NewBrowserFromHandler(serv)
 	win, err := b.Open("/auth/login")
 	s.NoError(err)
