@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"harmony/internal/project"
@@ -11,6 +12,8 @@ import (
 	"path/filepath"
 
 	"github.com/a-h/templ"
+	"github.com/gorilla/sessions"
+	"github.com/quasoft/memstore"
 )
 
 func noCache(h http.Handler) http.Handler {
@@ -22,7 +25,9 @@ func noCache(h http.Handler) http.Handler {
 
 func staticFilesPath() string { return filepath.Join(project.Root(), "static") }
 
-type Account struct{}
+type AccountId string
+
+type Account struct{ Id AccountId }
 
 type authenticator struct{}
 
@@ -48,11 +53,22 @@ var ErrBadCredentials = errors.New("authenticate: Bad credentials")
 type Server struct {
 	Authenticator Authenticator
 	http.Handler
-	loggedIn bool
+	sessionStore sessions.Store
+}
+
+type sessionName string
+
+const (
+	sessionNameAuth = "auth"
+)
+
+func init() {
+	gob.Register(AccountId(""))
 }
 
 func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
-	if !s.loggedIn {
+	session, _ := s.sessionStore.Get(r, sessionNameAuth)
+	if _, ok := session.Values["accountId"]; !ok {
 		fmtNewLocation := fmt.Sprintf("/auth/login?redirectUrl=%s", url.QueryEscape("/hosts"))
 		w.Header().Add("hx-push-url", fmtNewLocation)
 		views.AuthLogin("/host").Render(r.Context(), w)
@@ -62,6 +78,10 @@ func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
+	// Get a session. We're ignoring the error resulted from decoding an
+	// existing session: Get() always returns a session, even if empty.
+
+	session, _ := s.sessionStore.Get(r, sessionNameAuth)
 	r.ParseForm()
 	email := r.FormValue("email")
 	password := r.FormValue("password")
@@ -69,8 +89,10 @@ func (s *Server) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 	if redirectUrl == "" {
 		redirectUrl = "/"
 	}
-	if _, err := s.Authenticator.Authenticate(r.Context(), email, password); err == nil {
-		s.loggedIn = true
+	if account, err := s.Authenticator.Authenticate(r.Context(), email, password); err == nil {
+		session.Values["accountId"] = account.Id
+		// TODO: Handle err
+		session.Save(r, w)
 		w.Header().Add("hx-push-url", redirectUrl)
 	} else {
 		data := views.LoginFormData{
@@ -95,7 +117,10 @@ func New() *Server {
 	server := &Server{
 		authenticator{},
 		noCache(mux),
-		false,
+		memstore.NewMemStore(
+			[]byte("authkey123"),
+			[]byte("enckey12341234567890123456789012"),
+		),
 	}
 	mux.Handle("GET /{$}", templ.Handler(component))
 	mux.HandleFunc("GET /auth/login/{$}", func(w http.ResponseWriter, r *http.Request) {
