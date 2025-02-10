@@ -115,9 +115,8 @@ func New() *Server {
 
 	mux := http.NewServeMux()
 	server := &Server{
-		authenticator{},
-		noCache(mux),
-		memstore.NewMemStore(
+		Handler: noCache(mux),
+		sessionStore: memstore.NewMemStore(
 			[]byte("authkey123"),
 			[]byte("enckey12341234567890123456789012"),
 		),
