@@ -165,4 +165,5 @@ func (s *LoginPageSuite) TestInvalidCredentials() {
 The general setup replaces the `Authenticator` component with a mocked instance
 supplied by the test.
 
-Each test case sets up the specific expectations on the mock, 
+Each test case sets up the specific expectations on the mock, and programmed
+result; in this case an `ErrBadCredentials` error result.
