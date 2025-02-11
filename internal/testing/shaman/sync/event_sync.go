@@ -24,9 +24,7 @@ import (
 //
 // Tip: On the fron-end, you can call `htmx.logAll()` to see which events it
 // emits.
-type EventSync struct {
-	events chan dom.Event
-}
+type EventSync struct{ events chan dom.Event }
 
 // Creates a new Sync, and listen to events from an [html.Window].
 func SetupEventSync(w html.Window) (res EventSync) {
@@ -44,6 +42,8 @@ func SetupEventSync(w html.Window) (res EventSync) {
 	}))
 	return
 }
+
+func (s *EventSync) Close() { close(s.events) }
 
 // Waits for an event with a specific [dom.Event.Type] to be dispatched. This
 // must be called in the order the events are dispatched. Any event before the

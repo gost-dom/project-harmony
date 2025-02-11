@@ -43,3 +43,17 @@ func (r ByRole) IsMatch(
 }
 
 func (r ByRole) String() string { return fmt.Sprintf("By role: %s", string(r)) }
+
+type ByH1Predicate struct{}
+
+// Predicate to find THE <h1> element on the page.
+//
+// Every page should have exactly one H1 element, and it has a special meaning
+// as the page title. (The <title> in the document <head> is for browser title
+// and bookmarks, and will often include prefixes, such as site name or other,
+// which is why the page itself should have a title).
+var ByH1 = ByH1Predicate{}
+
+func (s ByH1Predicate) IsMatch(e dom.Element) bool { return e.TagName() == "H1" }
+
+func (s ByH1Predicate) String() string { return "Main heading (<h1>)" }
