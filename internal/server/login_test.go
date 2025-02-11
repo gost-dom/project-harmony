@@ -2,7 +2,9 @@
 package server_test
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"harmony/internal/server"
 	"harmony/internal/server/mocks"
@@ -17,6 +19,7 @@ import (
 	"github.com/gost-dom/browser/html"
 	matchers "github.com/gost-dom/browser/testing/gomega-matchers"
 	"github.com/onsi/gomega"
+	"github.com/samber/do"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -25,19 +28,23 @@ type LoginPageSuite struct {
 	suite.Suite
 	gomega.Gomega
 	shaman.Scope
-	sync.EventSync
+	eventSync sync.EventSync
 	win       html.Window
 	events    chan dom.Event
 	loginForm LoginForm
 	authMock  *mocks.Authenticator
+	ctx       context.Context
+	cancel    context.CancelFunc
 }
 
 func (s *LoginPageSuite) SetupTest() {
+	s.ctx, s.cancel = context.WithTimeout(context.Background(), time.Millisecond*100)
 	s.Gomega = gomega.NewWithT(s.T())
 	s.events = make(chan dom.Event, 100)
-	serv := server.New()
 	s.authMock = mocks.NewAuthenticator(s.T())
-	serv.AuthRouter.Authenticator = s.authMock
+	injector := server.Injector.Clone()
+	do.OverrideValue[server.Authenticator](injector, s.authMock)
+	serv := do.MustInvoke[*server.Server](injector)
 	b := browser.NewBrowserFromHandler(serv)
 	win, err := b.Open("/auth/login")
 	s.NoError(err)
@@ -50,11 +57,19 @@ func (s *LoginPageSuite) SetupTest() {
 	//
 	// Technically, you can create an empty browser, setup sync, and navigate. But
 	// that opens a blank page, and a script context, which is a bit wasted.
-	s.EventSync = sync.SetupEventSync(win)
+	s.eventSync = sync.SetupEventSync(win)
 	s.win = win
 	s.Scope = shaman.NewScope(s.T(), win.Document())
 	s.WaitFor("htmx:load")
 	s.loginForm = NewLoginForm(s.Scope)
+}
+
+func (s *LoginPageSuite) WaitFor(type_ string) dom.Event {
+	return s.eventSync.WaitForContext(s.ctx, s.T(), type_)
+}
+
+func (s *LoginPageSuite) TearDownTest() {
+	s.cancel()
 }
 
 func (s *LoginPageSuite) TestMissingUsername() {
