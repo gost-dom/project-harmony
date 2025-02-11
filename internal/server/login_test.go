@@ -12,7 +12,6 @@ import (
 	. "harmony/internal/testing/shaman/predicates"
 
 	matchers "github.com/gost-dom/browser/testing/gomega-matchers"
-	"github.com/onsi/gomega"
 	"github.com/samber/do"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -84,13 +83,11 @@ func (s *LoginPageSuite) TestInvalidCredentials() {
 	s.loginForm.SubmitBtn().Click()
 	s.WaitFor("htmx:afterSettle")
 
-	s.Expect(s.win.Location().Href()).To(gomega.Equal("/auth/login"))
 	s.Equal("/auth/login", s.win.Location().Href())
 
 	alert := s.Get(ByRole(ariarole.Alert))
 
-	s.Expect(alert).To(matchers.HaveTextContent(gomega.ContainSubstring(
-		"Email or password did not match")))
+	s.Assert().Equal("Email or password did not match", alert.TextContent())
 }
 
 func TestLoginPage(t *testing.T) {
