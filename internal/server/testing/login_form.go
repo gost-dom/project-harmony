@@ -14,7 +14,7 @@ type LoginForm struct {
 }
 
 func NewLoginForm(s shaman.Scope) LoginForm {
-	return LoginForm{s.Subscope(ByRole(ariarole.Form))}
+	return LoginForm{s.Subscope(ByRole(ariarole.Main)).Subscope(ByRole(ariarole.Form))}
 }
 
 func (f LoginForm) Email() dom.Element {

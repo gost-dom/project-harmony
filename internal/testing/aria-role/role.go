@@ -16,6 +16,7 @@ const (
 	Button       Role = "button"
 	Form         Role = "form"
 	Link         Role = "link"
+	Main         Role = "main"
 	PasswordText Role = "password text"
 	Textbox      Role = "textbox"
 )
@@ -41,6 +42,8 @@ func GetElementRole(e dom.Element) Role {
 			}
 			return Textbox
 		}
+	case "MAIN":
+		return Main
 	case "BUTTON":
 		return Button
 	case "A":
