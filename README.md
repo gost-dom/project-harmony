@@ -112,3 +112,17 @@ one for the value of the attribute.
 
 Use whatever you want; this is meant as a source of test patterns, and as such
 try to cover multiple ways to achieve the result.
+
+## Dependency injection
+
+I looked through a lot of IoC containers to automate dependency injection,
+focusing on two properties:
+
+    1. Easy dependency replacement in a larger hierarchy
+    2. Simple configuration with sensible defaults
+
+I didn't find one satisfying both cases, but 1 is more important than 2, so I
+opted for [samber/do](https://pkg.go.dev/github.com/samber/do), as this supports
+cloning and replacement in the dependency tree.
+
+I think I will build my own that supports both premises.

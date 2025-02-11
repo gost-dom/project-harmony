@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"harmony/internal/server"
+	"harmony/internal/server/mocks"
 	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
 	"harmony/internal/testing/shaman"
@@ -13,7 +14,9 @@ import (
 	"github.com/gost-dom/browser"
 	"github.com/gost-dom/browser/dom"
 	"github.com/gost-dom/browser/html"
+	"github.com/samber/do"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -23,7 +26,13 @@ func init() {
 }
 
 func TestCanServe(t *testing.T) {
-	b := browser.NewBrowserFromHandler(server.New())
+	s := server.New()
+	authMock := mocks.NewAuthenticator(t)
+	authMock.EXPECT().
+		Authenticate(mock.Anything, mock.Anything, mock.Anything).
+		Return(server.Account{}, nil).Maybe()
+	s.AuthRouter.Authenticator = authMock
+	b := browser.NewBrowserFromHandler(s)
 	w, err := b.Open("http://localhost:1234/") // host is imaginary - just need to exist
 	if err != nil {
 		t.Fatal(err)
@@ -61,7 +70,16 @@ func (s *NavigateToLoginSuite) Q() shaman.Scope {
 
 func (s *NavigateToLoginSuite) SetupTest() {
 	var err error
-	b := browser.NewBrowserFromHandler(server.New())
+	// serv := server.New()
+	authMock := mocks.NewAuthenticator(s.T())
+	authMock.EXPECT().
+		Authenticate(mock.Anything, mock.Anything, mock.Anything).
+		Return(server.Account{}, nil).Maybe()
+
+	injector := server.Injector.Clone()
+	do.OverrideValue[server.Authenticator](injector, authMock)
+	serv := do.MustInvoke[*server.Server](injector)
+	b := browser.NewBrowserFromHandler(serv)
 	s.win, err = b.Open("http://localhost:1234/")
 	s.Scope = shaman.NewScope(s.T(), s.win.Document())
 	s.Sync = sync.SetupEventSync(s.win)
@@ -76,7 +94,6 @@ func (s *NavigateToLoginSuite) TestClickLoginLink() {
 	s.Equal("/auth/login", s.win.Location().Pathname())
 	mainHeading := getMainHeading(s.T(), s.win)
 	s.Equal("Login", mainHeading.TextContent())
-	// TODO: Verify that the window doesn't navigate
 }
 
 func getMainHeading(t *testing.T, w html.Window) dom.Element {

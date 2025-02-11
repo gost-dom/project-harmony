@@ -1,6 +1,9 @@
 package sync
 
 import (
+	"context"
+	"testing"
+
 	"github.com/gost-dom/browser/dom"
 	"github.com/gost-dom/browser/html"
 )
@@ -61,6 +64,30 @@ func (s EventSync) WaitFor(type_ string) dom.Event {
 		if e.Type() == type_ {
 			return e
 		}
+	}
+	return nil
+}
+
+func (s EventSync) waitForChan(type_ string) chan dom.Event {
+	c := make(chan dom.Event)
+	go func() {
+		defer close(c)
+		for e := range s.events {
+			if e.Type() == type_ {
+				c <- e
+				return
+			}
+		}
+	}()
+	return c
+}
+
+func (s EventSync) WaitForContext(ctx context.Context, t *testing.T, type_ string) dom.Event {
+	select {
+	case e := <-s.waitForChan(type_):
+		return e
+	case <-ctx.Done():
+		t.Fatal("Timeout waiting for event: " + type_)
 	}
 	return nil
 }
