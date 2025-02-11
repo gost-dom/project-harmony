@@ -34,7 +34,7 @@ type Account struct{ Id AccountId }
 
 type authenticator struct{}
 
-func (a authenticator) Authenticate(
+func (a *authenticator) Authenticate(
 	ctx context.Context,
 	username string,
 	password string,
@@ -175,9 +175,14 @@ func NewServer(
 
 func init() {
 	gob.Register(AccountId(""))
+	do.Provide(Injector, func(i *do.Injector) (Authenticator, error) {
+		return &authenticator{}, nil
+	})
 	do.Provide(Injector, func(i *do.Injector) (*AuthRouter, error) {
-		sessionStore := do.MustInvoke[sessions.Store](i)
-		return NewAuthRouter(sessionStore, authenticator{}), nil
+		return NewAuthRouter(
+			do.MustInvoke[sessions.Store](i),
+			do.MustInvoke[Authenticator](i),
+		), nil
 	})
 	do.Provide(Injector, func(i *do.Injector) (sessions.Store, error) {
 		return memstore.NewMemStore(

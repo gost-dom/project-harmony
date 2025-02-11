@@ -14,6 +14,7 @@ import (
 	"github.com/gost-dom/browser"
 	"github.com/gost-dom/browser/dom"
 	"github.com/gost-dom/browser/html"
+	"github.com/samber/do"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -69,12 +70,15 @@ func (s *NavigateToLoginSuite) Q() shaman.Scope {
 
 func (s *NavigateToLoginSuite) SetupTest() {
 	var err error
-	serv := server.New()
+	// serv := server.New()
 	authMock := mocks.NewAuthenticator(s.T())
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
 		Return(server.Account{}, nil).Maybe()
-	serv.AuthRouter.Authenticator = authMock
+
+	injector := server.Injector.Clone()
+	do.OverrideValue[server.Authenticator](injector, authMock)
+	serv := do.MustInvoke[*server.Server](injector)
 	b := browser.NewBrowserFromHandler(serv)
 	s.win, err = b.Open("http://localhost:1234/")
 	s.Scope = shaman.NewScope(s.T(), s.win.Document())
