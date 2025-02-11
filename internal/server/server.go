@@ -175,9 +175,7 @@ func NewServer(
 
 func init() {
 	gob.Register(AccountId(""))
-	do.Provide(Injector, func(i *do.Injector) (Authenticator, error) {
-		return &authenticator{}, nil
-	})
+	do.ProvideValue[Authenticator](Injector, &authenticator{})
 	do.Provide(Injector, func(i *do.Injector) (*AuthRouter, error) {
 		return NewAuthRouter(
 			do.MustInvoke[sessions.Store](i),
