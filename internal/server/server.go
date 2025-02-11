@@ -14,6 +14,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
 	"github.com/quasoft/memstore"
+	"github.com/samber/do"
 )
 
 const sessionCookieName = "accountId"
@@ -73,7 +74,6 @@ type Server struct {
 	http.Handler
 	SessionManager SessionManager
 	AuthRouter     *AuthRouter
-	// sessionStore   sessions.Store
 }
 
 type sessionName string
@@ -81,10 +81,6 @@ type sessionName string
 const (
 	sessionNameAuth = "auth"
 )
-
-func init() {
-	gob.Register(AccountId(""))
-}
 
 func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 	if account := s.SessionManager.LoggedInUser(r); account != nil {
@@ -151,19 +147,20 @@ func NewAuthRouter(store sessions.Store, auth Authenticator) *AuthRouter {
 	return result
 }
 
-func New() *Server {
+var Injector *do.Injector = do.New()
+
+func NewServer(
+	sessionStore sessions.Store,
+	sessionManager SessionManager,
+	authRouter *AuthRouter,
+) *Server {
 	component := views.Index()
 
-	sessionStore := memstore.NewMemStore(
-		[]byte("authkey123"),
-		[]byte("enckey12341234567890123456789012"),
-	)
 	mux := http.NewServeMux()
 	server := &Server{
-		AuthRouter:     NewAuthRouter(sessionStore, authenticator{}),
+		AuthRouter:     authRouter, //NewAuthRouter(sessionStore, authenticator{}),
 		Handler:        noCache(mux),
-		SessionManager: SessionManager{sessionStore},
-		// sessionStore:   sessionStore,
+		SessionManager: sessionManager,
 	}
 	mux.Handle("/auth/", http.StripPrefix("/auth", server.AuthRouter))
 	mux.Handle("GET /{$}", templ.Handler(component))
@@ -174,4 +171,33 @@ func New() *Server {
 			http.Dir(staticFilesPath()))),
 	)
 	return server
+}
+
+func init() {
+	gob.Register(AccountId(""))
+	do.Provide(Injector, func(i *do.Injector) (*AuthRouter, error) {
+		sessionStore := do.MustInvoke[sessions.Store](i)
+		return NewAuthRouter(sessionStore, authenticator{}), nil
+	})
+	do.Provide(Injector, func(i *do.Injector) (sessions.Store, error) {
+		return memstore.NewMemStore(
+			[]byte("authkey123"),
+			[]byte("enckey12341234567890123456789012"),
+		), nil
+	})
+	do.Provide(Injector, func(i *do.Injector) (*Server, error) {
+		return NewServer(
+			do.MustInvoke[sessions.Store](i),
+			do.MustInvoke[SessionManager](i),
+			do.MustInvoke[*AuthRouter](i),
+		), nil
+	})
+	do.Provide(Injector, func(i *do.Injector) (SessionManager, error) {
+		sessionStore := do.MustInvoke[sessions.Store](i)
+		return SessionManager{sessionStore}, nil
+	})
+}
+
+func New() *Server {
+	return do.MustInvoke[*Server](Injector)
 }
