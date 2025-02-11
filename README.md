@@ -126,3 +126,43 @@ opted for [samber/do](https://pkg.go.dev/github.com/samber/do), as this supports
 cloning and replacement in the dependency tree.
 
 I think I will build my own that supports both premises.
+
+### Example
+
+To provide an example of what Do is used for, here is an example of verifying
+a failed login attempt:
+
+```go
+func (s *LoginPageSuite) SetupTest() {
+	s.BrowserSuite.SetupTest()
+	s.authMock = mocks.NewAuthenticator(s.T())
+	do.OverrideValue[server.Authenticator](s.injector, s.authMock)
+	s.OpenWindow("/auth/login")
+	s.WaitFor("htmx:load")
+	s.loginForm = NewLoginForm(s.Scope)
+}
+
+func (s *LoginPageSuite) TestInvalidCredentials() {
+	s.authMock.EXPECT().
+		Authenticate(mock.Anything, "bad-user@example.com", "s3cret").
+		Return(server.Account{}, server.ErrBadCredentials).Once()
+	s.loginForm.Email().SetAttribute("value", "bad-user@example.com")
+	s.loginForm.Password().SetAttribute("value", "s3cret")
+	s.loginForm.SubmitBtn().Click()
+	s.WaitFor("htmx:afterSettle")
+
+    // Verify the document is still on the login page.
+	s.Equal("/auth/login", s.win.Location().Href())
+
+    // Verify that an alert was shown.
+    // The expectation is written in a high level of abstraction, expressing how
+    // the user interacts with the page. This promotes an accessible design.
+	alert := s.Get(ByRole(ariarole.Alert))
+	s.Assert().Equal("Email or password did not match", alert.TextContent())
+}
+```
+
+The general setup replaces the `Authenticator` component with a mocked instance
+supplied by the test.
+
+Each test case sets up the specific expectations on the mock, 
