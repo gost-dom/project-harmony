@@ -2,7 +2,6 @@
 package server_test
 
 import (
-	"fmt"
 	"testing"
 
 	"harmony/internal/server"
@@ -85,7 +84,6 @@ func (s *LoginPageSuite) TestMissingPassword() {
 
 	s.Expect(s.loginForm.Email()).ToNot(matchers.HaveAttribute("aria-invalid", "true"))
 	s.Expect(s.loginForm.Password()).To(matchers.HaveAttribute("aria-invalid", "true"))
-	fmt.Println(s.loginForm.Container.(dom.Element).OuterHTML())
 	s.Equal("Password is required", shaman.GetDescription(s.loginForm.Password()))
 }
 
