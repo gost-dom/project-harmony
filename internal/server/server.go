@@ -16,6 +16,8 @@ import (
 	"github.com/quasoft/memstore"
 )
 
+const sessionCookieName = "accountId"
+
 func noCache(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("cache-control", "no-cache")
@@ -54,11 +56,24 @@ type SessionManager struct {
 	sessionStore sessions.Store
 }
 
+func (m *SessionManager) LoggedInUser(r *http.Request) *Account {
+	session, _ := m.sessionStore.Get(r, sessionNameAuth)
+	if id, ok := session.Values[sessionCookieName]; ok {
+		result := new(Account)
+		if strId, ok := id.(string); ok {
+			result.Id = AccountId(strId)
+			return result
+		}
+	}
+	return nil
+
+}
+
 type Server struct {
 	http.Handler
 	SessionManager SessionManager
 	AuthRouter     *AuthRouter
-	sessionStore   sessions.Store
+	// sessionStore   sessions.Store
 }
 
 type sessionName string
@@ -72,14 +87,14 @@ func init() {
 }
 
 func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
-	session, _ := s.sessionStore.Get(r, sessionNameAuth)
-	if _, ok := session.Values["accountId"]; !ok {
-		fmtNewLocation := fmt.Sprintf("/auth/login?redirectUrl=%s", url.QueryEscape("/hosts"))
-		w.Header().Add("hx-push-url", fmtNewLocation)
-		views.AuthLogin("/host").Render(r.Context(), w)
-	} else {
+	if account := s.SessionManager.LoggedInUser(r); account != nil {
 		views.HostsPage().Render(r.Context(), w)
+		return
 	}
+	// Not authenticated; show login page
+	fmtNewLocation := fmt.Sprintf("/auth/login?redirectUrl=%s", url.QueryEscape("/hosts"))
+	w.Header().Add("hx-push-url", fmtNewLocation)
+	views.AuthLogin("/host").Render(r.Context(), w)
 }
 
 type AuthRouter struct {
@@ -101,7 +116,7 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 		redirectUrl = "/"
 	}
 	if account, err := s.Authenticator.Authenticate(r.Context(), email, password); err == nil {
-		session.Values["accountId"] = account.Id
+		session.Values[sessionCookieName] = string(account.Id)
 		// TODO: Handle err
 		session.Save(r, w)
 		w.Header().Add("hx-push-url", redirectUrl)
@@ -148,7 +163,7 @@ func New() *Server {
 		AuthRouter:     NewAuthRouter(sessionStore, authenticator{}),
 		Handler:        noCache(mux),
 		SessionManager: SessionManager{sessionStore},
-		sessionStore:   sessionStore,
+		// sessionStore:   sessionStore,
 	}
 	mux.Handle("/auth/", http.StripPrefix("/auth", server.AuthRouter))
 	mux.Handle("GET /{$}", templ.Handler(component))
