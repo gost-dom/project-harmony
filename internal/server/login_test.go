@@ -12,7 +12,7 @@ import (
 	. "harmony/internal/testing/shaman/predicates"
 
 	matchers "github.com/gost-dom/browser/testing/gomega-matchers"
-	"github.com/samber/do"
+	"github.com/gost-dom/surgeon"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -26,7 +26,7 @@ type LoginPageSuite struct {
 func (s *LoginPageSuite) SetupTest() {
 	s.BrowserSuite.SetupTest()
 	s.authMock = mocks.NewAuthenticator(s.T())
-	do.OverrideValue[server.Authenticator](s.injector, s.authMock)
+	s.graph = surgeon.Replace[server.Authenticator](s.graph, s.authMock)
 	s.OpenWindow("/auth/login")
 	s.loginForm = NewLoginForm(s.Scope)
 }

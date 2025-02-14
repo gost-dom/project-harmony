@@ -134,17 +134,21 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 
 func NewAuthRouter(store sessions.Store, auth Authenticator) *AuthRouter {
 	result := &AuthRouter{
-		ServeMux:      http.NewServeMux(),
 		Authenticator: auth,
 		SessionStore:  store,
 	}
-	result.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
+	result.Init()
+	return result
+}
+
+func (r *AuthRouter) Init() {
+	r.ServeMux = http.NewServeMux()
+	r.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
 		redirectUrl := r.URL.Query().Get("redirectUrl")
 		views.AuthLogin(redirectUrl, views.LoginFormData{}).Render(r.Context(), w)
 
 	})
-	result.HandleFunc("POST /login", result.PostAuthLogin)
-	return result
+	r.HandleFunc("POST /login", r.PostAuthLogin)
 }
 
 var Injector *do.Injector = do.New()
@@ -154,23 +158,26 @@ func NewServer(
 	sessionManager SessionManager,
 	authRouter *AuthRouter,
 ) *Server {
-	component := views.Index()
-
-	mux := http.NewServeMux()
 	server := &Server{
 		AuthRouter:     authRouter, //NewAuthRouter(sessionStore, authenticator{}),
-		Handler:        noCache(mux),
 		SessionManager: sessionManager,
 	}
-	mux.Handle("/auth/", http.StripPrefix("/auth", server.AuthRouter))
-	mux.Handle("GET /{$}", templ.Handler(component))
-	mux.HandleFunc("GET /host/{$}", server.GetHost)
+	server.Init()
+	return server
+}
+
+func (s *Server) Init() {
+	mux := http.NewServeMux()
+	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
+	mux.Handle("GET /{$}", templ.Handler(views.Index()))
+	mux.HandleFunc("GET /host/{$}", s.GetHost)
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(
 			http.Dir(staticFilesPath()))),
 	)
-	return server
+	s.Handler = noCache(mux)
+
 }
 
 func init() {
