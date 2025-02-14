@@ -10,8 +10,8 @@ import (
 	"github.com/gost-dom/browser"
 	"github.com/gost-dom/browser/dom"
 	"github.com/gost-dom/browser/html"
+	"github.com/gost-dom/surgeon"
 	"github.com/onsi/gomega"
-	"github.com/samber/do"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -41,7 +41,7 @@ func (s *GomegaSuite) SetupTest() {
 type BrowserSuite struct {
 	GomegaSuite
 	shaman.Scope
-	injector  *do.Injector
+	graph     *surgeon.Graph[*server.Server]
 	win       html.Window
 	eventSync sync.EventSync
 	ctx       context.Context
@@ -50,7 +50,7 @@ type BrowserSuite struct {
 
 func (s *BrowserSuite) SetupTest() {
 	s.GomegaSuite.SetupTest()
-	s.injector = server.Injector.Clone()
+	s.graph = graph
 	s.ctx, s.cancelCtx = context.WithTimeout(context.Background(), time.Millisecond*100)
 }
 
@@ -58,7 +58,7 @@ func (s *BrowserSuite) OpenWindow(path string) html.Window {
 	if s.win != nil {
 		panic("BrowserSuite: This suite does not support opening multiple windows pr. test case")
 	}
-	serv := do.MustInvoke[*server.Server](s.injector)
+	serv := s.graph.Instance()
 	b := browser.NewBrowserFromHandler(serv)
 
 	// Opening "about:blank" is a bit of a hack to allow adding the event sync

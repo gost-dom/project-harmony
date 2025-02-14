@@ -1,11 +1,12 @@
 module harmony
 
-go 1.23.4
+go 1.23.6
 
 require (
 	github.com/a-h/templ v0.3.819
 	github.com/gorilla/sessions v1.4.0
 	github.com/gost-dom/browser v0.1.2
+	github.com/gost-dom/surgeon v0.0.0-20250214101844-23591998a2f2
 	github.com/onsi/gomega v1.35.1
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b
 	github.com/samber/do v1.6.0

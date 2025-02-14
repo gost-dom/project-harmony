@@ -8,7 +8,7 @@ import (
 	. "harmony/internal/testing/shaman/predicates"
 	"testing"
 
-	"github.com/samber/do"
+	"github.com/gost-dom/surgeon"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -16,19 +16,22 @@ import (
 func init() {
 	// slog.SetLogLoggerLevel(slog.LevelWarn)
 	// logger.SetDefault(slog.Default())
+	graph = surgeon.BuildGraph(server.New(), surgeon.PackagePrefixScope("harmony"))
 }
+
+var graph *surgeon.Graph[*server.Server]
 
 type NavigateToLoginSuite struct{ BrowserSuite }
 
 func (s *NavigateToLoginSuite) SetupTest() {
 	s.BrowserSuite.SetupTest()
-	// Setup authenticator mock to always succeed. Login page has explicit tests
-	// for login flow
+	// In this scenario, authentication always succeed. Specific tests for the
+	// login page exercise different aspects
 	authMock := mocks.NewAuthenticator(s.T())
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
 		Return(server.Account{}, nil).Maybe()
-	do.OverrideValue[server.Authenticator](s.injector, authMock)
+	s.graph = surgeon.Replace[server.Authenticator](s.graph, authMock)
 
 	s.OpenWindow("http://localhost:1234/")
 	s.WaitFor("htmx:load")
