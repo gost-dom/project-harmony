@@ -35,5 +35,3 @@ require (
 )
 
 replace github.com/tommie/v8go => /Users/peter/go/src/github.com/gost-dom/v8go
-
-replace github.com/ericchiang/css => github.com/gost-dom/css v0.0.0-20250131142618-e71a4110d83f
