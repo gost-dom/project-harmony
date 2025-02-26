@@ -18,10 +18,12 @@ github.com/gorilla/securecookie v1.1.2 h1:YCIWL56dvtr73r6715mJs5ZvhtnY73hBvEF8kX
 github.com/gorilla/securecookie v1.1.2/go.mod h1:NfCASbcHqRSY+3a8tlWJwsQap2VX5pwzwo4h3eOamfo=
 github.com/gorilla/sessions v1.4.0 h1:kpIYOp/oi6MG/p5PgxApU8srsSw9tuFbt46Lt7auzqQ=
 github.com/gorilla/sessions v1.4.0/go.mod h1:FLWm50oby91+hl7p/wRxDth9bWSuk0qVL2emc7lT5ik=
-github.com/gost-dom/browser v0.2.1-0.20250226143424-b9bdead375ae h1:tdtjS2wgZzRpcq4sIHQK93w9u0gZbL0KoPSmMp5NXa0=
-github.com/gost-dom/browser v0.2.1-0.20250226143424-b9bdead375ae/go.mod h1:Z+bPeW8eKJlPTaFmYmDm1poSHzIOh4zLursc6ew2WEY=
+github.com/gost-dom/browser v0.3.0 h1:i9kK2NpyFwtaURRsAcYY10KtAk3BZ2Q9mGsS2/PkwV8=
+github.com/gost-dom/browser v0.3.0/go.mod h1:kCjHI/GkHgFbzTRpRmps+yER0OPSc6FiB6m1VVO8ihE=
 github.com/gost-dom/css v0.1.0 h1:O4aXjnYonQH1EDwKysXCQOgGVLwCWd/+HJeGO15sDIE=
 github.com/gost-dom/css v0.1.0/go.mod h1:BYfl+dr6Dzl6RoKn4op6TynJ7GmFqP0kFCM44NEVgNs=
+github.com/gost-dom/v8go v0.0.0-20250226155312-422158da51fa h1:3aeBc/+rftAe2hHJy1YvUXI90qCQpmep2n26N+Ljhl4=
+github.com/gost-dom/v8go v0.0.0-20250226155312-422158da51fa/go.mod h1:JQOTnkUY77lDSgrMlPMlUCLONzDS/kycRc8ZtbiZDm0=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
