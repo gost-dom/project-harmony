@@ -32,11 +32,13 @@ func (s *NavigateToLoginSuite) SetupTest() {
 
 	s.OpenWindow("http://localhost:1234/")
 	s.WaitFor("htmx:load")
+	s.win.Clock().RunAll()
 }
 
 func (s *NavigateToLoginSuite) TestLoginFlow() {
 	s.Get(ByRole(ariarole.Link), ByName("Go to hosting")).Click()
-	s.WaitFor("htmx:afterSettle")
+	s.win.Clock().RunAll()
+
 	s.Equal("/auth/login", s.win.Location().Pathname(), "Location after host")
 	mainHeading := s.Get(ByH1)
 	s.Equal("Login", mainHeading.TextContent())
@@ -45,7 +47,6 @@ func (s *NavigateToLoginSuite) TestLoginFlow() {
 	loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	loginForm.Password().SetAttribute("value", "s3cret")
 	loginForm.SubmitBtn().Click()
-	s.WaitFor("htmx:afterSettle")
 
 	s.Equal("/host", s.win.Location().Pathname())
 }

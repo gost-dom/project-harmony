@@ -28,7 +28,6 @@ func (s *LoginPageSuite) SetupTest() {
 	s.authMock = mocks.NewAuthenticator(s.T())
 	do.OverrideValue[server.Authenticator](s.injector, s.authMock)
 	s.OpenWindow("/auth/login")
-	s.WaitFor("htmx:load")
 	s.loginForm = NewLoginForm(s.Scope)
 }
 
@@ -39,7 +38,6 @@ func (s *LoginPageSuite) TestMissingUsername() {
 
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
-	s.WaitFor("htmx:afterSettle")
 
 	s.Equal("/auth/login", s.win.Location().Href())
 
@@ -53,7 +51,6 @@ func (s *LoginPageSuite) TestMissingPassword() {
 		Return(server.Account{}, server.ErrBadCredentials)
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.SubmitBtn().Click()
-	s.WaitFor("htmx:afterSettle")
 
 	s.Equal("/auth/login", s.win.Location().Href())
 
@@ -69,7 +66,6 @@ func (s *LoginPageSuite) TestValidCredentialsRedirects() {
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
-	s.WaitFor("htmx:afterSettle")
 
 	s.Equal("/", s.win.Location().Pathname())
 }
@@ -81,7 +77,6 @@ func (s *LoginPageSuite) TestInvalidCredentials() {
 	s.loginForm.Email().SetAttribute("value", "bad-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
-	s.WaitFor("htmx:afterSettle")
 
 	s.Equal("/auth/login", s.win.Location().Href())
 
