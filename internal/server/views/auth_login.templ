@@ -1,7 +1,7 @@
 package views
 
-templ AuthLogin(redirectUrl string) {
-	@layout(contents{body: login_body(redirectUrl, LoginFormData{})})
+templ AuthLogin(redirectUrl string, data LoginFormData) {
+	@layout(contents{body: login_body(redirectUrl, data)})
 }
 
 type LoginFormData struct {
@@ -67,10 +67,10 @@ templ LoginForm(redirectUrl string, formData LoginFormData) {
 			inputType:       "text",
 			required:        true,
 			validationError: "Email is required",
-			// autofocus: true,
-			value:      formData.Email,
-			invalid:    formData.EmailMissing,
-			attributes: invalid(formData.EmailMissing),
+			autofocus:       true,
+			value:           formData.Email,
+			invalid:         formData.EmailMissing,
+			attributes:      invalid(formData.EmailMissing),
 		},
 		label: "Email"})
 	@field(fieldOptions{
@@ -87,9 +87,6 @@ templ LoginForm(redirectUrl string, formData LoginFormData) {
 		},
 		label: "Password",
 	})
-	if formData.InvalidCredentials {
-		<div role="alert" class="text-red-700">Email or password did not match</div>
-	}
 	<div class="flex items-center justify-between">
 		<div class="flex items-start">
 			<!--
@@ -122,6 +119,9 @@ templ LoginForm(redirectUrl string, formData LoginFormData) {
 	>
 		Sign in
 	</button>
+	if formData.InvalidCredentials {
+		<div id="alert-div" role="alert" aria-live="assertive" class="text-red-700">Email or password did not match</div>
+	}
 	<!--
     <p class="text-sm font-light text-gray-500 dark:text-gray-400">
         Don’t have an account yet? <a href="#" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Sign up</a>

@@ -90,7 +90,7 @@ func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 	// Not authenticated; show login page
 	fmtNewLocation := fmt.Sprintf("/auth/login?redirectUrl=%s", url.QueryEscape("/hosts"))
 	w.Header().Add("hx-push-url", fmtNewLocation)
-	views.AuthLogin("/host").Render(r.Context(), w)
+	views.AuthLogin("/host", views.LoginFormData{}).Render(r.Context(), w)
 }
 
 type AuthRouter struct {
@@ -118,7 +118,7 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("hx-push-url", redirectUrl)
 	} else {
 		data := views.LoginFormData{
-			Email:              "",
+			Email:              email,
 			Password:           "",
 			InvalidCredentials: true,
 		}
@@ -140,7 +140,7 @@ func NewAuthRouter(store sessions.Store, auth Authenticator) *AuthRouter {
 	}
 	result.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
 		redirectUrl := r.URL.Query().Get("redirectUrl")
-		views.AuthLogin(redirectUrl).Render(r.Context(), w)
+		views.AuthLogin(redirectUrl, views.LoginFormData{}).Render(r.Context(), w)
 
 	})
 	result.HandleFunc("POST /login", result.PostAuthLogin)

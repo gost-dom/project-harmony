@@ -8,7 +8,7 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func AuthLogin(redirectUrl string) templ.Component {
+func AuthLogin(redirectUrl string, data LoginFormData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,7 +29,7 @@ func AuthLogin(redirectUrl string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = layout(contents{body: login_body(redirectUrl, LoginFormData{})}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout(contents{body: login_body(redirectUrl, data)}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -141,10 +141,10 @@ func LoginForm(redirectUrl string, formData LoginFormData) templ.Component {
 				inputType:       "text",
 				required:        true,
 				validationError: "Email is required",
-				// autofocus: true,
-				value:      formData.Email,
-				invalid:    formData.EmailMissing,
-				attributes: invalid(formData.EmailMissing),
+				autofocus:       true,
+				value:           formData.Email,
+				invalid:         formData.EmailMissing,
+				attributes:      invalid(formData.EmailMissing),
 			},
 			label: "Email"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -167,13 +167,17 @@ func LoginForm(redirectUrl string, formData LoginFormData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"flex items-center justify-between\"><div class=\"flex items-start\"><!--\n\t\t\t\t\t\t<div class=\"flex items-center h-5\">\n\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\tclass=\"w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800\"\n\t\t\t\t\t\t\t\ttype=\"checkbox\"\n\t\t\t\t\t\t\t\tid=\"remember\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"ml-3 text-sm\">\n\t\t\t\t\t\t\t<label\n\t\t\t\t\t\t\t\tclass=\"block text-sm font-medium  text-gray-500 dark:text-gray-300\"\n\t\t\t\t\t\t\t\tfor=\"remember\"\n\t\t\t\t\t\t\t>Remember me</label>\n\t\t\t\t\t\t</div>\n            --></div><!--\n\t\t\t\t\t<a href=\"#\" class=\"text-sm font-medium text-primary-600 hover:underline dark:text-primary-500\">Forgot password?</a>\n          --></div><button id=\"submit-login-form-button\" type=\"submit\" class=\"w-full text-white bg-cta hover:bg-ctabase-900 focus:ring-4\n    focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm\n    px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700\n    dark:focus:ring-primary-800\">Sign in</button> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
 		if formData.InvalidCredentials {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div role=\"alert\" class=\"text-red-700\">Email or password did not match</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div id=\"alert-div\" role=\"alert\" aria-live=\"assertive\" class=\"text-red-700\">Email or password did not match</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"flex items-center justify-between\"><div class=\"flex items-start\"><!--\n\t\t\t\t\t\t<div class=\"flex items-center h-5\">\n\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\tclass=\"w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800\"\n\t\t\t\t\t\t\t\ttype=\"checkbox\"\n\t\t\t\t\t\t\t\tid=\"remember\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"ml-3 text-sm\">\n\t\t\t\t\t\t\t<label\n\t\t\t\t\t\t\t\tclass=\"block text-sm font-medium  text-gray-500 dark:text-gray-300\"\n\t\t\t\t\t\t\t\tfor=\"remember\"\n\t\t\t\t\t\t\t>Remember me</label>\n\t\t\t\t\t\t</div>\n            --></div><!--\n\t\t\t\t\t<a href=\"#\" class=\"text-sm font-medium text-primary-600 hover:underline dark:text-primary-500\">Forgot password?</a>\n          --></div><button id=\"submit-login-form-button\" type=\"submit\" class=\"w-full text-white bg-cta hover:bg-ctabase-900 focus:ring-4\n    focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm\n    px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700\n    dark:focus:ring-primary-800\">Sign in</button><!--\n    <p class=\"text-sm font-light text-gray-500 dark:text-gray-400\">\n        Don’t have an account yet? <a href=\"#\" class=\"font-medium text-primary-600 hover:underline dark:text-primary-500\">Sign up</a>\n    </p>\n    -->")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<!--\n    <p class=\"text-sm font-light text-gray-500 dark:text-gray-400\">\n        Don’t have an account yet? <a href=\"#\" class=\"font-medium text-primary-600 hover:underline dark:text-primary-500\">Sign up</a>\n    </p>\n    -->")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
