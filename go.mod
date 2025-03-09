@@ -10,6 +10,8 @@ require (
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b
 	github.com/samber/do v1.6.0
 	github.com/stretchr/testify v1.10.0
+	maragu.dev/gomponents v1.1.0
+	maragu.dev/gomponents-htmx v0.6.1
 )
 
 require (
