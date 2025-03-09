@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"harmony/internal/project"
+	"harmony/internal/server/gviews"
 	"harmony/internal/server/views"
 	"net/http"
 	"net/url"
 	"path/filepath"
 
-	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
 	"github.com/quasoft/memstore"
 	"github.com/samber/do"
@@ -154,8 +154,6 @@ func NewServer(
 	sessionManager SessionManager,
 	authRouter *AuthRouter,
 ) *Server {
-	component := views.Index()
-
 	mux := http.NewServeMux()
 	server := &Server{
 		AuthRouter:     authRouter, //NewAuthRouter(sessionStore, authenticator{}),
@@ -163,7 +161,9 @@ func NewServer(
 		SessionManager: sessionManager,
 	}
 	mux.Handle("/auth/", http.StripPrefix("/auth", server.AuthRouter))
-	mux.Handle("GET /{$}", templ.Handler(component))
+	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
+		gviews.Index().Render(w)
+	})
 	mux.HandleFunc("GET /host/{$}", server.GetHost)
 	mux.Handle(
 		"GET /static/",
