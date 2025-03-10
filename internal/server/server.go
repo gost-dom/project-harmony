@@ -43,7 +43,6 @@ func (m *SessionManager) LoggedInUser(r *http.Request) *authenticator.Account {
 		}
 	}
 	return nil
-
 }
 
 type Server struct {
@@ -118,19 +117,6 @@ func (r *AuthRouter) Init() {
 	r.HandleFunc("POST /login", r.PostAuthLogin)
 }
 
-func NewServer(
-	sessionStore sessions.Store,
-	sessionManager SessionManager,
-	authRouter *AuthRouter,
-) *Server {
-	server := &Server{
-		AuthRouter:     authRouter, //NewAuthRouter(sessionStore, authenticator{}),
-		SessionManager: sessionManager,
-	}
-	server.Init()
-	return server
-}
-
 func (s *Server) Init() {
 	mux := http.NewServeMux()
 	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
@@ -143,9 +129,6 @@ func (s *Server) Init() {
 	)
 	s.Handler = noCache(mux)
 }
-
-var RootServer *Server
-var TheAuthRouter *AuthRouter
 
 func NewAuthRouter() *AuthRouter {
 	res := &AuthRouter{}
