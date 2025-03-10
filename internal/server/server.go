@@ -2,10 +2,9 @@ package server
 
 import (
 	"context"
-	"encoding/gob"
-	"errors"
 	"fmt"
 	"harmony/internal/project"
+	"harmony/internal/server/authenticator"
 	"harmony/internal/server/views"
 	"net/http"
 	"net/url"
@@ -13,8 +12,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
-	"github.com/quasoft/memstore"
-	"github.com/samber/do"
 )
 
 const sessionCookieName = "accountId"
@@ -28,41 +25,20 @@ func noCache(h http.Handler) http.Handler {
 
 func staticFilesPath() string { return filepath.Join(project.Root(), "static") }
 
-type AccountId string
-
-type Account struct{ Id AccountId }
-
-type authenticator struct{}
-
-func (a *authenticator) Authenticate(
-	ctx context.Context,
-	username string,
-	password string,
-) (account Account, err error) {
-	if username == "valid-user@example.com" && password == "s3cret" {
-		account = Account{}
-	} else {
-		err = ErrBadCredentials
-	}
-	return
-}
-
 type Authenticator interface {
-	Authenticate(context.Context, string, string) (Account, error)
+	Authenticate(context.Context, string, string) (authenticator.Account, error)
 }
-
-var ErrBadCredentials = errors.New("authenticate: Bad credentials")
 
 type SessionManager struct {
-	sessionStore sessions.Store
+	SessionStore sessions.Store
 }
 
-func (m *SessionManager) LoggedInUser(r *http.Request) *Account {
-	session, _ := m.sessionStore.Get(r, sessionNameAuth)
+func (m *SessionManager) LoggedInUser(r *http.Request) *authenticator.Account {
+	session, _ := m.SessionStore.Get(r, sessionNameAuth)
 	if id, ok := session.Values[sessionCookieName]; ok {
-		result := new(Account)
+		result := new(authenticator.Account)
 		if strId, ok := id.(string); ok {
-			result.Id = AccountId(strId)
+			result.Id = authenticator.AccountId(strId)
 			return result
 		}
 	}
@@ -132,15 +108,6 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewAuthRouter(store sessions.Store, auth Authenticator) *AuthRouter {
-	result := &AuthRouter{
-		Authenticator: auth,
-		SessionStore:  store,
-	}
-	result.Init()
-	return result
-}
-
 func (r *AuthRouter) Init() {
 	r.ServeMux = http.NewServeMux()
 	r.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
@@ -150,8 +117,6 @@ func (r *AuthRouter) Init() {
 	})
 	r.HandleFunc("POST /login", r.PostAuthLogin)
 }
-
-var Injector *do.Injector = do.New()
 
 func NewServer(
 	sessionStore sessions.Store,
@@ -177,37 +142,21 @@ func (s *Server) Init() {
 			http.Dir(staticFilesPath()))),
 	)
 	s.Handler = noCache(mux)
-
 }
 
-func init() {
-	gob.Register(AccountId(""))
-	do.ProvideValue[Authenticator](Injector, &authenticator{})
-	do.Provide(Injector, func(i *do.Injector) (*AuthRouter, error) {
-		return NewAuthRouter(
-			do.MustInvoke[sessions.Store](i),
-			do.MustInvoke[Authenticator](i),
-		), nil
-	})
-	do.Provide(Injector, func(i *do.Injector) (sessions.Store, error) {
-		return memstore.NewMemStore(
-			[]byte("authkey123"),
-			[]byte("enckey12341234567890123456789012"),
-		), nil
-	})
-	do.Provide(Injector, func(i *do.Injector) (*Server, error) {
-		return NewServer(
-			do.MustInvoke[sessions.Store](i),
-			do.MustInvoke[SessionManager](i),
-			do.MustInvoke[*AuthRouter](i),
-		), nil
-	})
-	do.Provide(Injector, func(i *do.Injector) (SessionManager, error) {
-		sessionStore := do.MustInvoke[sessions.Store](i)
-		return SessionManager{sessionStore}, nil
-	})
+var RootServer *Server
+var TheAuthRouter *AuthRouter
+
+func NewAuthRouter() *AuthRouter {
+	res := &AuthRouter{}
+	res.Init()
+	return res
 }
 
 func New() *Server {
-	return do.MustInvoke[*Server](Injector)
+	res := &Server{
+		AuthRouter: NewAuthRouter(),
+	}
+	res.Init()
+	return res
 }

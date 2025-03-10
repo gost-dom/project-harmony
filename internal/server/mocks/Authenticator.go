@@ -4,7 +4,7 @@ package mocks
 
 import (
 	context "context"
-	server "harmony/internal/server"
+	authenticator "harmony/internal/server/authenticator"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -23,22 +23,22 @@ func (_m *Authenticator) EXPECT() *Authenticator_Expecter {
 }
 
 // Authenticate provides a mock function with given fields: _a0, _a1, _a2
-func (_m *Authenticator) Authenticate(_a0 context.Context, _a1 string, _a2 string) (server.Account, error) {
+func (_m *Authenticator) Authenticate(_a0 context.Context, _a1 string, _a2 string) (authenticator.Account, error) {
 	ret := _m.Called(_a0, _a1, _a2)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Authenticate")
 	}
 
-	var r0 server.Account
+	var r0 authenticator.Account
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (server.Account, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (authenticator.Account, error)); ok {
 		return rf(_a0, _a1, _a2)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) server.Account); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) authenticator.Account); ok {
 		r0 = rf(_a0, _a1, _a2)
 	} else {
-		r0 = ret.Get(0).(server.Account)
+		r0 = ret.Get(0).(authenticator.Account)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
@@ -70,12 +70,12 @@ func (_c *Authenticator_Authenticate_Call) Run(run func(_a0 context.Context, _a1
 	return _c
 }
 
-func (_c *Authenticator_Authenticate_Call) Return(_a0 server.Account, _a1 error) *Authenticator_Authenticate_Call {
+func (_c *Authenticator_Authenticate_Call) Return(_a0 authenticator.Account, _a1 error) *Authenticator_Authenticate_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *Authenticator_Authenticate_Call) RunAndReturn(run func(context.Context, string, string) (server.Account, error)) *Authenticator_Authenticate_Call {
+func (_c *Authenticator_Authenticate_Call) RunAndReturn(run func(context.Context, string, string) (authenticator.Account, error)) *Authenticator_Authenticate_Call {
 	_c.Call.Return(run)
 	return _c
 }

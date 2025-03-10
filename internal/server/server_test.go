@@ -2,6 +2,8 @@ package server_test
 
 import (
 	"harmony/internal/server"
+	"harmony/internal/server/authenticator"
+	"harmony/internal/server/ioc"
 	"harmony/internal/server/mocks"
 	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
@@ -16,7 +18,7 @@ import (
 func init() {
 	// slog.SetLogLoggerLevel(slog.LevelWarn)
 	// logger.SetDefault(slog.Default())
-	graph = surgeon.BuildGraph(server.New(), surgeon.PackagePrefixScope("harmony"))
+	graph = ioc.Graph
 }
 
 var graph *surgeon.Graph[*server.Server]
@@ -30,7 +32,7 @@ func (s *NavigateToLoginSuite) SetupTest() {
 	authMock := mocks.NewAuthenticator(s.T())
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
-		Return(server.Account{}, nil).Maybe()
+		Return(authenticator.Account{}, nil).Maybe()
 	s.graph = surgeon.Replace[server.Authenticator](s.graph, authMock)
 
 	s.OpenWindow("http://localhost:1234/")

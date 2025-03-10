@@ -1,9 +1,8 @@
 package main
 
 import (
+	"harmony/internal/server/ioc"
 	"net/http"
-
-	"harmony/internal/server"
 )
 
 func noCache(h http.Handler) http.Handler {
@@ -14,5 +13,5 @@ func noCache(h http.Handler) http.Handler {
 }
 
 func main() {
-	http.ListenAndServe("0.0.0.0:8081", server.New())
+	http.ListenAndServe("0.0.0.0:8081", ioc.Server())
 }
