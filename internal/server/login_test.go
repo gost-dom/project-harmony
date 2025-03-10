@@ -4,8 +4,8 @@ package server_test
 import (
 	"testing"
 
+	"harmony/internal/features/auth"
 	"harmony/internal/server"
-	"harmony/internal/server/authenticator"
 	"harmony/internal/server/mocks"
 	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
@@ -35,7 +35,7 @@ func (s *LoginPageSuite) SetupTest() {
 func (s *LoginPageSuite) TestMissingUsername() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "", "s3cret").
-		Return(authenticator.Account{}, authenticator.ErrBadCredentials)
+		Return(auth.Account{}, auth.ErrBadCredentials)
 
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
@@ -49,7 +49,7 @@ func (s *LoginPageSuite) TestMissingUsername() {
 func (s *LoginPageSuite) TestMissingPassword() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "valid-user@example.com", "").
-		Return(authenticator.Account{}, authenticator.ErrBadCredentials)
+		Return(auth.Account{}, auth.ErrBadCredentials)
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.SubmitBtn().Click()
 
@@ -63,7 +63,7 @@ func (s *LoginPageSuite) TestMissingPassword() {
 func (s *LoginPageSuite) TestValidCredentialsRedirects() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "valid-user@example.com", "s3cret").
-		Return(authenticator.Account{}, nil).Once()
+		Return(auth.Account{}, nil).Once()
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
@@ -74,7 +74,7 @@ func (s *LoginPageSuite) TestValidCredentialsRedirects() {
 func (s *LoginPageSuite) TestInvalidCredentials() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "bad-user@example.com", "s3cret").
-		Return(authenticator.Account{}, authenticator.ErrBadCredentials).Once()
+		Return(auth.Account{}, auth.ErrBadCredentials).Once()
 	s.loginForm.Email().SetAttribute("value", "bad-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()

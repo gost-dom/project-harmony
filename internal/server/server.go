@@ -3,8 +3,9 @@ package server
 import (
 	"context"
 	"fmt"
+
+	"harmony/internal/features/auth"
 	"harmony/internal/project"
-	"harmony/internal/server/authenticator"
 	"harmony/internal/server/views"
 	"net/http"
 	"net/url"
@@ -26,19 +27,19 @@ func noCache(h http.Handler) http.Handler {
 func staticFilesPath() string { return filepath.Join(project.Root(), "static") }
 
 type Authenticator interface {
-	Authenticate(context.Context, string, string) (authenticator.Account, error)
+	Authenticate(context.Context, string, string) (auth.Account, error)
 }
 
 type SessionManager struct {
 	SessionStore sessions.Store
 }
 
-func (m *SessionManager) LoggedInUser(r *http.Request) *authenticator.Account {
+func (m *SessionManager) LoggedInUser(r *http.Request) *auth.Account {
 	session, _ := m.SessionStore.Get(r, sessionNameAuth)
 	if id, ok := session.Values[sessionCookieName]; ok {
-		result := new(authenticator.Account)
+		result := new(auth.Account)
 		if strId, ok := id.(string); ok {
-			result.Id = authenticator.AccountId(strId)
+			result.Id = auth.AccountId(strId)
 			return result
 		}
 	}
