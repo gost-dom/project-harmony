@@ -1,6 +1,6 @@
 module harmony
 
-go 1.23.4
+go 1.23.6
 
 require (
 	github.com/a-h/templ v0.3.833
@@ -17,6 +17,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/gost-dom/css v0.1.0 // indirect
+	github.com/gost-dom/surgeon v0.0.0-20250310114259-45edf00bd5ac // indirect
 	github.com/gost-dom/v8go v0.0.0-20250226155312-422158da51fa // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
