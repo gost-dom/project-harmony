@@ -36,7 +36,6 @@ func (s *NavigateToLoginSuite) SetupTest() {
 	s.graph = surgeon.Replace[server.Authenticator](s.graph, authMock)
 
 	s.OpenWindow("http://localhost:1234/")
-	s.WaitFor("htmx:load")
 	s.win.Clock().RunAll()
 }
 

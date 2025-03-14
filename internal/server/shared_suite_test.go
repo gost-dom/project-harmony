@@ -4,7 +4,6 @@ import (
 	"context"
 	"harmony/internal/server"
 	"harmony/internal/testing/shaman"
-	"harmony/internal/testing/shaman/sync"
 	"time"
 
 	"github.com/gost-dom/browser"
@@ -43,7 +42,6 @@ type BrowserSuite struct {
 	shaman.Scope
 	graph     *surgeon.Graph[*server.Server]
 	win       html.Window
-	eventSync sync.EventSync
 	ctx       context.Context
 	cancelCtx context.CancelFunc
 }
@@ -74,16 +72,11 @@ func (s *BrowserSuite) OpenWindow(path string) html.Window {
 	// it should be minimal.
 	win, err := b.Open("about:blank")
 	s.Assert().NoError(err)
-	s.eventSync = sync.SetupEventSync(win)
 	err = win.Navigate(path)
 	s.Assert().NoError(err)
 	s.win = win
 	s.Scope = shaman.NewScope(s.T(), s.win.Document())
 	return win
-}
-
-func (s *BrowserSuite) WaitFor(type_ string) dom.Event {
-	return s.eventSync.WaitForContext(s.ctx, s.T(), type_)
 }
 
 func (s *BrowserSuite) TearDownTest() {
