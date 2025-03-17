@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gost-dom/browser/dom"
+	"github.com/gost-dom/browser/html"
 )
 
 // An ElementPredicate is a type that checks if an element matches certain
@@ -106,14 +107,14 @@ func (h Scope) FindAll(opts ...ElementPredicate) iter.Seq[dom.Element] {
 // Get returns the element that matches the options. Exactly one element is
 // expected to exist in the dom mathing the options. If zero, or more than one
 // are found, a fatal error is generated.
-func (h Scope) Get(opts ...ElementPredicate) dom.Element {
+func (h Scope) Get(opts ...ElementPredicate) html.HTMLElement {
 	next, stop := iter.Pull(h.FindAll(opts...))
 	defer stop()
 	if v, ok := next(); ok {
 		if _, ok := next(); ok {
 			h.t.Fatalf("Multiple elements matching options: %s", options(opts))
 		}
-		return v
+		return v.(html.HTMLElement)
 	}
 	h.t.Fatalf("No elements mathing options: %s", options(opts))
 	return nil

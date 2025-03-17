@@ -6,6 +6,7 @@ import (
 	. "harmony/internal/testing/shaman/predicates"
 
 	"github.com/gost-dom/browser/dom"
+	"github.com/gost-dom/browser/html"
 )
 
 // A helper to make test code interacting with the login form more expressive.
@@ -25,6 +26,6 @@ func (f LoginForm) Password() dom.Element {
 	return f.Get(ByRole(ariarole.PasswordText), ByName("Password"))
 }
 
-func (f LoginForm) SubmitBtn() dom.Element {
+func (f LoginForm) SubmitBtn() html.HTMLElement {
 	return f.Get(ByRole(ariarole.Button), ByName("Sign in"))
 }

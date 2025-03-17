@@ -84,6 +84,8 @@ func (s *LoginPageSuite) TestInvalidCredentials() {
 	alert := s.Get(ByRole(ariarole.Alert))
 
 	s.Assert().Equal("Email or password did not match", alert.TextContent())
+
+	s.Expect(s.win.Document().ActiveElement()).To(matchers.HaveAttribute("id", "email"))
 }
 
 func TestLoginPage(t *testing.T) {

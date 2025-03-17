@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gost-dom/browser"
-	"github.com/gost-dom/browser/dom"
 	"github.com/gost-dom/browser/html"
 	"github.com/gost-dom/surgeon"
 	"github.com/onsi/gomega"
