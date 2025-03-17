@@ -1,14 +1,14 @@
-//go:generate mockery --all --with-expecter=true
+//go:generate mockery --all --srcpkg harmony/internal --recursive=true --with-expecter=true
 package server_test
 
 import (
 	"testing"
 
 	"harmony/internal/features/auth"
-	"harmony/internal/server"
-	"harmony/internal/server/mocks"
+	router "harmony/internal/features/auth/authrouter"
 	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
+	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
 	"harmony/internal/testing/shaman"
 	. "harmony/internal/testing/shaman/predicates"
 
@@ -21,13 +21,13 @@ import (
 type LoginPageSuite struct {
 	BrowserSuite
 	loginForm LoginForm
-	authMock  *mocks.Authenticator
+	authMock  *MockAuthenticator
 }
 
 func (s *LoginPageSuite) SetupTest() {
 	s.BrowserSuite.SetupTest()
-	s.authMock = mocks.NewAuthenticator(s.T())
-	s.graph = surgeon.Replace[server.Authenticator](s.graph, s.authMock)
+	s.authMock = NewMockAuthenticator(s.T())
+	s.graph = surgeon.Replace[router.Authenticator](s.graph, s.authMock)
 	s.OpenWindow("/auth/login")
 	s.loginForm = NewLoginForm(s.Scope)
 }

@@ -1,0 +1,9 @@
+with-expecter: true
+outpkg: "{{.PackageName}}_mock"
+filename: "{{.InterfaceName}}_mock.go"
+all: true
+dir: internal/testing/mocks/{{trimPrefix .PackagePath "harmony/internal/"}}_mock
+packages:
+  harmony/internal/features:
+    config:
+      recursive: true

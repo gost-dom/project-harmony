@@ -43,3 +43,8 @@ live/kill:
 
 test:
 	gow -s -P "Start suite" -S "Suite done" test -vet=off ./...
+
+.PHONY: codegen
+codegen:
+	rm -rf internal/testing/mocks
+	mockery

@@ -2,11 +2,12 @@ package server_test
 
 import (
 	"harmony/internal/features/auth"
+	"harmony/internal/features/auth/authrouter"
 	"harmony/internal/server"
 	"harmony/internal/server/ioc"
-	"harmony/internal/server/mocks"
 	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
+	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
 	. "harmony/internal/testing/shaman/predicates"
 	"testing"
 
@@ -29,11 +30,11 @@ func (s *NavigateToLoginSuite) SetupTest() {
 	s.BrowserSuite.SetupTest()
 	// In this scenario, authentication always succeed. Specific tests for the
 	// login page exercise different aspects
-	authMock := mocks.NewAuthenticator(s.T())
+	authMock := NewMockAuthenticator(s.T())
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
 		Return(auth.Account{}, nil).Maybe()
-	s.graph = surgeon.Replace[server.Authenticator](s.graph, authMock)
+	s.graph = surgeon.Replace[authrouter.Authenticator](s.graph, authMock)
 
 	s.OpenWindow("http://localhost:1234/")
 	s.win.Clock().RunAll()
