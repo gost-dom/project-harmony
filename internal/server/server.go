@@ -38,7 +38,7 @@ func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 	// Not authenticated; show login page
 	fmtNewLocation := fmt.Sprintf("/auth/login?redirectUrl=%s", url.QueryEscape("/hosts"))
 	w.Header().Add("hx-push-url", fmtNewLocation)
-	views.AuthLogin("/host", views.LoginFormData{}).Render(r.Context(), w)
+	s.AuthRouter.RenderLogin(w, r)
 }
 
 func (s *Server) Init() {

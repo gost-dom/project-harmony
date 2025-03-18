@@ -3,7 +3,7 @@ package authrouter
 import (
 	"context"
 	"harmony/internal/features/auth"
-	"harmony/internal/server/views"
+	"harmony/internal/features/auth/authrouter/views"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -60,4 +60,8 @@ func (r *AuthRouter) Init() {
 
 	})
 	r.HandleFunc("POST /login", r.PostAuthLogin)
+}
+
+func (*AuthRouter) RenderLogin(w http.ResponseWriter, r *http.Request) {
+	views.AuthLogin("/host", views.LoginFormData{}).Render(r.Context(), w)
 }
