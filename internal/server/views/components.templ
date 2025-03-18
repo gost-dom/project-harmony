@@ -1,55 +1,55 @@
 package views
 
-type inputOptions struct {
-	id              string
-	name            string
-	inputType       string
-	value           string
-	placeholder     string
-	validationError string
-	required        bool
-	autofocus       bool
-	invalid         bool
-	attributes      templ.Attributes
+type InputOptions struct {
+	Id              string
+	Name            string
+	InputType       string
+	Value           string
+	Placeholder     string
+	ValidationError string
+	Required        bool
+	Autofocus       bool
+	Invalid         bool
+	Attributes      templ.Attributes
 }
 
-templ input(o inputOptions) {
+templ input(o InputOptions) {
 	<input
 		class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg
   focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5
   dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
   dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-		id={ o.id }
-		type={ o.inputType }
-		name={ o.name }
-		required?={ o.required }
-		value={ o.value }
-		placeholder={ o.placeholder }
-		autofocus?={ o.autofocus }
-		{ o.attributes... }
+		id={ o.Id }
+		type={ o.InputType }
+		name={ o.Name }
+		required?={ o.Required }
+		value={ o.Value }
+		placeholder={ o.Placeholder }
+		autofocus?={ o.Autofocus }
+		{ o.Attributes... }
 	/>
 }
 
-type fieldOptions struct {
-	inputOptions
-	label string
+type FieldOptions struct {
+	InputOptions
+	Label string
 }
 
-templ field(o fieldOptions) {
+templ Field(o FieldOptions) {
 	{{
-	var descId string = o.id + "-missing"
-	if o.invalid {
-		o.attributes["aria-describedby"] = descId
+	var descId string = o.Id + "-missing"
+	if o.Invalid {
+		o.Attributes["aria-describedby"] = descId
 	}
 	}}
 	<div>
 		<label
 			class="block text-sm font-medium text-gray-900 dark:text-white"
-			for={ o.id }
-		>{ o.label }</label>
-		@input(o.inputOptions)
-		if o.invalid {
-			<div id={ descId }>{ o.validationError }</div>
+			for={ o.Id }
+		>{ o.Label }</label>
+		@input(o.InputOptions)
+		if o.Invalid {
+			<div id={ descId }>{ o.ValidationError }</div>
 		}
 	</div>
 }

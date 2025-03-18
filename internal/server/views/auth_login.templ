@@ -1,7 +1,7 @@
 package views
 
 templ AuthLogin(redirectUrl string, data LoginFormData) {
-	@layout(contents{body: login_body(redirectUrl, data)})
+	@Layout(Contents{Body: login_body(redirectUrl, data)})
 }
 
 type LoginFormData struct {
@@ -60,32 +60,32 @@ templ LoginForm(redirectUrl string, formData LoginFormData) {
 		name="redirectUrl"
 		value={ redirectUrl }
 	/>
-	@field(fieldOptions{
-		inputOptions: inputOptions{
-			id:              "email",
-			name:            "email",
-			inputType:       "text",
-			required:        true,
-			validationError: "Email is required",
-			autofocus:       true,
-			value:           formData.Email,
-			invalid:         formData.EmailMissing,
-			attributes:      invalid(formData.EmailMissing),
+	@Field(FieldOptions{
+		InputOptions: InputOptions{
+			Id:              "email",
+			Name:            "email",
+			InputType:       "text",
+			Required:        true,
+			ValidationError: "Email is required",
+			Autofocus:       true,
+			Value:           formData.Email,
+			Invalid:         formData.EmailMissing,
+			Attributes:      invalid(formData.EmailMissing),
 		},
-		label: "Email"})
-	@field(fieldOptions{
-		inputOptions: inputOptions{
-			id:              "password",
-			name:            "password",
-			inputType:       "password",
-			validationError: "Password is required",
-			required:        true,
-			placeholder:     "••••••••",
-			value:           formData.Password,
-			invalid:         formData.PasswordMissing,
-			attributes:      invalid(formData.PasswordMissing),
+		Label: "Email"})
+	@Field(FieldOptions{
+		InputOptions: InputOptions{
+			Id:              "password",
+			Name:            "password",
+			InputType:       "password",
+			ValidationError: "Password is required",
+			Required:        true,
+			Placeholder:     "••••••••",
+			Value:           formData.Password,
+			Invalid:         formData.PasswordMissing,
+			Attributes:      invalid(formData.PasswordMissing),
 		},
-		label: "Password",
+		Label: "Password",
 	})
 	<div class="flex items-center justify-between">
 		<div class="flex items-start">

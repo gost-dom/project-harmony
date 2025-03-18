@@ -29,7 +29,7 @@ func AuthLogin(redirectUrl string, data LoginFormData) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = layout(contents{body: login_body(redirectUrl, data)}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout(Contents{Body: login_body(redirectUrl, data)}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -134,35 +134,35 @@ func LoginForm(redirectUrl string, formData LoginFormData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = field(fieldOptions{
-			inputOptions: inputOptions{
-				id:              "email",
-				name:            "email",
-				inputType:       "text",
-				required:        true,
-				validationError: "Email is required",
-				autofocus:       true,
-				value:           formData.Email,
-				invalid:         formData.EmailMissing,
-				attributes:      invalid(formData.EmailMissing),
+		templ_7745c5c3_Err = Field(FieldOptions{
+			InputOptions: InputOptions{
+				Id:              "email",
+				Name:            "email",
+				InputType:       "text",
+				Required:        true,
+				ValidationError: "Email is required",
+				Autofocus:       true,
+				Value:           formData.Email,
+				Invalid:         formData.EmailMissing,
+				Attributes:      invalid(formData.EmailMissing),
 			},
-			label: "Email"}).Render(ctx, templ_7745c5c3_Buffer)
+			Label: "Email"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = field(fieldOptions{
-			inputOptions: inputOptions{
-				id:              "password",
-				name:            "password",
-				inputType:       "password",
-				validationError: "Password is required",
-				required:        true,
-				placeholder:     "••••••••",
-				value:           formData.Password,
-				invalid:         formData.PasswordMissing,
-				attributes:      invalid(formData.PasswordMissing),
+		templ_7745c5c3_Err = Field(FieldOptions{
+			InputOptions: InputOptions{
+				Id:              "password",
+				Name:            "password",
+				InputType:       "password",
+				ValidationError: "Password is required",
+				Required:        true,
+				Placeholder:     "••••••••",
+				Value:           formData.Password,
+				Invalid:         formData.PasswordMissing,
+				Attributes:      invalid(formData.PasswordMissing),
 			},
-			label: "Password",
+			Label: "Password",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

@@ -8,20 +8,20 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-type inputOptions struct {
-	id              string
-	name            string
-	inputType       string
-	value           string
-	placeholder     string
-	validationError string
-	required        bool
-	autofocus       bool
-	invalid         bool
-	attributes      templ.Attributes
+type InputOptions struct {
+	Id              string
+	Name            string
+	InputType       string
+	Value           string
+	Placeholder     string
+	ValidationError string
+	Required        bool
+	Autofocus       bool
+	Invalid         bool
+	Attributes      templ.Attributes
 }
 
-func input(o inputOptions) templ.Component {
+func input(o InputOptions) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -47,7 +47,7 @@ func input(o inputOptions) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(o.id)
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(o.Id)
 		if templ_7745c5c3_Err != nil {
 			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/components.templ`, Line: 22, Col: 11}
 		}
@@ -60,7 +60,7 @@ func input(o inputOptions) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(o.inputType)
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(o.InputType)
 		if templ_7745c5c3_Err != nil {
 			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/components.templ`, Line: 23, Col: 20}
 		}
@@ -73,7 +73,7 @@ func input(o inputOptions) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(o.name)
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(o.Name)
 		if templ_7745c5c3_Err != nil {
 			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/components.templ`, Line: 24, Col: 15}
 		}
@@ -85,7 +85,7 @@ func input(o inputOptions) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if o.required {
+		if o.Required {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " required")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -96,7 +96,7 @@ func input(o inputOptions) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(o.value)
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(o.Value)
 		if templ_7745c5c3_Err != nil {
 			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/components.templ`, Line: 26, Col: 17}
 		}
@@ -109,7 +109,7 @@ func input(o inputOptions) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(o.placeholder)
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(o.Placeholder)
 		if templ_7745c5c3_Err != nil {
 			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/components.templ`, Line: 27, Col: 29}
 		}
@@ -121,13 +121,13 @@ func input(o inputOptions) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if o.autofocus {
+		if o.Autofocus {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " autofocus")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, o.attributes)
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, o.Attributes)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -139,12 +139,12 @@ func input(o inputOptions) templ.Component {
 	})
 }
 
-type fieldOptions struct {
-	inputOptions
-	label string
+type FieldOptions struct {
+	InputOptions
+	Label string
 }
 
-func field(o fieldOptions) templ.Component {
+func Field(o FieldOptions) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -166,16 +166,16 @@ func field(o fieldOptions) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 
-		var descId string = o.id + "-missing"
-		if o.invalid {
-			o.attributes["aria-describedby"] = descId
+		var descId string = o.Id + "-missing"
+		if o.Invalid {
+			o.Attributes["aria-describedby"] = descId
 		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div><label class=\"block text-sm font-medium text-gray-900 dark:text-white\" for=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(o.id)
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(o.Id)
 		if templ_7745c5c3_Err != nil {
 			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/components.templ`, Line: 48, Col: 13}
 		}
@@ -188,7 +188,7 @@ func field(o fieldOptions) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 string
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(o.label)
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(o.Label)
 		if templ_7745c5c3_Err != nil {
 			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/components.templ`, Line: 49, Col: 12}
 		}
@@ -200,11 +200,11 @@ func field(o fieldOptions) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = input(o.inputOptions).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = input(o.InputOptions).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if o.invalid {
+		if o.Invalid {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -223,7 +223,7 @@ func field(o fieldOptions) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var11 string
-			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(o.validationError)
+			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(o.ValidationError)
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/components.templ`, Line: 52, Col: 41}
 			}

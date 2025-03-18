@@ -1,10 +1,10 @@
 package views
 
-type contents struct {
-	body templ.Component
+type Contents struct {
+	Body templ.Component
 }
 
-templ layout(c contents) {
+templ Layout(c Contents) {
 	<!DOCTYPE html>
 	<html>
 		<head>
@@ -48,7 +48,7 @@ dark:focus:ring-blue-800 ml-auto"
 					id="body-root"
 					class="flex-grow flex items-stretch flex-col"
 				>
-					@c.body
+					@c.Body
 				</div>
 				<!--
 				<footer
