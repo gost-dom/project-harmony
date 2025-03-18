@@ -2,6 +2,7 @@
 package authrouter_test
 
 import (
+	"errors"
 	"testing"
 
 	"harmony/internal/features/auth"
@@ -86,6 +87,24 @@ func (s *LoginPageSuite) TestInvalidCredentials() {
 
 	s.Assert().Equal("Email or password did not match", alert.TextContent())
 
+	s.Expect(s.Win.Document().ActiveElement()).To(matchers.HaveAttribute("id", "email"))
+}
+
+func (s *LoginPageSuite) TestUnexpectedError() {
+	s.authMock.EXPECT().
+		Authenticate(mock.Anything, mock.Anything, mock.Anything).
+		Return(auth.Account{}, errors.New("Unexpected")).Once()
+
+	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
+	s.loginForm.Password().SetAttribute("value", "s3cret")
+	s.loginForm.SubmitBtn().Click()
+
+	s.Equal("/auth/login", s.Win.Location().Href())
+
+	alert := s.Get(ByRole(ariarole.Alert))
+
+	s.Assert().NotContains(alert.TextContent(), "Email or password did not match")
+	s.Assert().Contains(alert.TextContent(), "unexpected error")
 	s.Expect(s.Win.Document().ActiveElement()).To(matchers.HaveAttribute("id", "email"))
 }
 

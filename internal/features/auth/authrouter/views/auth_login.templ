@@ -12,6 +12,7 @@ type LoginFormData struct {
 	Password           string
 	PasswordMissing    bool
 	InvalidCredentials bool
+	UnexpectedError    bool
 }
 
 func boolToString(b bool) string {
@@ -123,6 +124,14 @@ templ LoginForm(redirectUrl string, formData LoginFormData) {
 	</button>
 	if formData.InvalidCredentials {
 		<div id="alert-div" role="alert" aria-live="assertive" class="text-red-700">Email or password did not match</div>
+	}
+	if formData.UnexpectedError {
+		<div
+			id="alert-div"
+			role="alert"
+			aria-live="assertive"
+			class="text-red-700"
+		>An unexpected error occurred. Please try again ...</div>
 	}
 	<!--
     <p class="text-sm font-light text-gray-500 dark:text-gray-400">

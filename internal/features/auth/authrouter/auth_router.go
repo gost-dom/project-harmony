@@ -2,6 +2,7 @@ package authrouter
 
 import (
 	"context"
+	"errors"
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authrouter/views"
 	"net/http"
@@ -37,10 +38,12 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 		session.Save(r, w)
 		w.Header().Add("hx-push-url", redirectUrl)
 	} else {
+		authError := errors.Is(err, auth.ErrBadCredentials)
 		data := views.LoginFormData{
 			Email:              email,
 			Password:           "",
-			InvalidCredentials: true,
+			InvalidCredentials: authError,
+			UnexpectedError:    !authError,
 		}
 		if r.FormValue("email") == "" {
 			data.EmailMissing = true
