@@ -64,6 +64,10 @@ func (r *AuthRouter) Init() {
 		views.Login(redirectUrl, views.LoginFormData{}).Render(r.Context(), w)
 	})
 	r.HandleFunc("POST /login", r.PostAuthLogin)
+	r.HandleFunc("GET /register", func(w http.ResponseWriter, r *http.Request) {
+		views.Register().Render(r.Context(), w)
+	})
+
 }
 
 func (*AuthRouter) RenderLogin(w http.ResponseWriter, r *http.Request) {
