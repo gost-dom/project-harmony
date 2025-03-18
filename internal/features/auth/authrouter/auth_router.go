@@ -56,12 +56,12 @@ func (r *AuthRouter) Init() {
 	r.ServeMux = http.NewServeMux()
 	r.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
 		redirectUrl := r.URL.Query().Get("redirectUrl")
-		views.AuthLogin(redirectUrl, views.LoginFormData{}).Render(r.Context(), w)
+		views.Login(redirectUrl, views.LoginFormData{}).Render(r.Context(), w)
 
 	})
 	r.HandleFunc("POST /login", r.PostAuthLogin)
 }
 
 func (*AuthRouter) RenderLogin(w http.ResponseWriter, r *http.Request) {
-	views.AuthLogin("/host", views.LoginFormData{}).Render(r.Context(), w)
+	views.Login("/host", views.LoginFormData{}).Render(r.Context(), w)
 }

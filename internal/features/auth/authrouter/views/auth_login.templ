@@ -2,8 +2,8 @@ package views
 
 import . "harmony/internal/server/views"
 
-templ AuthLogin(redirectUrl string, data LoginFormData) {
-	@Layout(Contents{Body: login_body(redirectUrl, data)})
+templ Login(redirectUrl string, data LoginFormData) {
+	@Layout(Contents{Body: loginBody(redirectUrl, data)})
 }
 
 type LoginFormData struct {
@@ -22,7 +22,7 @@ func boolToString(b bool) string {
 	}
 }
 
-templ login_body(redirectUrl string, formData LoginFormData) {
+templ loginBody(redirectUrl string, formData LoginFormData) {
 	<div class="w-full m-auto flex flex-col items-center">
 		<div class="my-4 font-bold text-2xl dark:text-white">
 			Project Harmony
