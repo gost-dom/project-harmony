@@ -1,31 +1,16 @@
-package server_test
+package servertest
 
 import (
 	"context"
 	"harmony/internal/server"
+	"harmony/internal/testing/htest"
 	"harmony/internal/testing/shaman"
 	"time"
 
 	"github.com/gost-dom/browser"
 	"github.com/gost-dom/browser/html"
 	"github.com/gost-dom/surgeon"
-	"github.com/onsi/gomega"
-	"github.com/stretchr/testify/suite"
 )
-
-// GomegaSuite is a specialized [suite.Suite] that add [gomega.Gomega] assertion
-// semantics to the test suite.
-//
-// This can provide more expressive assertions when combined with custom
-// mathers.
-type GomegaSuite struct {
-	suite.Suite
-	gomega.Gomega
-}
-
-func (s *GomegaSuite) SetupTest() {
-	s.Gomega = gomega.NewWithT(s.T())
-}
 
 // BrowserSuite is an extension to [suite.Suite] that adds common behaviour for
 // interacting with the website using a browser.
@@ -37,25 +22,25 @@ func (s *GomegaSuite) SetupTest() {
 // application, and only _one window_ should be used. Opening a second window in
 // the same test case will panic.
 type BrowserSuite struct {
-	GomegaSuite
+	htest.GomegaSuite
 	shaman.Scope
-	graph     *surgeon.Graph[*server.Server]
-	win       html.Window
-	ctx       context.Context
-	cancelCtx context.CancelFunc
+	Graph     *surgeon.Graph[*server.Server]
+	Win       html.Window
+	Ctx       context.Context
+	CancelCtx context.CancelFunc
 }
 
 func (s *BrowserSuite) SetupTest() {
 	s.GomegaSuite.SetupTest()
-	s.graph = graph
-	s.ctx, s.cancelCtx = context.WithTimeout(context.Background(), time.Millisecond*100)
+	s.Graph = graph
+	s.Ctx, s.CancelCtx = context.WithTimeout(context.Background(), time.Millisecond*100)
 }
 
 func (s *BrowserSuite) OpenWindow(path string) html.Window {
-	if s.win != nil {
+	if s.Win != nil {
 		panic("BrowserSuite: This suite does not support opening multiple windows pr. test case")
 	}
-	serv := s.graph.Instance()
+	serv := s.Graph.Instance()
 	b := browser.NewBrowserFromHandler(serv)
 
 	// Opening "about:blank" is a bit of a hack to allow adding the event sync
@@ -73,12 +58,12 @@ func (s *BrowserSuite) OpenWindow(path string) html.Window {
 	s.Assert().NoError(err)
 	err = win.Navigate(path)
 	s.Assert().NoError(err)
-	s.win = win
-	s.Scope = shaman.NewScope(s.T(), s.win.Document())
+	s.Win = win
+	s.Scope = shaman.NewScope(s.T(), s.Win.Document())
 	return win
 }
 
 func (s *BrowserSuite) TearDownTest() {
-	s.win = nil
-	s.cancelCtx()
+	s.Win = nil
+	s.CancelCtx()
 }

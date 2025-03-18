@@ -848,9 +848,6 @@
     --tw-ease: var(--ease-in);
     transition-timing-function: var(--ease-in);
   }
-  .\[s\:g��zB�\?�liVd\] {
-    s: g��zB�?�liVd;
-  }
   .hover\:bg-ctabase-300 {
     &:hover {
       @media (hover: hover) {

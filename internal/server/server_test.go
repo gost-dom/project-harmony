@@ -3,11 +3,10 @@ package server_test
 import (
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authrouter"
-	"harmony/internal/server"
-	"harmony/internal/server/ioc"
 	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
 	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
+	"harmony/internal/testing/servertest"
 	. "harmony/internal/testing/shaman/predicates"
 	"testing"
 
@@ -16,15 +15,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-func init() {
-	// slog.SetLogLoggerLevel(slog.LevelWarn)
-	// logger.SetDefault(slog.Default())
-	graph = ioc.Graph
-}
-
-var graph *surgeon.Graph[*server.Server]
-
-type NavigateToLoginSuite struct{ BrowserSuite }
+type NavigateToLoginSuite struct{ servertest.BrowserSuite }
 
 func (s *NavigateToLoginSuite) SetupTest() {
 	s.BrowserSuite.SetupTest()
@@ -34,17 +25,17 @@ func (s *NavigateToLoginSuite) SetupTest() {
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
 		Return(auth.Account{}, nil).Maybe()
-	s.graph = surgeon.Replace[authrouter.Authenticator](s.graph, authMock)
+	s.Graph = surgeon.Replace[authrouter.Authenticator](s.Graph, authMock)
 
 	s.OpenWindow("http://localhost:1234/")
-	s.win.Clock().RunAll()
+	s.Win.Clock().RunAll()
 }
 
 func (s *NavigateToLoginSuite) TestLoginFlow() {
 	s.Get(ByRole(ariarole.Link), ByName("Go to hosting")).Click()
-	s.win.Clock().RunAll()
+	s.Win.Clock().RunAll()
 
-	s.Equal("/auth/login", s.win.Location().Pathname(), "Location after host")
+	s.Equal("/auth/login", s.Win.Location().Pathname(), "Location after host")
 	mainHeading := s.Get(ByH1)
 	s.Equal("Login", mainHeading.TextContent())
 
@@ -53,7 +44,7 @@ func (s *NavigateToLoginSuite) TestLoginFlow() {
 	loginForm.Password().SetAttribute("value", "s3cret")
 	loginForm.SubmitBtn().Click()
 
-	s.Equal("/host", s.win.Location().Pathname())
+	s.Equal("/host", s.Win.Location().Pathname())
 }
 
 func TestNavigateToLogin(t *testing.T) {

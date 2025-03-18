@@ -1,5 +1,5 @@
 //go:generate mockery --all --srcpkg harmony/internal --recursive=true --with-expecter=true
-package server_test
+package authrouter_test
 
 import (
 	"testing"
@@ -9,6 +9,7 @@ import (
 	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
 	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
+	"harmony/internal/testing/servertest"
 	"harmony/internal/testing/shaman"
 	. "harmony/internal/testing/shaman/predicates"
 
@@ -19,7 +20,7 @@ import (
 )
 
 type LoginPageSuite struct {
-	BrowserSuite
+	servertest.BrowserSuite
 	loginForm LoginForm
 	authMock  *MockAuthenticator
 }
@@ -27,7 +28,7 @@ type LoginPageSuite struct {
 func (s *LoginPageSuite) SetupTest() {
 	s.BrowserSuite.SetupTest()
 	s.authMock = NewMockAuthenticator(s.T())
-	s.graph = surgeon.Replace[router.Authenticator](s.graph, s.authMock)
+	s.Graph = surgeon.Replace[router.Authenticator](s.Graph, s.authMock)
 	s.OpenWindow("/auth/login")
 	s.loginForm = NewLoginForm(s.Scope)
 }
@@ -40,7 +41,7 @@ func (s *LoginPageSuite) TestMissingUsername() {
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
 
-	s.Equal("/auth/login", s.win.Location().Href())
+	s.Equal("/auth/login", s.Win.Location().Href())
 
 	s.Expect(s.loginForm.Email()).To(matchers.HaveAttribute("aria-invalid", "true"))
 	s.Expect(s.loginForm.Password()).ToNot(matchers.HaveAttribute("aria-invalid", "true"))
@@ -53,7 +54,7 @@ func (s *LoginPageSuite) TestMissingPassword() {
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.SubmitBtn().Click()
 
-	s.Equal("/auth/login", s.win.Location().Href())
+	s.Equal("/auth/login", s.Win.Location().Href())
 
 	s.Expect(s.loginForm.Email()).ToNot(matchers.HaveAttribute("aria-invalid", "true"))
 	s.Expect(s.loginForm.Password()).To(matchers.HaveAttribute("aria-invalid", "true"))
@@ -68,7 +69,7 @@ func (s *LoginPageSuite) TestValidCredentialsRedirects() {
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
 
-	s.Equal("/", s.win.Location().Pathname())
+	s.Equal("/", s.Win.Location().Pathname())
 }
 
 func (s *LoginPageSuite) TestInvalidCredentials() {
@@ -79,13 +80,13 @@ func (s *LoginPageSuite) TestInvalidCredentials() {
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
 
-	s.Equal("/auth/login", s.win.Location().Href())
+	s.Equal("/auth/login", s.Win.Location().Href())
 
 	alert := s.Get(ByRole(ariarole.Alert))
 
 	s.Assert().Equal("Email or password did not match", alert.TextContent())
 
-	s.Expect(s.win.Document().ActiveElement()).To(matchers.HaveAttribute("id", "email"))
+	s.Expect(s.Win.Document().ActiveElement()).To(matchers.HaveAttribute("id", "email"))
 }
 
 func TestLoginPage(t *testing.T) {
