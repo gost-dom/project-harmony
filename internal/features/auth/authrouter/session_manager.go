@@ -22,7 +22,7 @@ func (m *SessionManager) LoggedInUser(r *http.Request) *auth.Account {
 	if id, ok := session.Values[sessionCookieName]; ok {
 		result := new(auth.Account)
 		if strId, ok := id.(string); ok {
-			result.Id = auth.AccountId(strId)
+			result.Id = auth.AccountID(strId)
 			return result
 		}
 	}

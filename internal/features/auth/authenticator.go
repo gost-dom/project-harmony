@@ -4,15 +4,24 @@ import (
 	"context"
 	"encoding/gob"
 	"errors"
+
+	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 var ErrBadCredentials = errors.New("authenticate: Bad credentials")
 
 type Authenticator struct{}
 
-type AccountId string
+type AccountID string
 
-type Account struct{ Id AccountId }
+func NewID() (string, error) { return gonanoid.New(32) }
+
+type Account struct {
+	Id    AccountID
+	Email string
+}
+
+func (a Account) ID() AccountID { return a.Id }
 
 func (a *Authenticator) Authenticate(
 	ctx context.Context,
@@ -30,5 +39,5 @@ func (a *Authenticator) Authenticate(
 func New() *Authenticator { return &Authenticator{} }
 
 func init() {
-	gob.Register(AccountId(""))
+	gob.Register(AccountID(""))
 }
