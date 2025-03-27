@@ -1,6 +1,8 @@
 package auth
 
-// TODO: This is a general concept for domain logic
+// TODO: This is a general concept for domain logic - move to a general place
+
+type Entity[T any] interface{ ID() T }
 
 type DomainEvent interface{}
 

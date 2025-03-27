@@ -2,8 +2,6 @@ package auth
 
 import "context"
 
-type Entity[T any] interface{ ID() T }
-
 type AccountRegistered struct {
 	AccountID
 }
