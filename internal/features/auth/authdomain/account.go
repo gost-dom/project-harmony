@@ -12,23 +12,19 @@ type Account struct {
 
 func (a Account) ID() AccountID { return a.Id }
 
-type Password struct{ password string }
+type Password struct{ password []byte }
 
-func NewPassword(pw string) Password { return Password{pw} }
+func NewPassword(pw string) Password { return Password{[]byte(pw)} }
 
 type PasswordHash struct{ hash []byte }
 
 func NewHash(pw Password) (PasswordHash, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(pw.password), 0)
+	hash, err := bcrypt.GenerateFromPassword(pw.password, 0)
 	return PasswordHash{hash}, err
 }
 
 func (h PasswordHash) Validate(pw Password) bool {
-	return bcrypt.CompareHashAndPassword(h.hash, []byte(pw.password)) == nil
-}
-
-func (p Password) Validate(comp string) bool {
-	return comp == p.password
+	return bcrypt.CompareHashAndPassword(h.hash, pw.password) == nil
 }
 
 type AccountRegistered struct {
