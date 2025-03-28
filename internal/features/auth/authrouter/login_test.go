@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"harmony/internal/features/auth"
+	"harmony/internal/features/auth/authdomain"
 	router "harmony/internal/features/auth/authrouter"
 	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
@@ -37,7 +38,7 @@ func (s *LoginPageSuite) SetupTest() {
 func (s *LoginPageSuite) TestMissingUsername() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "", "s3cret").
-		Return(auth.Account{}, auth.ErrBadCredentials)
+		Return(authdomain.Account{}, auth.ErrBadCredentials)
 
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
@@ -51,7 +52,7 @@ func (s *LoginPageSuite) TestMissingUsername() {
 func (s *LoginPageSuite) TestMissingPassword() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "valid-user@example.com", "").
-		Return(auth.Account{}, auth.ErrBadCredentials)
+		Return(authdomain.Account{}, auth.ErrBadCredentials)
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.SubmitBtn().Click()
 
@@ -65,7 +66,7 @@ func (s *LoginPageSuite) TestMissingPassword() {
 func (s *LoginPageSuite) TestValidCredentialsRedirects() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "valid-user@example.com", "s3cret").
-		Return(auth.Account{}, nil).Once()
+		Return(authdomain.Account{}, nil).Once()
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
@@ -76,7 +77,7 @@ func (s *LoginPageSuite) TestValidCredentialsRedirects() {
 func (s *LoginPageSuite) TestCSRFHandling() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "valid-user@example.com", "s3cret").
-		Return(auth.Account{}, nil).Maybe()
+		Return(authdomain.Account{}, nil).Maybe()
 
 	s.CookieJar.Clear()
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
@@ -89,7 +90,7 @@ func (s *LoginPageSuite) TestCSRFHandling() {
 func (s *LoginPageSuite) TestCSRFWithMultipleWindows() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "valid-user@example.com", "s3cret").
-		Return(auth.Account{}, nil).Maybe()
+		Return(authdomain.Account{}, nil).Maybe()
 
 	_, err := s.Browser.Open("https://example.com/")
 	s.Assert().NoError(err)
@@ -104,8 +105,7 @@ func (s *LoginPageSuite) TestCSRFWithMultipleWindows() {
 func (s *LoginPageSuite) TestInvalidCredentials() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "bad-user@example.com", "s3cret").
-		Return(auth.Account{}, auth.ErrBadCredentials).Once()
-
+		Return(authdomain.Account{}, auth.ErrBadCredentials).Once()
 	s.loginForm.Email().SetAttribute("value", "bad-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
@@ -122,7 +122,7 @@ func (s *LoginPageSuite) TestInvalidCredentials() {
 func (s *LoginPageSuite) TestUnexpectedError() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
-		Return(auth.Account{}, errors.New("Unexpected")).Once()
+		Return(authdomain.Account{}, errors.New("Unexpected")).Once()
 
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")

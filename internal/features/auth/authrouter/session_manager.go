@@ -1,7 +1,7 @@
 package authrouter
 
 import (
-	"harmony/internal/features/auth"
+	"harmony/internal/features/auth/authdomain"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -17,12 +17,12 @@ type SessionManager struct {
 	SessionStore sessions.Store
 }
 
-func (m *SessionManager) LoggedInUser(r *http.Request) *auth.Account {
+func (m *SessionManager) LoggedInUser(r *http.Request) *authdomain.Account {
 	session, _ := m.SessionStore.Get(r, sessionNameAuth)
 	if id, ok := session.Values[sessionCookieName]; ok {
-		result := new(auth.Account)
+		result := new(authdomain.Account)
 		if strId, ok := id.(string); ok {
-			result.Id = auth.AccountID(strId)
+			result.Id = authdomain.AccountID(strId)
 			return result
 		}
 	}
@@ -32,7 +32,7 @@ func (m *SessionManager) LoggedInUser(r *http.Request) *auth.Account {
 func (s SessionManager) SetAccount(
 	w http.ResponseWriter,
 	req *http.Request,
-	account auth.Account,
+	account authdomain.Account,
 ) error {
 	session, err := s.SessionStore.Get(req, sessionNameAuth)
 	if err != nil {

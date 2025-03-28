@@ -3,6 +3,7 @@ package auth_test
 import (
 	"context"
 	. "harmony/internal/features/auth"
+	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/testing/mocks/features/auth_mock"
 	"testing"
 
@@ -23,7 +24,6 @@ func (s *RegisterTestSuite) SetupTest() {
 
 	s.Registrator = Registrator{Repository: s.repoMock}
 	s.ctx = context.Background()
-
 }
 
 func TestRegister(t *testing.T) {
@@ -31,7 +31,11 @@ func TestRegister(t *testing.T) {
 }
 
 func (s *RegisterTestSuite) TestValidLogin() {
-	s.Register(s.ctx, RegistratorInput{Email: "jd@example.com"})
+	pw := authdomain.NewPassword("s3cre7")
+	s.Register(s.ctx, RegistratorInput{
+		Email:    "jd@example.com",
+		Password: pw,
+	})
 
 	res := s.repoMock.Calls[0].Arguments.Get(1).(AccountUseCaseResult)
 	entity := res.Entity
@@ -40,7 +44,8 @@ func (s *RegisterTestSuite) TestValidLogin() {
 	s.Assert().NotZero(entity.Id)
 	s.Assert().Equal("jd@example.com", entity.Email)
 
-	s.Assert().Equal([]DomainEvent{AccountRegistered{
+	s.Assert().Equal([]DomainEvent{authdomain.AccountRegistered{
 		AccountID: entity.ID(),
 	}}, events, "A AccountRegistered domain event was generated")
+	s.Assert().True(entity.Password.Validate(pw))
 }

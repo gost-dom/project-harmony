@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/gob"
 	"errors"
+	. "harmony/internal/features/auth/authdomain"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
@@ -12,16 +13,7 @@ var ErrBadCredentials = errors.New("authenticate: Bad credentials")
 
 type Authenticator struct{}
 
-type AccountID string
-
 func NewID() (string, error) { return gonanoid.New(32) }
-
-type Account struct {
-	Id    AccountID
-	Email string
-}
-
-func (a Account) ID() AccountID { return a.Id }
 
 func (a *Authenticator) Authenticate(
 	ctx context.Context,

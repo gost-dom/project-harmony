@@ -6,11 +6,12 @@ import (
 	"net/http"
 
 	"harmony/internal/features/auth"
+	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authrouter/views"
 )
 
 type Authenticator interface {
-	Authenticate(context.Context, string, string) (auth.Account, error)
+	Authenticate(context.Context, string, string) (authdomain.Account, error)
 }
 
 type AuthRouter struct {

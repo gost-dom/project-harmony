@@ -29,6 +29,7 @@ require (
 	github.com/tommie/v8go/deps/darwin_arm64 v0.0.0-20250226014905-5d762b37670f // indirect
 	github.com/tommie/v8go/deps/linux_amd64 v0.0.0-20250226014905-5d762b37670f // indirect
 	github.com/tommie/v8go/deps/linux_arm64 v0.0.0-20250226014905-5d762b37670f // indirect
+	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect

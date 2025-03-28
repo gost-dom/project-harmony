@@ -3,8 +3,10 @@
 package auth_mock
 
 import (
-	context "context"
 	auth "harmony/internal/features/auth"
+	authdomain "harmony/internal/features/auth/authdomain"
+
+	context "context"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -23,7 +25,7 @@ func (_m *MockAccountRepository) EXPECT() *MockAccountRepository_Expecter {
 }
 
 // Insert provides a mock function with given fields: _a0, _a1
-func (_m *MockAccountRepository) Insert(_a0 context.Context, _a1 auth.UseCaseResult[auth.Account, auth.AccountID]) error {
+func (_m *MockAccountRepository) Insert(_a0 context.Context, _a1 auth.UseCaseResult[authdomain.Account, authdomain.AccountID]) error {
 	ret := _m.Called(_a0, _a1)
 
 	if len(ret) == 0 {
@@ -31,7 +33,7 @@ func (_m *MockAccountRepository) Insert(_a0 context.Context, _a1 auth.UseCaseRes
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, auth.UseCaseResult[auth.Account, auth.AccountID]) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, auth.UseCaseResult[authdomain.Account, authdomain.AccountID]) error); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)
@@ -47,14 +49,14 @@ type MockAccountRepository_Insert_Call struct {
 
 // Insert is a helper method to define mock.On call
 //   - _a0 context.Context
-//   - _a1 auth.UseCaseResult[auth.Account,auth.AccountID]
+//   - _a1 auth.UseCaseResult[authdomain.Account,authdomain.AccountID]
 func (_e *MockAccountRepository_Expecter) Insert(_a0 interface{}, _a1 interface{}) *MockAccountRepository_Insert_Call {
 	return &MockAccountRepository_Insert_Call{Call: _e.mock.On("Insert", _a0, _a1)}
 }
 
-func (_c *MockAccountRepository_Insert_Call) Run(run func(_a0 context.Context, _a1 auth.UseCaseResult[auth.Account, auth.AccountID])) *MockAccountRepository_Insert_Call {
+func (_c *MockAccountRepository_Insert_Call) Run(run func(_a0 context.Context, _a1 auth.UseCaseResult[authdomain.Account, authdomain.AccountID])) *MockAccountRepository_Insert_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(auth.UseCaseResult[auth.Account, auth.AccountID]))
+		run(args[0].(context.Context), args[1].(auth.UseCaseResult[authdomain.Account, authdomain.AccountID]))
 	})
 	return _c
 }
@@ -64,7 +66,7 @@ func (_c *MockAccountRepository_Insert_Call) Return(_a0 error) *MockAccountRepos
 	return _c
 }
 
-func (_c *MockAccountRepository_Insert_Call) RunAndReturn(run func(context.Context, auth.UseCaseResult[auth.Account, auth.AccountID]) error) *MockAccountRepository_Insert_Call {
+func (_c *MockAccountRepository_Insert_Call) RunAndReturn(run func(context.Context, auth.UseCaseResult[authdomain.Account, authdomain.AccountID]) error) *MockAccountRepository_Insert_Call {
 	_c.Call.Return(run)
 	return _c
 }

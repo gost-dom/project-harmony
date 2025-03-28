@@ -1,7 +1,7 @@
 package server_test
 
 import (
-	"harmony/internal/features/auth"
+	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authrouter"
 	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
@@ -24,7 +24,7 @@ func (s *NavigateToLoginSuite) SetupTest() {
 	authMock := NewMockAuthenticator(s.T())
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
-		Return(auth.Account{}, nil).Maybe()
+		Return(authdomain.Account{}, nil).Maybe()
 	s.Graph = surgeon.Replace[authrouter.Authenticator](s.Graph, authMock)
 
 	s.OpenWindow("https://example.com/")

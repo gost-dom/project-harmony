@@ -58,6 +58,8 @@ github.com/tommie/v8go/deps/linux_amd64 v0.0.0-20250226014905-5d762b37670f h1:33
 github.com/tommie/v8go/deps/linux_amd64 v0.0.0-20250226014905-5d762b37670f/go.mod h1:ZKG7g6Rah4/ZRzb07qFrQI/EPSm2PMj1cN/9y4fxgO8=
 github.com/tommie/v8go/deps/linux_arm64 v0.0.0-20250226014905-5d762b37670f h1:WF3FMscDccINfYF2T1hyFitLBlRF0plv+OAzwuioG0Y=
 github.com/tommie/v8go/deps/linux_arm64 v0.0.0-20250226014905-5d762b37670f/go.mod h1:B/myVnZ82IRgW//OzDnHArcOzW8Yq7FbWnMnYPbZ0Hc=
+golang.org/x/crypto v0.36.0 h1:AnAEvhDddvBdpY+uR+MyHmuZzzNqXSe/GvuDeob5L34=
+golang.org/x/crypto v0.36.0/go.mod h1:Y4J0ReaxCR1IMaabaSMugxJES1EpwhBHhv2bDHklZvc=
 golang.org/x/net v0.0.0-20211216030914-fe4d6282115f/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/net v0.37.0 h1:1zLorHbz+LYj7MQlSf1+2tPIIgibq2eL5xkrGk6f+2c=
 golang.org/x/net v0.37.0/go.mod h1:ivrbrMbzFq5J41QOQh0siUuly180yBYtLp+CKbEaFx8=
