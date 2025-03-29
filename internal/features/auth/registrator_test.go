@@ -33,8 +33,10 @@ func TestRegister(t *testing.T) {
 func (s *RegisterTestSuite) TestValidLogin() {
 	pw := authdomain.NewPassword("s3cre7")
 	s.Register(s.ctx, RegistratorInput{
-		Email:    "jd@example.com",
-		Password: pw,
+		Email:       "jd@example.com",
+		Password:    pw,
+		Name:        "John Smith",
+		DisplayName: "John",
 	})
 
 	res := s.repoMock.Calls[0].Arguments.Get(1).(AccountUseCaseResult)
@@ -43,6 +45,8 @@ func (s *RegisterTestSuite) TestValidLogin() {
 
 	s.Assert().NotZero(entity.Id)
 	s.Assert().Equal("jd@example.com", entity.Email)
+	s.Assert().Equal("John Smith", entity.Name)
+	s.Assert().Equal("John", entity.DisplayName)
 
 	s.Assert().Equal([]DomainEvent{authdomain.AccountRegistered{
 		AccountID: entity.ID(),

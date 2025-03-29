@@ -13,8 +13,10 @@ type AccountRepository interface {
 }
 
 type RegistratorInput struct {
-	Email    string
-	Password Password
+	Email       string
+	Password    Password
+	Name        string
+	DisplayName string
 }
 
 type Registrator struct {
@@ -28,9 +30,11 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 		return err
 	}
 	account := Account{
-		Id:       AccountID(id),
-		Email:    input.Email,
-		Password: hash,
+		Id:          AccountID(id),
+		Email:       input.Email,
+		Password:    hash,
+		Name:        input.Name,
+		DisplayName: input.DisplayName,
 	}
 	res := NewResult(account)
 	res.AddEvent(AccountRegistered{AccountID: account.Id})
