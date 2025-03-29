@@ -30,7 +30,7 @@ func TestRegister(t *testing.T) {
 	suite.Run(t, new(RegisterTestSuite))
 }
 
-func (s *RegisterTestSuite) TestValidLogin() {
+func (s *RegisterTestSuite) TestValidRegistrationInput() {
 	pw := authdomain.NewPassword("s3cre7")
 	s.Register(s.ctx, RegistratorInput{
 		Email:       "jd@example.com",
