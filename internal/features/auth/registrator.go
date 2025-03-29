@@ -6,7 +6,10 @@ import (
 	. "harmony/internal/features/auth/authdomain"
 )
 
-type AccountUseCaseResult = UseCaseResult[Account, AccountID]
+type AccountUseCaseResult struct {
+	UseCaseResult[Account, AccountID]
+	PasswordAuthentication
+}
 
 type AccountRepository interface {
 	Insert(context.Context, AccountUseCaseResult) error
@@ -32,11 +35,15 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 	account := Account{
 		Id:          AccountID(id),
 		Email:       input.Email,
-		Password:    hash,
 		Name:        input.Name,
 		DisplayName: input.DisplayName,
 	}
-	res := NewResult(account)
+	res := AccountUseCaseResult{
+		*NewResult(account),
+		PasswordAuthentication{AccountID: account.Id,
+			Password: hash,
+		},
+	}
 	res.AddEvent(AccountRegistered{AccountID: account.Id})
-	return r.Repository.Insert(ctx, *res)
+	return r.Repository.Insert(ctx, res)
 }

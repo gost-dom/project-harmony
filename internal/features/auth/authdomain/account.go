@@ -7,9 +7,13 @@ type AccountID string
 type Account struct {
 	Id          AccountID
 	Email       string
-	Password    PasswordHash
 	Name        string
 	DisplayName string
+}
+
+type PasswordAuthentication struct {
+	AccountID
+	Password PasswordHash
 }
 
 func (a Account) ID() AccountID { return a.Id }
