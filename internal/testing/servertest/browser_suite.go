@@ -58,7 +58,6 @@ type BrowserSuite struct {
 }
 
 func (s *BrowserSuite) SetupTest() {
-	s.GomegaSuite.SetupTest()
 	s.Graph = graph
 	s.Ctx, s.CancelCtx = context.WithTimeout(context.Background(), time.Millisecond*100)
 }

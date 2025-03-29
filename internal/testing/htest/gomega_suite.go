@@ -12,9 +12,12 @@ import (
 // mathers.
 type GomegaSuite struct {
 	suite.Suite
-	gomega.Gomega
+	gomega gomega.Gomega
 }
 
-func (s *GomegaSuite) SetupTest() {
-	s.Gomega = gomega.NewWithT(s.T())
+func (s *GomegaSuite) Expect(actual any, extra ...any) gomega.Assertion {
+	if s.gomega == nil {
+		s.gomega = gomega.NewWithT(s.T())
+	}
+	return s.gomega.Expect(actual, extra...)
 }
