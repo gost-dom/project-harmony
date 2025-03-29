@@ -51,5 +51,5 @@ func (s *RegisterTestSuite) TestValidLogin() {
 	s.Assert().Equal([]DomainEvent{authdomain.AccountRegistered{
 		AccountID: entity.ID,
 	}}, events, "A AccountRegistered domain event was generated")
-	s.Assert().True(res.PasswordAuthentication.Password.Validate(pw))
+	s.Assert().True(res.PasswordAuthentication.Validate(pw))
 }

@@ -13,7 +13,7 @@ type Account struct {
 
 type PasswordAuthentication struct {
 	AccountID
-	Password PasswordHash
+	PasswordHash
 }
 
 type Password struct{ password []byte }

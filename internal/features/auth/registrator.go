@@ -40,8 +40,9 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 	}
 	res := AccountUseCaseResult{
 		*NewResult(account),
-		PasswordAuthentication{AccountID: account.ID,
-			Password: hash,
+		PasswordAuthentication{
+			AccountID:    account.ID,
+			PasswordHash: hash,
 		},
 	}
 	res.AddEvent(AccountRegistered{AccountID: account.ID})
