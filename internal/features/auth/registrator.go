@@ -7,7 +7,7 @@ import (
 )
 
 type AccountUseCaseResult struct {
-	UseCaseResult[Account, AccountID]
+	UseCaseResult[Account]
 	PasswordAuthentication
 }
 
@@ -33,17 +33,17 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 		return err
 	}
 	account := Account{
-		Id:          AccountID(id),
+		ID:          AccountID(id),
 		Email:       input.Email,
 		Name:        input.Name,
 		DisplayName: input.DisplayName,
 	}
 	res := AccountUseCaseResult{
 		*NewResult(account),
-		PasswordAuthentication{AccountID: account.Id,
+		PasswordAuthentication{AccountID: account.ID,
 			Password: hash,
 		},
 	}
-	res.AddEvent(AccountRegistered{AccountID: account.Id})
+	res.AddEvent(AccountRegistered{AccountID: account.ID})
 	return r.Repository.Insert(ctx, res)
 }

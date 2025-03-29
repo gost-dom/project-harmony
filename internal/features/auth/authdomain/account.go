@@ -5,7 +5,7 @@ import "golang.org/x/crypto/bcrypt"
 type AccountID string
 
 type Account struct {
-	Id          AccountID
+	ID          AccountID
 	Email       string
 	Name        string
 	DisplayName string
@@ -15,8 +15,6 @@ type PasswordAuthentication struct {
 	AccountID
 	Password PasswordHash
 }
-
-func (a Account) ID() AccountID { return a.Id }
 
 type Password struct{ password []byte }
 

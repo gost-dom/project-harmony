@@ -21,16 +21,16 @@ type DomainEvent interface{}
 //
 // For the second point, it is imperative that events are not published until
 // AFTER a database transaction has committed.
-type UseCaseResult[T Entity[U], U any] struct {
+type UseCaseResult[T any] struct {
 	Entity T
 	Events []DomainEvent
 }
 
-func NewResult[T Entity[U], U any](entity T) *UseCaseResult[T, U] {
-	return &UseCaseResult[T, U]{Entity: entity}
+func NewResult[T any](entity T) *UseCaseResult[T] {
+	return &UseCaseResult[T]{Entity: entity}
 }
 
-func (useCase *UseCaseResult[T, U]) AddEvent(event DomainEvent) *UseCaseResult[T, U] {
+func (useCase *UseCaseResult[T]) AddEvent(event DomainEvent) *UseCaseResult[T] {
 	useCase.Events = append(useCase.Events, event)
 	return useCase
 }

@@ -22,7 +22,7 @@ func (m *SessionManager) LoggedInUser(r *http.Request) *authdomain.Account {
 	if id, ok := session.Values[sessionCookieName]; ok {
 		result := new(authdomain.Account)
 		if strId, ok := id.(string); ok {
-			result.Id = authdomain.AccountID(strId)
+			result.ID = authdomain.AccountID(strId)
 			return result
 		}
 	}
@@ -38,6 +38,6 @@ func (s SessionManager) SetAccount(
 	if err != nil {
 		return err
 	}
-	session.Values[sessionCookieName] = string(account.Id)
+	session.Values[sessionCookieName] = string(account.ID)
 	return session.Save(req, w)
 }
