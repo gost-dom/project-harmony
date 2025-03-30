@@ -29,12 +29,13 @@ type Registrator struct {
 func (r Registrator) Register(ctx context.Context, input RegistratorInput) error {
 	id, err1 := NewID()
 	hash, err2 := NewHash(input.Password)
-	if err := errors.Join(err1, err2); err != nil {
+	email, err3 := NewUnvalidatedEmail(input.Email)
+	if err := errors.Join(err1, err2, err3); err != nil {
 		return err
 	}
 	account := Account{
 		ID:          AccountID(id),
-		Email:       input.Email,
+		Email:       email,
 		Name:        input.Name,
 		DisplayName: input.DisplayName,
 	}
@@ -46,5 +47,10 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 		},
 	}
 	res.AddEvent(AccountRegistered{AccountID: account.ID})
+	res.AddEvent(EmailValidationRequest{
+		AccountID:  account.ID,
+		Code:       email.Challenge.Code,
+		ValidUntil: email.Challenge.NotAfter,
+	})
 	return r.Repository.Insert(ctx, res)
 }

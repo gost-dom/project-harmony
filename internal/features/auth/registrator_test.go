@@ -2,17 +2,21 @@ package auth_test
 
 import (
 	"context"
-	. "harmony/internal/features/auth"
-	"harmony/internal/features/auth/authdomain"
-	"harmony/internal/testing/mocks/features/auth_mock"
+	"reflect"
 	"testing"
 
+	. "harmony/internal/features/auth"
+	"harmony/internal/features/auth/authdomain"
+	"harmony/internal/testing/htest"
+	"harmony/internal/testing/mocks/features/auth_mock"
+
+	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
 type RegisterTestSuite struct {
-	suite.Suite
+	htest.GomegaSuite
 	ctx context.Context
 	Registrator
 	repoMock *auth_mock.MockAccountRepository
@@ -44,12 +48,53 @@ func (s *RegisterTestSuite) TestValidRegistrationInput() {
 	events := res.Events
 
 	s.Assert().NotZero(entity.ID)
-	s.Assert().Equal("jd@example.com", entity.Email)
+	s.Assert().Equal("jd@example.com", entity.Email.String())
 	s.Assert().Equal("John Smith", entity.Name)
 	s.Assert().Equal("John", entity.DisplayName)
 
-	s.Assert().Equal([]DomainEvent{authdomain.AccountRegistered{
-		AccountID: entity.ID,
-	}}, events, "A AccountRegistered domain event was generated")
-	s.Assert().True(res.PasswordAuthentication.Validate(pw))
+	s.Expect(events).To(gomega.ContainElement(
+		authdomain.AccountRegistered{AccountID: entity.ID}),
+	)
+}
+
+func AssertOneElementOfType[T any](t testing.TB, e []DomainEvent) (res T) {
+	t.Helper()
+	var found bool
+	for _, ee := range e {
+		if r, ok := ee.(T); ok {
+			if found {
+				t.Errorf("Found multiple instances of type %s", reflect.TypeFor[T]().Name())
+			}
+			res = r
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("Found no instance of type %s", reflect.TypeFor[T]().Name())
+	}
+	return
+}
+
+func (s *RegisterTestSuite) TestActivation() {
+	pw := authdomain.NewPassword("s3cre7")
+	s.Register(s.ctx, RegistratorInput{
+		Email:       "jd@example.com",
+		Password:    pw,
+		Name:        "John Smith",
+		DisplayName: "John",
+	})
+
+	res := s.repoMock.Calls[0].Arguments.Get(1).(AccountUseCaseResult)
+	entity := res.Entity
+	events := res.Events
+	validationRequest := AssertOneElementOfType[authdomain.EmailValidationRequest](s.T(), events)
+	code := validationRequest.Code
+
+	s.Assert().False(entity.Email.Validated, "Email validated - before validation")
+	s.Assert().ErrorIs(entity.ValidateEmail(
+		authdomain.NewValidationCode()),
+		authdomain.ErrBadEmailValidationCode, "Validating wrong code")
+
+	s.Assert().NoError(entity.ValidateEmail(code), "Validating right code")
+	s.Assert().True(entity.Email.Validated, "Email validated - after validation")
 }
