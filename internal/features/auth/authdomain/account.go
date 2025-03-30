@@ -78,29 +78,6 @@ type PasswordAuthentication struct {
 	PasswordHash
 }
 
-type Password struct{ password []byte }
-
-func (p Password) String() string { return "······" }
-
-func (p Password) GoString() string { return p.String() }
-
-func NewPassword(pw string) Password { return Password{[]byte(pw)} }
-
-func (p Password) Equals(other Password) bool {
-	return string(p.password) == string(other.password)
-}
-
-type PasswordHash struct{ hash []byte }
-
-func NewHash(pw Password) (PasswordHash, error) {
-	hash, err := bcrypt.GenerateFromPassword(pw.password, 0)
-	return PasswordHash{hash}, err
-}
-
-func (h PasswordHash) Validate(pw Password) bool {
-	return bcrypt.CompareHashAndPassword(h.hash, pw.password) == nil
-}
-
 type AccountRegistered struct {
 	AccountID
 }
