@@ -24,7 +24,7 @@ func (_m *MockAuthenticator) EXPECT() *MockAuthenticator_Expecter {
 }
 
 // Authenticate provides a mock function with given fields: _a0, _a1, _a2
-func (_m *MockAuthenticator) Authenticate(_a0 context.Context, _a1 string, _a2 string) (authdomain.Account, error) {
+func (_m *MockAuthenticator) Authenticate(_a0 context.Context, _a1 string, _a2 authdomain.Password) (authdomain.Account, error) {
 	ret := _m.Called(_a0, _a1, _a2)
 
 	if len(ret) == 0 {
@@ -33,16 +33,16 @@ func (_m *MockAuthenticator) Authenticate(_a0 context.Context, _a1 string, _a2 s
 
 	var r0 authdomain.Account
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (authdomain.Account, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, authdomain.Password) (authdomain.Account, error)); ok {
 		return rf(_a0, _a1, _a2)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) authdomain.Account); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, authdomain.Password) authdomain.Account); ok {
 		r0 = rf(_a0, _a1, _a2)
 	} else {
 		r0 = ret.Get(0).(authdomain.Account)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, authdomain.Password) error); ok {
 		r1 = rf(_a0, _a1, _a2)
 	} else {
 		r1 = ret.Error(1)
@@ -59,14 +59,14 @@ type MockAuthenticator_Authenticate_Call struct {
 // Authenticate is a helper method to define mock.On call
 //   - _a0 context.Context
 //   - _a1 string
-//   - _a2 string
+//   - _a2 authdomain.Password
 func (_e *MockAuthenticator_Expecter) Authenticate(_a0 interface{}, _a1 interface{}, _a2 interface{}) *MockAuthenticator_Authenticate_Call {
 	return &MockAuthenticator_Authenticate_Call{Call: _e.mock.On("Authenticate", _a0, _a1, _a2)}
 }
 
-func (_c *MockAuthenticator_Authenticate_Call) Run(run func(_a0 context.Context, _a1 string, _a2 string)) *MockAuthenticator_Authenticate_Call {
+func (_c *MockAuthenticator_Authenticate_Call) Run(run func(_a0 context.Context, _a1 string, _a2 authdomain.Password)) *MockAuthenticator_Authenticate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(authdomain.Password))
 	})
 	return _c
 }
@@ -76,7 +76,7 @@ func (_c *MockAuthenticator_Authenticate_Call) Return(_a0 authdomain.Account, _a
 	return _c
 }
 
-func (_c *MockAuthenticator_Authenticate_Call) RunAndReturn(run func(context.Context, string, string) (authdomain.Account, error)) *MockAuthenticator_Authenticate_Call {
+func (_c *MockAuthenticator_Authenticate_Call) RunAndReturn(run func(context.Context, string, authdomain.Password) (authdomain.Account, error)) *MockAuthenticator_Authenticate_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -23,7 +23,7 @@ func (_m *MockAccountRepository) EXPECT() *MockAccountRepository_Expecter {
 }
 
 // Insert provides a mock function with given fields: _a0, _a1
-func (_m *MockAccountRepository) Insert(_a0 context.Context, _a1 auth.AccountUseCaseResult) error {
+func (_m *MockAccountRepository) Insert(_a0 context.Context, _a1 auth.UseCaseResult[auth.InsertAccount]) error {
 	ret := _m.Called(_a0, _a1)
 
 	if len(ret) == 0 {
@@ -31,7 +31,7 @@ func (_m *MockAccountRepository) Insert(_a0 context.Context, _a1 auth.AccountUse
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, auth.AccountUseCaseResult) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, auth.UseCaseResult[auth.InsertAccount]) error); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)
@@ -47,14 +47,14 @@ type MockAccountRepository_Insert_Call struct {
 
 // Insert is a helper method to define mock.On call
 //   - _a0 context.Context
-//   - _a1 auth.AccountUseCaseResult
+//   - _a1 auth.UseCaseResult[auth.InsertAccount]
 func (_e *MockAccountRepository_Expecter) Insert(_a0 interface{}, _a1 interface{}) *MockAccountRepository_Insert_Call {
 	return &MockAccountRepository_Insert_Call{Call: _e.mock.On("Insert", _a0, _a1)}
 }
 
-func (_c *MockAccountRepository_Insert_Call) Run(run func(_a0 context.Context, _a1 auth.AccountUseCaseResult)) *MockAccountRepository_Insert_Call {
+func (_c *MockAccountRepository_Insert_Call) Run(run func(_a0 context.Context, _a1 auth.UseCaseResult[auth.InsertAccount])) *MockAccountRepository_Insert_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(auth.AccountUseCaseResult))
+		run(args[0].(context.Context), args[1].(auth.UseCaseResult[auth.InsertAccount]))
 	})
 	return _c
 }
@@ -64,7 +64,7 @@ func (_c *MockAccountRepository_Insert_Call) Return(_a0 error) *MockAccountRepos
 	return _c
 }
 
-func (_c *MockAccountRepository_Insert_Call) RunAndReturn(run func(context.Context, auth.AccountUseCaseResult) error) *MockAccountRepository_Insert_Call {
+func (_c *MockAccountRepository_Insert_Call) RunAndReturn(run func(context.Context, auth.UseCaseResult[auth.InsertAccount]) error) *MockAccountRepository_Insert_Call {
 	_c.Call.Return(run)
 	return _c
 }

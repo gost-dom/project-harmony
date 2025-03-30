@@ -11,7 +11,7 @@ import (
 )
 
 type Authenticator interface {
-	Authenticate(context.Context, string, string) (authdomain.Account, error)
+	Authenticate(context.Context, string, authdomain.Password) (authdomain.Account, error)
 }
 
 type AuthRouter struct {
@@ -28,7 +28,7 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 	if redirectUrl == "" {
 		redirectUrl = "/"
 	}
-	if account, err := s.Authenticator.Authenticate(r.Context(), email, password); err == nil {
+	if account, err := s.Authenticator.Authenticate(r.Context(), email, authdomain.NewPassword(password)); err == nil {
 		if err := s.SessionManager.SetAccount(w, r, account); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

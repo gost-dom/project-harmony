@@ -86,6 +86,10 @@ func (p Password) GoString() string { return p.String() }
 
 func NewPassword(pw string) Password { return Password{[]byte(pw)} }
 
+func (p Password) Equals(other Password) bool {
+	return string(p.password) == string(other.password)
+}
+
 type PasswordHash struct{ hash []byte }
 
 func NewHash(pw Password) (PasswordHash, error) {
