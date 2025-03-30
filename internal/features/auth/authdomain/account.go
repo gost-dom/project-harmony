@@ -82,6 +82,8 @@ type Password struct{ password []byte }
 
 func (p Password) String() string { return "······" }
 
+func (p Password) GoString() string { return p.String() }
+
 func NewPassword(pw string) Password { return Password{[]byte(pw)} }
 
 type PasswordHash struct{ hash []byte }
