@@ -11,8 +11,15 @@ import (
 )
 
 var ErrBadCredentials = errors.New("authenticate: Bad credentials")
+var ErrNotFound = errors.New("Not found")
 
-type Authenticator struct{}
+type AccountEmailFinder interface {
+	FindByEmail(ctx context.Context, id string) (InsertAccount, error)
+}
+
+type Authenticator struct {
+	Repository AccountEmailFinder
+}
 
 func NewID() (string, error) { return gonanoid.New(32) }
 
@@ -21,11 +28,19 @@ func (a *Authenticator) Authenticate(
 	username string,
 	password password.Password,
 ) (account Account, err error) {
-	if username == "valid-user@example.com" {
-		account = Account{}
-	} else {
+	var tmp InsertAccount
+	if tmp, err = a.Repository.FindByEmail(ctx, username); errors.Is(err, ErrNotFound) {
 		err = ErrBadCredentials
 	}
+	account = tmp.Account
+	if err == nil && !account.Email.Validated {
+		err = ErrAccountEmailNotValidated
+	}
+	if !tmp.Validate(password) {
+		err = ErrBadCredentials
+	}
+	// if err == nil {
+	// }
 	return
 }
 

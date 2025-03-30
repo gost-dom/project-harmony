@@ -7,6 +7,8 @@ import (
 	"harmony/internal/features/auth/authdomain/password"
 )
 
+var ErrAccountEmailNotValidated = errors.New("Email address not validated")
+
 type InsertAccount struct {
 	Account
 	PasswordAuthentication
@@ -29,6 +31,7 @@ type Registrator struct {
 	Repository AccountRepository
 }
 
+// Register attempts to create a new user account.
 func (r Registrator) Register(ctx context.Context, input RegistratorInput) error {
 	id, err1 := NewID()
 	hash, err2 := input.Password.Hash()

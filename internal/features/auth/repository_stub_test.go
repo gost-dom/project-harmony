@@ -1,0 +1,32 @@
+package auth_test
+
+import (
+	"context"
+	"harmony/internal/features/auth"
+	"harmony/internal/testing/repotest"
+	"testing"
+)
+
+type InsertAccountTranslator struct{}
+
+func (t InsertAccountTranslator) ID(e auth.InsertAccount) string { return string(e.Account.ID) }
+
+type AccountRepositoryStub struct {
+	repotest.RepositoryStub[auth.InsertAccount]
+}
+
+func NewAccountRepoStub(t testing.TB) *AccountRepositoryStub {
+	return &AccountRepositoryStub{repotest.NewRepositoryStub(t, InsertAccountTranslator{})}
+}
+
+func (i AccountRepositoryStub) FindByEmail(
+	ctx context.Context,
+	email string,
+) (auth.InsertAccount, error) {
+	for _, v := range i.Entities {
+		if v.Email.Equals(email) {
+			return *v, nil
+		}
+	}
+	return auth.InsertAccount{}, auth.ErrNotFound
+}

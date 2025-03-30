@@ -32,6 +32,10 @@ type Email struct {
 	Challenge *EmailChallenge
 }
 
+func (e Email) Equals(address string) bool {
+	return e.address == address && address != ""
+}
+
 func (e Email) Validate(code ValidationCode) (res Email, err error) {
 	res = e
 	if e.Challenge.Code != code {

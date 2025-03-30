@@ -2,33 +2,38 @@ package auth_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
+	"harmony/internal/features/auth"
 	. "harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/testing/htest"
-	"harmony/internal/testing/mocks/features/auth_mock"
+	"harmony/internal/testing/repotest"
 
 	"github.com/onsi/gomega"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
 type RegisterTestSuite struct {
 	htest.GomegaSuite
-	ctx context.Context
 	Registrator
-	repoMock *auth_mock.MockAccountRepository
+	ctx        context.Context
+	repo       *AccountRepositoryStub
+	validInput RegistratorInput
 }
 
 func (s *RegisterTestSuite) SetupTest() {
-	s.repoMock = auth_mock.NewMockAccountRepository(s.T())
-	s.repoMock.EXPECT().Insert(mock.Anything, mock.Anything).Return(nil)
+	s.repo = NewAccountRepoStub(s.T())
 
-	s.Registrator = Registrator{Repository: s.repoMock}
+	s.Registrator = Registrator{Repository: s.repo}
 	s.ctx = context.Background()
+	s.validInput = RegistratorInput{
+		Email:       "jd@example.com",
+		Password:    password.Parse("valid_password"),
+		Name:        "John Smith",
+		DisplayName: "John",
+	}
 }
 
 func TestRegister(t *testing.T) {
@@ -36,59 +41,25 @@ func TestRegister(t *testing.T) {
 }
 
 func (s *RegisterTestSuite) TestValidRegistrationInput() {
-	pw := password.Parse("s3cre7")
-	s.Register(s.ctx, RegistratorInput{
-		Email:       "jd@example.com",
-		Password:    pw,
-		Name:        "John Smith",
-		DisplayName: "John",
-	})
+	s.Register(s.ctx, s.validInput)
 
-	res := s.repoMock.Calls[0].Arguments.Get(1).(AccountUseCaseResult)
-	entity := res.Entity
-	events := res.Events
+	entity := s.repo.Single()
 
 	s.Assert().NotZero(entity.ID)
 	s.Assert().Equal("jd@example.com", entity.Email.String())
 	s.Assert().Equal("John Smith", entity.Name)
 	s.Assert().Equal("John", entity.DisplayName)
 
-	s.Expect(events).To(gomega.ContainElement(
+	s.Expect(s.repo.Events).To(gomega.ContainElement(
 		authdomain.AccountRegistered{AccountID: entity.ID}),
 	)
 }
 
-func AssertOneElementOfType[T any](t testing.TB, e []DomainEvent) (res T) {
-	t.Helper()
-	var found bool
-	for _, ee := range e {
-		if r, ok := ee.(T); ok {
-			if found {
-				t.Errorf("Found multiple instances of type %s", reflect.TypeFor[T]().Name())
-			}
-			res = r
-			found = true
-		}
-	}
-	if !found {
-		t.Errorf("Found no instance of type %s", reflect.TypeFor[T]().Name())
-	}
-	return
-}
-
 func (s *RegisterTestSuite) TestActivation() {
-	pw := password.Parse("s3cre7")
-	s.Register(s.ctx, RegistratorInput{
-		Email:       "jd@example.com",
-		Password:    pw,
-		Name:        "John Smith",
-		DisplayName: "John",
-	})
+	s.Register(s.ctx, s.validInput)
 
-	res := s.repoMock.Calls[0].Arguments.Get(1).(AccountUseCaseResult)
-	entity := res.Entity
-	events := res.Events
-	validationRequest := AssertOneElementOfType[authdomain.EmailValidationRequest](s.T(), events)
+	entity := s.repo.Single()
+	validationRequest := repotest.AssertOneEventOfType[authdomain.EmailValidationRequest](s.repo)
 	code := validationRequest.Code
 
 	s.Assert().False(entity.Email.Validated, "Email validated - before validation")
@@ -98,4 +69,25 @@ func (s *RegisterTestSuite) TestActivation() {
 
 	s.Assert().NoError(entity.ValidateEmail(code), "Validating right code")
 	s.Assert().True(entity.Email.Validated, "Email validated - after validation")
+}
+
+func (s *RegisterTestSuite) TestUnvalidatedAccountLogin() {
+	s.Register(s.ctx, s.validInput)
+	newAccount := s.repo.Single()
+
+	pw := password.Parse("valid_password")
+	a := auth.Authenticator{Repository: s.repo}
+	_, err := a.Authenticate(s.ctx, "jd@example.com", pw)
+	s.Assert().Error(err)
+	s.Assert().ErrorIs(err, ErrAccountEmailNotValidated)
+
+	newAccount.ValidateEmail(newAccount.Email.Challenge.Code)
+
+	_, err = a.Authenticate(s.ctx, "jd@example.com", password.Parse("wrong_pw"))
+	s.Assert().ErrorIs(err, ErrBadCredentials)
+
+	actual, err := a.Authenticate(s.ctx, "jd@example.com", pw)
+	s.Assert().NoError(err)
+	s.Assert().Equal(newAccount.AccountID, actual.ID)
+	s.Assert().Equal("jd@example.com", actual.Email.String())
 }
