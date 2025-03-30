@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/gob"
 	"errors"
-	"harmony/internal/features/auth/authdomain"
 	. "harmony/internal/features/auth/authdomain"
+	"harmony/internal/features/auth/authdomain/password"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
@@ -19,7 +19,7 @@ func NewID() (string, error) { return gonanoid.New(32) }
 func (a *Authenticator) Authenticate(
 	ctx context.Context,
 	username string,
-	password authdomain.Password,
+	password password.Password,
 ) (account Account, err error) {
 	if username == "valid-user@example.com" {
 		account = Account{}

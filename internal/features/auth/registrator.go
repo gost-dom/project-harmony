@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	. "harmony/internal/features/auth/authdomain"
+	"harmony/internal/features/auth/authdomain/password"
 )
 
 type InsertAccount struct {
@@ -19,7 +20,7 @@ type AccountRepository interface {
 
 type RegistratorInput struct {
 	Email       string
-	Password    Password
+	Password    password.Password
 	Name        string
 	DisplayName string
 }
@@ -30,7 +31,7 @@ type Registrator struct {
 
 func (r Registrator) Register(ctx context.Context, input RegistratorInput) error {
 	id, err1 := NewID()
-	hash, err2 := NewHash(input.Password)
+	hash, err2 := input.Password.Hash()
 	email, err3 := NewUnvalidatedEmail(input.Email)
 	if err := errors.Join(err1, err2, err3); err != nil {
 		return err

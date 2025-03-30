@@ -7,6 +7,7 @@ import (
 
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
+	"harmony/internal/features/auth/authdomain/password"
 	router "harmony/internal/features/auth/authrouter"
 	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
@@ -22,7 +23,7 @@ import (
 )
 
 func matchPassword(pw string) any {
-	return mock.MatchedBy(authdomain.NewPassword(pw).Equals)
+	return mock.MatchedBy(password.Parse(pw).Equals)
 }
 
 type LoginPageSuite struct {

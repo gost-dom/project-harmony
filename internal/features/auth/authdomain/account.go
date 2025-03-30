@@ -2,10 +2,10 @@ package authdomain
 
 import (
 	"errors"
+	"harmony/internal/features/auth/authdomain/password"
 	"time"
 
 	nanoid "github.com/matoous/go-nanoid/v2"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var ErrBadEmailValidationCode = errors.New("Bad email validation code")
@@ -75,7 +75,7 @@ func (a *Account) ValidateEmail(code ValidationCode) (err error) {
 
 type PasswordAuthentication struct {
 	AccountID
-	PasswordHash
+	password.PasswordHash
 }
 
 type AccountRegistered struct {

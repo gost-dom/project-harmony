@@ -7,11 +7,12 @@ import (
 
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
+	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/features/auth/authrouter/views"
 )
 
 type Authenticator interface {
-	Authenticate(context.Context, string, authdomain.Password) (authdomain.Account, error)
+	Authenticate(context.Context, string, password.Password) (authdomain.Account, error)
 }
 
 type AuthRouter struct {
@@ -23,12 +24,12 @@ type AuthRouter struct {
 func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	email := r.FormValue("email")
-	password := r.FormValue("password")
+	pw := r.FormValue("password")
 	redirectUrl := r.FormValue("redirectUrl")
 	if redirectUrl == "" {
 		redirectUrl = "/"
 	}
-	if account, err := s.Authenticator.Authenticate(r.Context(), email, authdomain.NewPassword(password)); err == nil {
+	if account, err := s.Authenticator.Authenticate(r.Context(), email, password.Parse(pw)); err == nil {
 		if err := s.SessionManager.SetAccount(w, r, account); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

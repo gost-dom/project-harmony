@@ -2,14 +2,14 @@ package authdomain_test
 
 import (
 	"fmt"
-	"harmony/internal/features/auth/authdomain"
+	"harmony/internal/features/auth/authdomain/password"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPasswordIsNotContertibleToString(t *testing.T) {
-	var pw any = authdomain.NewPassword("s3cret")
+	var pw any = password.Parse("s3cret")
 	_, ok := pw.(string)
 	assert.False(t, ok)
 }
@@ -30,7 +30,7 @@ func TestPasswordStringerDoesntRevealPassword(t *testing.T) {
 		"Test error, binaryForm2 not valid input for NotContains later",
 	)
 
-	pw := authdomain.NewPassword(input)
+	pw := password.Parse(input)
 	for _, searchVal := range []string{input, binaryForm1, binaryForm2} {
 		assert.NotContains(
 			fmt.Sprintf("%s", pw), searchVal,

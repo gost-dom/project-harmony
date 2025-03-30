@@ -7,6 +7,7 @@ import (
 
 	. "harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
+	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/testing/htest"
 	"harmony/internal/testing/mocks/features/auth_mock"
 
@@ -35,7 +36,7 @@ func TestRegister(t *testing.T) {
 }
 
 func (s *RegisterTestSuite) TestValidRegistrationInput() {
-	pw := authdomain.NewPassword("s3cre7")
+	pw := password.Parse("s3cre7")
 	s.Register(s.ctx, RegistratorInput{
 		Email:       "jd@example.com",
 		Password:    pw,
@@ -76,7 +77,7 @@ func AssertOneElementOfType[T any](t testing.TB, e []DomainEvent) (res T) {
 }
 
 func (s *RegisterTestSuite) TestActivation() {
-	pw := authdomain.NewPassword("s3cre7")
+	pw := password.Parse("s3cre7")
 	s.Register(s.ctx, RegistratorInput{
 		Email:       "jd@example.com",
 		Password:    pw,
