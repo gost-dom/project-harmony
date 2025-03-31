@@ -1,6 +1,8 @@
 package htest
 
 import (
+	"context"
+
 	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
 )
@@ -21,3 +23,5 @@ func (s *GomegaSuite) Expect(actual any, extra ...any) gomega.Assertion {
 	}
 	return s.gomega.Expect(actual, extra...)
 }
+
+func (s GomegaSuite) Context() context.Context { return s.T().Context() }

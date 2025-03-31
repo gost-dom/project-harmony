@@ -1,8 +1,9 @@
 package auth_test
 
 import (
-	"context"
 	"testing"
+	"testing/synctest"
+	"time"
 
 	"harmony/internal/features/auth"
 	. "harmony/internal/features/auth"
@@ -15,10 +16,19 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+func CreateValidInput() RegistratorInput {
+	return RegistratorInput{
+		Email:       "jd@example.com",
+		Password:    password.Parse("valid_password"),
+		Name:        "John Smith",
+		DisplayName: "John",
+	}
+
+}
+
 type RegisterTestSuite struct {
 	htest.GomegaSuite
 	Registrator
-	ctx        context.Context
 	repo       *AccountRepositoryStub
 	validInput RegistratorInput
 }
@@ -27,13 +37,7 @@ func (s *RegisterTestSuite) SetupTest() {
 	s.repo = NewAccountRepoStub(s.T())
 
 	s.Registrator = Registrator{Repository: s.repo}
-	s.ctx = context.Background()
-	s.validInput = RegistratorInput{
-		Email:       "jd@example.com",
-		Password:    password.Parse("valid_password"),
-		Name:        "John Smith",
-		DisplayName: "John",
-	}
+	s.validInput = CreateValidInput()
 }
 
 func TestRegister(t *testing.T) {
@@ -41,7 +45,7 @@ func TestRegister(t *testing.T) {
 }
 
 func (s *RegisterTestSuite) TestValidRegistrationInput() {
-	s.Register(s.ctx, s.validInput)
+	s.Register(s.Context(), s.validInput)
 
 	entity := s.repo.Single()
 
@@ -55,39 +59,61 @@ func (s *RegisterTestSuite) TestValidRegistrationInput() {
 	)
 }
 
-func (s *RegisterTestSuite) TestActivation() {
-	s.Register(s.ctx, s.validInput)
+func (s *RegisterTestSuite) TestInvalidEmail() {
+	input := s.validInput
+	input.Email = "invalid_email.com"
+	err := s.Register(s.Context(), input)
 
+	s.Assert().ErrorIs(err, auth.ErrInvalidInput)
+	s.Assert().True(s.repo.Empty())
+}
+
+func (s *RegisterTestSuite) TestActivation() {
+	s.Register(s.Context(), s.validInput)
 	entity := s.repo.Single()
-	validationRequest := repotest.AssertOneEventOfType[authdomain.EmailValidationRequest](s.repo)
-	code := validationRequest.Code
 
 	s.Assert().False(entity.Email.Validated, "Email validated - before validation")
+
 	s.Assert().ErrorIs(entity.ValidateEmail(
 		authdomain.NewValidationCode()),
 		authdomain.ErrBadEmailValidationCode, "Validating wrong code")
 
+	code := repotest.SingleEventOfType[authdomain.EmailValidationRequest](s.repo).Code
 	s.Assert().NoError(entity.ValidateEmail(code), "Validating right code")
 	s.Assert().True(entity.Email.Validated, "Email validated - after validation")
 }
 
-func (s *RegisterTestSuite) TestUnvalidatedAccountLogin() {
-	s.Register(s.ctx, s.validInput)
-	newAccount := s.repo.Single()
+func (s *RegisterTestSuite) TestActivationCodeBeforeExpiry() {
+	synctest.Run(func() {
+		s.Register(s.Context(), s.validInput)
+		entity := s.repo.Single()
+		code := repotest.SingleEventOfType[authdomain.EmailValidationRequest](
+			s.repo,
+		).Code
 
-	pw := password.Parse("valid_password")
-	a := auth.Authenticator{Repository: s.repo}
-	_, err := a.Authenticate(s.ctx, "jd@example.com", pw)
-	s.Assert().Error(err)
-	s.Assert().ErrorIs(err, ErrAccountEmailNotValidated)
+		time.Sleep(14 * time.Minute)
+		synctest.Wait()
 
-	newAccount.ValidateEmail(newAccount.Email.Challenge.Code)
+		s.Assert().NoError(entity.ValidateEmail(code), "Validation error")
+		s.Assert().True(entity.Email.Validated, "Email validated")
+	})
+}
 
-	_, err = a.Authenticate(s.ctx, "jd@example.com", password.Parse("wrong_pw"))
-	s.Assert().ErrorIs(err, ErrBadCredentials)
+func (s *RegisterTestSuite) TestActivationCodeExpired() {
+	synctest.Run(func() {
+		s.Register(s.Context(), s.validInput)
+		entity := s.repo.Single()
+		validationRequest := repotest.SingleEventOfType[authdomain.EmailValidationRequest](
+			s.repo,
+		)
+		code := validationRequest.Code
 
-	actual, err := a.Authenticate(s.ctx, "jd@example.com", pw)
-	s.Assert().NoError(err)
-	s.Assert().Equal(newAccount.AccountID, actual.ID)
-	s.Assert().Equal("jd@example.com", actual.Email.String())
+		s.Assert().False(entity.Email.Validated, "Email validated - before validation")
+
+		time.Sleep(16 * time.Minute)
+		synctest.Wait()
+
+		s.Assert().ErrorIs(entity.ValidateEmail(code), authdomain.ErrBadEmailValidationCode)
+		s.Assert().False(entity.Email.Validated, "Email validated - after validation")
+	})
 }

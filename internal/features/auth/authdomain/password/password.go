@@ -11,7 +11,7 @@ func (p Password) String() string { return "······" }
 func (p Password) GoString() string { return p.String() }
 
 func (p Password) Hash() (PasswordHash, error) {
-	hash, err := bcrypt.GenerateFromPassword(p.password, 0)
+	hash, err := bcrypt.GenerateFromPassword(p.password, bcrypt.MinCost)
 	return PasswordHash{hash}, err
 }
 

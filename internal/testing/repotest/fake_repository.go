@@ -81,6 +81,8 @@ func (s RepositoryStub[T]) Single() *T {
 	return ee[0]
 }
 
+func (s RepositoryStub[T]) Empty() bool { return len(s.Entities) == 0 }
+
 func (s RepositoryStub[T]) GetTestInstance(id string) *T {
 	if _, found := s.Entities[id]; !found {
 		panic("ID not found: " + id)
@@ -93,7 +95,7 @@ type E interface {
 	AllEvents() []auth.DomainEvent
 }
 
-func AssertOneEventOfType[T any](e E) (res T) {
+func SingleEventOfType[T any](e E) (res T) {
 	t := e.TestingT()
 	t.Helper()
 	var found bool

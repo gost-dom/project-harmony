@@ -3,6 +3,7 @@ package authdomain
 import (
 	"errors"
 	"harmony/internal/features/auth/authdomain/password"
+	"net/mail"
 	"time"
 
 	nanoid "github.com/matoous/go-nanoid/v2"
@@ -24,6 +25,8 @@ type EmailChallenge struct {
 	NotAfter time.Time // A deadline for completing the challenge
 }
 
+func (c EmailChallenge) Expired() bool { return time.Now().After(c.NotAfter) }
+
 // Email is a value object encapsulating the complexities of email address
 // validation through a challenge.
 type Email struct {
@@ -38,7 +41,7 @@ func (e Email) Equals(address string) bool {
 
 func (e Email) Validate(code ValidationCode) (res Email, err error) {
 	res = e
-	if e.Challenge.Code != code {
+	if e.Challenge.Code != code || e.Challenge.Expired() {
 		err = ErrBadEmailValidationCode
 	} else {
 		res.Validated = true
@@ -49,15 +52,16 @@ func (e Email) Validate(code ValidationCode) (res Email, err error) {
 
 func (e Email) String() string { return e.address }
 
-func NewUnvalidatedEmail(address string) (email Email, err error) {
-	code := NewValidationCode()
-	return Email{
+func NewUnvalidatedEmail(address string) (Email, error) {
+	_, err := mail.ParseAddress(address)
+	email := Email{
 		address: address,
 		Challenge: &EmailChallenge{
-			Code:     code,
-			NotAfter: time.Now().Add(15 * time.Hour),
+			Code:     NewValidationCode(),
+			NotAfter: time.Now().Add(15 * time.Minute),
 		},
-	}, nil
+	}
+	return email, err
 }
 
 type AccountID string

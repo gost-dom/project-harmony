@@ -5,13 +5,13 @@ import (
 	"harmony/internal/testing/repotest"
 	"testing"
 
-	"github.com/google/uuid"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/stretchr/testify/assert"
 )
 
 type TestType struct{ ID string }
 
-func NewTestType() TestType { return TestType{ID: uuid.NewString()} }
+func NewTestType() TestType { return TestType{ID: gonanoid.Must()} }
 
 type TestTypeTranslator struct{}
 
