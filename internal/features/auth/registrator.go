@@ -3,14 +3,13 @@ package auth
 import (
 	"context"
 	"errors"
-	. "harmony/internal/features/auth/authdomain"
+	domain "harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 )
 
 var ErrInvalidInput = errors.New("Invalid input")
-var ErrAccountEmailNotValidated = errors.New("Email address not validated")
 
-type AccountUseCaseResult = UseCaseResult[PasswordAuthentication]
+type AccountUseCaseResult = UseCaseResult[domain.PasswordAuthentication]
 
 type AccountRepository interface {
 	Insert(context.Context, AccountUseCaseResult) error
@@ -34,23 +33,23 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 	if err := errors.Join(err1, err2); err != nil {
 		return err
 	}
-	email, err := NewUnvalidatedEmail(input.Email)
+	email, err := domain.NewUnvalidatedEmail(input.Email)
 	if err != nil {
 		return ErrInvalidInput
 	}
-	account := Account{
-		ID:          AccountID(id),
+	account := domain.Account{
+		ID:          domain.AccountID(id),
 		Email:       email,
 		Name:        input.Name,
 		DisplayName: input.DisplayName,
 	}
-	res := *NewResult(PasswordAuthentication{
+	res := *NewResult(domain.PasswordAuthentication{
 		Account:      account,
 		PasswordHash: hash,
 	})
 
-	res.AddEvent(AccountRegistered{AccountID: account.ID})
-	res.AddEvent(EmailValidationRequest{
+	res.AddEvent(domain.AccountRegistered{AccountID: account.ID})
+	res.AddEvent(domain.EmailValidationRequest{
 		AccountID:  account.ID,
 		Code:       email.Challenge.Code,
 		ValidUntil: email.Challenge.NotAfter,

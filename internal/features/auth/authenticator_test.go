@@ -58,7 +58,7 @@ func (s *AuthenticatorTestSuite) TestAuthenticateWrongPassword() {
 func (s *AuthenticatorTestSuite) TestAuthenticateCorrectPassword() {
 	s.validateAccount()
 	x, _ := s.Repository.FindByEmail(s.Context(), "jd@example.com")
-	s.Assert().True(x.Email.Validated)
+	s.Assert().True(x.Email.Validated, "Email validated")
 
 	actual, err := s.Authenticate(s.Context(), "jd@example.com", password.Parse("valid_password"))
 	s.Assert().NoError(err)

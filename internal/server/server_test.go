@@ -1,10 +1,10 @@
 package server_test
 
 import (
-	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authrouter"
 	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
+	. "harmony/internal/testing/domaintest"
 	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
 	"harmony/internal/testing/servertest"
 	. "harmony/internal/testing/shaman/predicates"
@@ -24,7 +24,7 @@ func (s *NavigateToLoginSuite) SetupTest() {
 	authMock := NewMockAuthenticator(s.T())
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
-		Return(authdomain.AuthenticatedAccount{}, nil).Maybe()
+		Return(InitAuthenticatedAccount(), nil).Maybe()
 	s.Graph = surgeon.Replace[authrouter.Authenticator](s.Graph, authMock)
 
 	s.OpenWindow("https://example.com/")

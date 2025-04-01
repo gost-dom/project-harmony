@@ -11,6 +11,7 @@ import (
 	router "harmony/internal/features/auth/authrouter"
 	. "harmony/internal/server/testing"
 	ariarole "harmony/internal/testing/aria-role"
+	. "harmony/internal/testing/domaintest"
 	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
 	"harmony/internal/testing/servertest"
 	"harmony/internal/testing/shaman"
@@ -71,7 +72,7 @@ func (s *LoginPageSuite) TestMissingPassword() {
 func (s *LoginPageSuite) TestValidCredentialsRedirects() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "valid-user@example.com", matchPassword("s3cret")).
-		Return(authdomain.AuthenticatedAccount{}, nil).Once()
+		Return(InitAuthenticatedAccount(), nil).Once()
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
@@ -82,7 +83,7 @@ func (s *LoginPageSuite) TestValidCredentialsRedirects() {
 func (s *LoginPageSuite) TestCSRFHandling() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "valid-user@example.com", matchPassword("s3cret")).
-		Return(authdomain.AuthenticatedAccount{}, nil).Maybe()
+		Return(InitAuthenticatedAccount(), nil).Maybe()
 
 	s.CookieJar.Clear()
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
@@ -95,7 +96,7 @@ func (s *LoginPageSuite) TestCSRFHandling() {
 func (s *LoginPageSuite) TestCSRFWithMultipleWindows() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "valid-user@example.com", matchPassword("s3cret")).
-		Return(authdomain.AuthenticatedAccount{}, nil).Once()
+		Return(InitAuthenticatedAccount(), nil).Maybe()
 
 	_, err := s.Browser.Open("https://example.com/")
 	s.Assert().NoError(err)

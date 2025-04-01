@@ -10,6 +10,7 @@ import (
 )
 
 var ErrBadEmailValidationCode = errors.New("Bad email validation code")
+var ErrAccountEmailNotValidated = errors.New("Email address not validated")
 
 type ValidationCode string
 
@@ -95,3 +96,30 @@ type EmailValidationRequest struct {
 	Code       ValidationCode
 	ValidUntil time.Time
 }
+
+// Authenticated tells the account that authentication has been successful.
+//
+// It has been left for the Account itself to verify that the account itself is
+// in a valid state. While different authentication mechanisms can only verify
+// that the user has succeeded specific challenges, that doesn't prove that the
+// account permits being logged into at all.
+func (a *Account) Authenticated() (AuthenticatedAccount, error) {
+	var res AuthenticatedAccount
+	if !a.Email.Validated {
+		return res, ErrAccountEmailNotValidated
+	}
+	res.Account = a
+	return res, nil
+}
+
+/* -------- AuthenticatedAccount -------- */
+
+// AuthenticatedAccount represents an Account that has succeded an
+// authentication flow. Code that needs to check who is performing an operation
+// can depend on this type.
+//
+// At the moment this type merely indicatest that an authentication chack has
+// succeeded. But it could hold information regarding which kind of
+// authentication mechanism was used, e.g., password, passkey. Was 2FA used,
+// etc. It this a revisit from a user with "remember me" enabled.
+type AuthenticatedAccount struct{ *Account }
