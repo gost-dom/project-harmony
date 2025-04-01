@@ -9,7 +9,13 @@ import (
 	nanoid "github.com/matoous/go-nanoid/v2"
 )
 
+// ErrBadEmailValidationCode is returned when an incorrect email validation
+// challenge response was provided when proving ownership of an email address.
 var ErrBadEmailValidationCode = errors.New("Bad email validation code")
+
+// ErrAccountEmailNotValidated is returned when an action requires the account
+// to be valid. E.g, email address ownership must be verified before the user
+// can successfully authenticate.
 var ErrAccountEmailNotValidated = errors.New("Email address not validated")
 
 type ValidationCode string
@@ -36,10 +42,14 @@ type Email struct {
 	Challenge *EmailChallenge
 }
 
+// Equals returns true of the two emails have the same address.
 func (e Email) Equals(address string) bool {
 	return e.address == address && address != ""
 }
 
+// Validate processes a challenge response and returns a validated Email if
+// the response is correct. Returns a zero-value Email and
+// ErrBadEmailValidationCode err value if the challenge response is wrong.
 func (e Email) Validate(code ValidationCode) (res Email, err error) {
 	res = e
 	if e.Challenge.Code != code || e.Challenge.Expired() {
@@ -82,15 +92,35 @@ func (a *Account) ValidateEmail(code ValidationCode) (err error) {
 	return
 }
 
+// PasswordAuthentication represents an account and it's associated password.
+// This type is introduced for two purposes
+//
+// - Decouple authentication from user account.
+// - Security
+//
+// While password authentication is the only supported method in the first
+// prototype, other types could be supported, e.g., google, facebook, github as
+// external IDPs; as well as passkey (which could have multiple instances for
+// the same user account).
+//
+// This also reduces the risk of security related issues in code, as passwords
+// are only processed during login, authentication, and changing passwords. Once
+// the user is logged in, the types being used don't contain password
+// information anymore.
 type PasswordAuthentication struct {
 	Account
 	password.PasswordHash
 }
 
+// AccountRegistered is a domain event published when a new account has been
+// created.
 type AccountRegistered struct {
 	AccountID
 }
 
+// EmailValidationRequest is a domain event published when an email has been
+// registered, and the owner needs to provide a challenge response to prove
+// ownership of the email address.
 type EmailValidationRequest struct {
 	AccountID
 	Code       ValidationCode
