@@ -96,7 +96,7 @@ func (s *LoginPageSuite) TestCSRFHandling() {
 func (s *LoginPageSuite) TestCSRFWithMultipleWindows() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "valid-user@example.com", matchPassword("s3cret")).
-		Return(InitAuthenticatedAccount(), nil).Maybe()
+		Return(InitAuthenticatedAccount(), nil).Once()
 
 	_, err := s.Browser.Open("https://example.com/")
 	s.Assert().NoError(err)
