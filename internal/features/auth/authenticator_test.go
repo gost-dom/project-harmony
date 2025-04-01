@@ -43,7 +43,7 @@ func (s *AuthenticatorTestSuite) TestAuthenticateUnvalidatedAccount() {
 }
 
 func (s *AuthenticatorTestSuite) validateAccount() {
-	s.Account.ValidateEmail(s.Account.Email.Challenge.Code)
+	s.Assert().NoError(s.Account.ValidateEmail(s.Account.Email.Challenge.Code))
 	s.T().Helper()
 	s.Assert().True(s.Account.Email.Validated)
 }
@@ -57,6 +57,8 @@ func (s *AuthenticatorTestSuite) TestAuthenticateWrongPassword() {
 
 func (s *AuthenticatorTestSuite) TestAuthenticateCorrectPassword() {
 	s.validateAccount()
+	x, _ := s.Repository.FindByEmail(s.Context(), "jd@example.com")
+	s.Assert().True(x.Email.Validated)
 
 	actual, err := s.Authenticate(s.Context(), "jd@example.com", password.Parse("valid_password"))
 	s.Assert().NoError(err)

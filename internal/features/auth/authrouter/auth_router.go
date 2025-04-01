@@ -12,7 +12,11 @@ import (
 )
 
 type Authenticator interface {
-	Authenticate(context.Context, string, password.Password) (authdomain.Account, error)
+	Authenticate(
+		context.Context,
+		string,
+		password.Password,
+	) (authdomain.AuthenticatedAccount, error)
 }
 
 type AuthRouter struct {

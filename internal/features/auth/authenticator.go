@@ -27,20 +27,20 @@ func (a *Authenticator) Authenticate(
 	ctx context.Context,
 	username string,
 	password password.Password,
-) (account Account, err error) {
+) (account AuthenticatedAccount, err error) {
 	var tmp PasswordAuthentication
 	if tmp, err = a.Repository.FindByEmail(ctx, username); errors.Is(err, ErrNotFound) {
 		err = ErrBadCredentials
 	}
-	account = tmp.Account
-	if err == nil && !account.Email.Validated {
+	account.Account = tmp.Account
+	if err == nil && (!account.Email.Validated) {
 		err = ErrAccountEmailNotValidated
 	}
-	if !tmp.Validate(password) {
-		err = ErrBadCredentials
+	if err == nil {
+		if !tmp.Validate(password) {
+			err = ErrBadCredentials
+		}
 	}
-	// if err == nil {
-	// }
 	return
 }
 

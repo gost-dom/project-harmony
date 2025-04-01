@@ -32,7 +32,7 @@ func (m *SessionManager) LoggedInUser(r *http.Request) *authdomain.Account {
 func (s SessionManager) SetAccount(
 	w http.ResponseWriter,
 	req *http.Request,
-	account authdomain.Account,
+	account authdomain.AuthenticatedAccount,
 ) error {
 	session, err := s.SessionStore.Get(req, sessionNameAuth)
 	if err != nil {

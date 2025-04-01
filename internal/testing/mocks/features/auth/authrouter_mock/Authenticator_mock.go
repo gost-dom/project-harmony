@@ -26,22 +26,22 @@ func (_m *MockAuthenticator) EXPECT() *MockAuthenticator_Expecter {
 }
 
 // Authenticate provides a mock function with given fields: _a0, _a1, _a2
-func (_m *MockAuthenticator) Authenticate(_a0 context.Context, _a1 string, _a2 password.Password) (authdomain.Account, error) {
+func (_m *MockAuthenticator) Authenticate(_a0 context.Context, _a1 string, _a2 password.Password) (authdomain.AuthenticatedAccount, error) {
 	ret := _m.Called(_a0, _a1, _a2)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Authenticate")
 	}
 
-	var r0 authdomain.Account
+	var r0 authdomain.AuthenticatedAccount
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, password.Password) (authdomain.Account, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, password.Password) (authdomain.AuthenticatedAccount, error)); ok {
 		return rf(_a0, _a1, _a2)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, password.Password) authdomain.Account); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, password.Password) authdomain.AuthenticatedAccount); ok {
 		r0 = rf(_a0, _a1, _a2)
 	} else {
-		r0 = ret.Get(0).(authdomain.Account)
+		r0 = ret.Get(0).(authdomain.AuthenticatedAccount)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, password.Password) error); ok {
@@ -73,12 +73,12 @@ func (_c *MockAuthenticator_Authenticate_Call) Run(run func(_a0 context.Context,
 	return _c
 }
 
-func (_c *MockAuthenticator_Authenticate_Call) Return(_a0 authdomain.Account, _a1 error) *MockAuthenticator_Authenticate_Call {
+func (_c *MockAuthenticator_Authenticate_Call) Return(_a0 authdomain.AuthenticatedAccount, _a1 error) *MockAuthenticator_Authenticate_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockAuthenticator_Authenticate_Call) RunAndReturn(run func(context.Context, string, password.Password) (authdomain.Account, error)) *MockAuthenticator_Authenticate_Call {
+func (_c *MockAuthenticator_Authenticate_Call) RunAndReturn(run func(context.Context, string, password.Password) (authdomain.AuthenticatedAccount, error)) *MockAuthenticator_Authenticate_Call {
 	_c.Call.Return(run)
 	return _c
 }

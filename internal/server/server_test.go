@@ -24,7 +24,7 @@ func (s *NavigateToLoginSuite) SetupTest() {
 	authMock := NewMockAuthenticator(s.T())
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
-		Return(authdomain.Account{}, nil).Maybe()
+		Return(authdomain.AuthenticatedAccount{}, nil).Maybe()
 	s.Graph = surgeon.Replace[authrouter.Authenticator](s.Graph, authMock)
 
 	s.OpenWindow("https://example.com/")
