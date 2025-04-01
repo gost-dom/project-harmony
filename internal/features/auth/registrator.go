@@ -10,12 +10,7 @@ import (
 var ErrInvalidInput = errors.New("Invalid input")
 var ErrAccountEmailNotValidated = errors.New("Email address not validated")
 
-type InsertAccount struct {
-	Account
-	PasswordAuthentication
-}
-
-type AccountUseCaseResult = UseCaseResult[InsertAccount]
+type AccountUseCaseResult = UseCaseResult[PasswordAuthentication]
 
 type AccountRepository interface {
 	Insert(context.Context, AccountUseCaseResult) error
@@ -49,11 +44,10 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 		Name:        input.Name,
 		DisplayName: input.DisplayName,
 	}
-	res := *NewResult(InsertAccount{account,
-		PasswordAuthentication{
-			AccountID:    account.ID,
-			PasswordHash: hash,
-		}})
+	res := *NewResult(PasswordAuthentication{
+		Account:      account,
+		PasswordHash: hash,
+	})
 
 	res.AddEvent(AccountRegistered{AccountID: account.ID})
 	res.AddEvent(EmailValidationRequest{

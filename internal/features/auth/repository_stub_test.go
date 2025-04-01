@@ -3,16 +3,19 @@ package auth_test
 import (
 	"context"
 	"harmony/internal/features/auth"
+	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/testing/repotest"
 	"testing"
 )
 
 type InsertAccountTranslator struct{}
 
-func (t InsertAccountTranslator) ID(e auth.InsertAccount) string { return string(e.Account.ID) }
+func (t InsertAccountTranslator) ID(e authdomain.PasswordAuthentication) string {
+	return string(e.Account.ID)
+}
 
 type AccountRepositoryStub struct {
-	repotest.RepositoryStub[auth.InsertAccount]
+	repotest.RepositoryStub[authdomain.PasswordAuthentication]
 }
 
 func NewAccountRepoStub(t testing.TB) *AccountRepositoryStub {
@@ -22,11 +25,11 @@ func NewAccountRepoStub(t testing.TB) *AccountRepositoryStub {
 func (i AccountRepositoryStub) FindByEmail(
 	ctx context.Context,
 	email string,
-) (auth.InsertAccount, error) {
+) (authdomain.PasswordAuthentication, error) {
 	for _, v := range i.Entities {
 		if v.Email.Equals(email) {
 			return *v, nil
 		}
 	}
-	return auth.InsertAccount{}, auth.ErrNotFound
+	return authdomain.PasswordAuthentication{}, auth.ErrNotFound
 }

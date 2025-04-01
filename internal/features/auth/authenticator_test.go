@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "harmony/internal/features/auth"
+	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/testing/htest"
 
@@ -14,7 +15,7 @@ import (
 type AuthenticatorTestSuite struct {
 	htest.GomegaSuite
 	Authenticator
-	Account *InsertAccount
+	Account *authdomain.PasswordAuthentication
 }
 
 func (s *AuthenticatorTestSuite) SetupTest() {
@@ -59,6 +60,6 @@ func (s *AuthenticatorTestSuite) TestAuthenticateCorrectPassword() {
 
 	actual, err := s.Authenticate(s.Context(), "jd@example.com", password.Parse("valid_password"))
 	s.Assert().NoError(err)
-	s.Assert().Equal(s.Account.AccountID, actual.ID)
+	s.Assert().Equal(s.Account.ID, actual.ID)
 	s.Assert().Equal("jd@example.com", actual.Email.String())
 }

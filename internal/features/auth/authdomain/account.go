@@ -82,7 +82,7 @@ func (a *Account) ValidateEmail(code ValidationCode) (err error) {
 }
 
 type PasswordAuthentication struct {
-	AccountID
+	Account
 	password.PasswordHash
 }
 

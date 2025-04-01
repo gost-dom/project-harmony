@@ -14,7 +14,7 @@ var ErrBadCredentials = errors.New("authenticate: Bad credentials")
 var ErrNotFound = errors.New("Not found")
 
 type AccountEmailFinder interface {
-	FindByEmail(ctx context.Context, id string) (InsertAccount, error)
+	FindByEmail(ctx context.Context, id string) (PasswordAuthentication, error)
 }
 
 type Authenticator struct {
@@ -28,7 +28,7 @@ func (a *Authenticator) Authenticate(
 	username string,
 	password password.Password,
 ) (account Account, err error) {
-	var tmp InsertAccount
+	var tmp PasswordAuthentication
 	if tmp, err = a.Repository.FindByEmail(ctx, username); errors.Is(err, ErrNotFound) {
 		err = ErrBadCredentials
 	}
