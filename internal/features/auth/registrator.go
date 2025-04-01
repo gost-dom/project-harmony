@@ -26,7 +26,8 @@ type Registrator struct {
 	Repository AccountRepository
 }
 
-// Register attempts to create a new user account.
+// Register attempts to create a new user account with password-based
+// authentication.
 func (r Registrator) Register(ctx context.Context, input RegistratorInput) error {
 	id, err1 := NewID()
 	hash, err2 := input.Password.Hash()
@@ -46,8 +47,8 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 		},
 		PasswordHash: hash,
 	}
-	res := *NewResult(account)
 
+	res := *NewResult(account)
 	res.AddEvent(domain.AccountRegistered{AccountID: account.ID})
 	res.AddEvent(domain.EmailValidationRequest{
 		AccountID:  account.ID,

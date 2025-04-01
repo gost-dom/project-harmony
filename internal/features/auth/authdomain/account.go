@@ -18,17 +18,17 @@ var ErrBadEmailValidationCode = errors.New("Bad email validation code")
 // can successfully authenticate.
 var ErrAccountEmailNotValidated = errors.New("Email address not validated")
 
-type ValidationCode string
+type EmailValidationCode string
 
-func NewValidationCode() ValidationCode {
-	return ValidationCode(nanoid.MustGenerate("0123456789", 6))
+func NewValidationCode() EmailValidationCode {
+	return EmailValidationCode(nanoid.MustGenerate("0123456789", 6))
 }
 
 // An email "challenge", i.e., a randomly generated code sent to an email
 // address that the owner must provide as a "challenge response" to prove
 // ownership of the email address.
 type EmailChallenge struct {
-	Code     ValidationCode
+	Code     EmailValidationCode
 	NotAfter time.Time // A deadline for completing the challenge
 }
 
@@ -47,12 +47,12 @@ func (e Email) Equals(address string) bool {
 	return e.address == address && address != ""
 }
 
-// Validate processes a challenge response and returns a validated Email if
+// ChallengeResponse processes a challenge response and returns a validated Email if
 // the response is correct. Returns a zero-value Email and
 // ErrBadEmailValidationCode err value if the challenge response is wrong.
-func (e Email) Validate(code ValidationCode) (res Email, err error) {
+func (e Email) ChallengeResponse(response EmailValidationCode) (res Email, err error) {
 	res = e
-	if e.Challenge.Code != code || e.Challenge.Expired() {
+	if e.Challenge.Code != response || e.Challenge.Expired() {
 		err = ErrBadEmailValidationCode
 	} else {
 		res.Validated = true
@@ -82,13 +82,13 @@ type Account struct {
 	Email               Email
 	Name                string
 	DisplayName         string
-	EmailValidationCode ValidationCode
+	EmailValidationCode EmailValidationCode
 }
 
 // ValidateEmail is the email "challenge response" for the email validation
 // code.
-func (a *Account) ValidateEmail(code ValidationCode) (err error) {
-	a.Email, err = a.Email.Validate(code)
+func (a *Account) ValidateEmail(code EmailValidationCode) (err error) {
+	a.Email, err = a.Email.ChallengeResponse(code)
 	return
 }
 
@@ -123,7 +123,7 @@ type AccountRegistered struct {
 // ownership of the email address.
 type EmailValidationRequest struct {
 	AccountID
-	Code       ValidationCode
+	Code       EmailValidationCode
 	ValidUntil time.Time
 }
 
