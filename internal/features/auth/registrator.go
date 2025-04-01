@@ -37,16 +37,16 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 	if err != nil {
 		return ErrInvalidInput
 	}
-	account := domain.Account{
-		ID:          domain.AccountID(id),
-		Email:       email,
-		Name:        input.Name,
-		DisplayName: input.DisplayName,
-	}
-	res := *NewResult(domain.PasswordAuthentication{
-		Account:      account,
+	account := domain.PasswordAuthentication{
+		Account: domain.Account{
+			ID:          domain.AccountID(id),
+			Email:       email,
+			Name:        input.Name,
+			DisplayName: input.DisplayName,
+		},
 		PasswordHash: hash,
-	})
+	}
+	res := *NewResult(account)
 
 	res.AddEvent(domain.AccountRegistered{AccountID: account.ID})
 	res.AddEvent(domain.EmailValidationRequest{
