@@ -2,6 +2,7 @@ package shaman
 
 import (
 	"fmt"
+	ariarole "harmony/internal/testing/aria-role"
 	"iter"
 	"strings"
 	"testing"
@@ -122,4 +123,21 @@ func (h Scope) Get(opts ...ElementPredicate) html.HTMLElement {
 
 func (h Scope) Subscope(opts ...ElementPredicate) Scope {
 	return NewScope(h.t, h.Get(opts...))
+}
+
+func (s Scope) Textbox(opts ...ElementPredicate) TextboxRole {
+	opts = append(opts, ByRole(ariarole.Textbox))
+	return TextboxRole{s.Get(opts...)}
+}
+
+// A helper to interact with "text boxes"
+type TextboxRole struct {
+	html.HTMLElement
+}
+
+// Write is intended to simulate the user typing in. Currently it merely sets
+// the value content attribute, making it only applicable to input elements, not
+// custom implementations of the textbox aria role.
+func (tb TextboxRole) Write(input string) {
+	tb.SetAttribute("value", input)
 }
