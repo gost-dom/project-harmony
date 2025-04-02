@@ -131,6 +131,11 @@ func (s Scope) Textbox(opts ...ElementPredicate) TextboxRole {
 	return TextboxRole{s.Get(opts...)}
 }
 
+func (s Scope) PasswordText(opts ...ElementPredicate) TextboxRole {
+	opts = append(opts, ByRole(ariarole.PasswordText))
+	return TextboxRole{s.Get(opts...)}
+}
+
 // A helper to interact with "text boxes"
 type TextboxRole struct {
 	html.HTMLElement

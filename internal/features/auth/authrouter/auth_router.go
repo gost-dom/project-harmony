@@ -3,7 +3,6 @@ package authrouter
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"harmony/internal/features/auth"
@@ -29,10 +28,12 @@ type AuthRouter struct {
 }
 
 func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
 	w.Header().Add("hx-push-url", "./validate-email")
 	w.Header().Add("hx-Retarget", "body")
-	fmt.Println("REGISTER!")
-	views.ValidateEmailPage().Render(r.Context(), w)
+	views.ValidateEmailPage(views.ValidateEmailForm{
+		EmailAddress: r.FormValue("email"),
+	}).Render(r.Context(), w)
 }
 
 func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +77,10 @@ func (r *AuthRouter) Init() {
 	r.HandleFunc("POST /login", r.PostAuthLogin)
 	r.Handle("GET /register", templ.Handler(views.Register()))
 	r.HandleFunc("POST /register", r.PostRegister)
-	r.Handle("GET /validate-email", templ.Handler(views.ValidateEmailPage()))
+	r.Handle(
+		"GET /validate-email",
+		templ.Handler(views.ValidateEmailPage(views.ValidateEmailForm{})),
+	)
 }
 
 func (*AuthRouter) RenderLogin(w http.ResponseWriter, r *http.Request) {

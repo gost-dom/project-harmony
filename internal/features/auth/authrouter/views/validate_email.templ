@@ -2,11 +2,15 @@ package views
 
 import . "harmony/internal/server/views"
 
-templ ValidateEmailPage() {
-	@Layout(Contents{Body: validateEmailPageBody()})
+type ValidateEmailForm struct {
+	EmailAddress string
 }
 
-templ validateEmailPageBody() {
+templ ValidateEmailPage(form ValidateEmailForm) {
+	@Layout(Contents{Body: validateEmailPageBody(form)})
+}
+
+templ validateEmailPageBody(form ValidateEmailForm) {
 	@AuthPageLayout() {
 		<div class="bg-white rounded-lg shadow-md border md:mt-0 w-full sm:max-w-xl xl:p-0 dark:bg-gray-800 dark:border-gray-700">
 			<main class="p-6 space-y-4 md:space-y-6 sm:p-8">
@@ -21,6 +25,7 @@ templ validateEmailPageBody() {
 							InputType: "text",
 							Required:  true,
 							Autofocus: true,
+							Value:     form.EmailAddress,
 						},
 						Label: "Email",
 					}

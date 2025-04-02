@@ -10,7 +10,11 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import . "harmony/internal/server/views"
 
-func ValidateEmailPage() templ.Component {
+type ValidateEmailForm struct {
+	EmailAddress string
+}
+
+func ValidateEmailPage(form ValidateEmailForm) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -31,7 +35,7 @@ func ValidateEmailPage() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = Layout(Contents{Body: validateEmailPageBody()}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout(Contents{Body: validateEmailPageBody(form)}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -39,7 +43,7 @@ func ValidateEmailPage() templ.Component {
 	})
 }
 
-func validateEmailPageBody() templ.Component {
+func validateEmailPageBody(form ValidateEmailForm) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -83,6 +87,7 @@ func validateEmailPageBody() templ.Component {
 					InputType: "text",
 					Required:  true,
 					Autofocus: true,
+					Value:     form.EmailAddress,
 				},
 				Label: "Email",
 			}.Render(ctx, templ_7745c5c3_Buffer)
