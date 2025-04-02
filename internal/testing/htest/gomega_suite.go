@@ -24,4 +24,4 @@ func (s *GomegaSuite) Expect(actual any, extra ...any) gomega.Assertion {
 	return s.gomega.Expect(actual, extra...)
 }
 
-func (s GomegaSuite) Context() context.Context { return s.T().Context() }
+func (s *GomegaSuite) Context() context.Context { return s.T().Context() }
