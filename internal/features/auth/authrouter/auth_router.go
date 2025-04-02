@@ -3,12 +3,15 @@ package authrouter
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/features/auth/authrouter/views"
+
+	"github.com/a-h/templ"
 )
 
 type Authenticator interface {
@@ -23,6 +26,13 @@ type AuthRouter struct {
 	*http.ServeMux
 	Authenticator  Authenticator
 	SessionManager SessionManager
+}
+
+func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("hx-push-url", "./validate-email")
+	w.Header().Add("hx-Retarget", "body")
+	fmt.Println("REGISTER!")
+	views.ValidateEmailPage().Render(r.Context(), w)
 }
 
 func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
@@ -64,10 +74,9 @@ func (r *AuthRouter) Init() {
 		views.Login(redirectUrl, views.LoginFormData{}).Render(r.Context(), w)
 	})
 	r.HandleFunc("POST /login", r.PostAuthLogin)
-	r.HandleFunc("GET /register", func(w http.ResponseWriter, r *http.Request) {
-		views.Register().Render(r.Context(), w)
-	})
-
+	r.Handle("GET /register", templ.Handler(views.Register()))
+	r.HandleFunc("POST /register", r.PostRegister)
+	r.Handle("GET /validate-email", templ.Handler(views.ValidateEmailPage()))
 }
 
 func (*AuthRouter) RenderLogin(w http.ResponseWriter, r *http.Request) {
