@@ -1,62 +1,84 @@
 package views
 
-import . "harmony/internal/server/views"
+import (
+	. "harmony/internal/server/views"
+	"net/mail"
+)
 
 templ Register() {
 	@Layout(Contents{Body: registerBody(RegisterFormData{})})
 }
 
+type EmailField string
+
+func (e *EmailField) Val() string { return *(*string)(e) }
+
+func (e *EmailField) UnmarshalText(text []byte) (err error) {
+	s := string(text)
+	*e = EmailField(s)
+	_, err = mail.ParseAddress(s)
+	return err
+}
+
+type FormField struct {
+	Value  string
+	Errors []string
+}
+
+func (e FormField) Invalid() bool { return len(e.Errors) > 0 }
+
+func (e FormField) ValidationError() string {
+	if e.Invalid() {
+		return e.Errors[0]
+	}
+	return ""
+}
+
 type RegisterFormData struct {
-	Email                string
-	EmailValidationError string
-	Fullname             string
-	DisplayName          string
+	Fullname    string `schema:"fullname,required"`
+	Email       FormField
+	DisplayName string
 }
 
 templ RegisterFormContents(data RegisterFormData) {
 	@FieldOptions{
 		InputOptions: InputOptions{
 			Id:        "fullname",
-			Name:      "Fullname",
+			Name:      "fullname",
 			InputType: "text",
-			Required:  true,
 			Autofocus: true,
+			Value:     data.Fullname,
 		},
 		Label: "Full name",
 	}
 	@FieldOptions{
 		InputOptions: InputOptions{
 			Id:        "displayname",
-			Name:      "DisplayName",
+			Name:      "displayname",
 			InputType: "text",
-			Required:  true,
+			Value:     data.DisplayName,
 		},
 		Label: "Display name",
 	}
 	<br/>
 	@FieldOptions{
 		InputOptions: InputOptions{
-			Id:        "email",
-			Name:      "email",
-			InputType: "text",
-			Required:  true,
-			Autofocus: true,
-			Value:     data.Email,
-			Attributes: templ.Attributes{
-				"aria-describedby": "email-validation-error",
-			},
+			Id:              "email",
+			Name:            "email",
+			InputType:       "text",
+			Required:        true,
+			Autofocus:       true,
+			Value:           string(data.Email.Value),
+			Invalid:         data.Email.Invalid(),
+			ValidationError: data.Email.ValidationError(),
 		},
 		Label: "Email",
-	}
-	if data.EmailValidationError != "" {
-		<p id="email-validation-error">{ data.EmailValidationError }</p>
 	}
 	@FieldOptions{
 		InputOptions: InputOptions{
 			Id:        "password",
 			Name:      "password",
 			InputType: "password",
-			Required:  true,
 			Autofocus: true,
 		},
 		Label: "Password",

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/mail"
 
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
@@ -15,6 +16,10 @@ import (
 )
 
 var decoder = schema.NewDecoder()
+
+func init() {
+	decoder.IgnoreUnknownKeys(true)
+}
 
 type Authenticator interface {
 	Authenticate(
@@ -36,21 +41,46 @@ type AuthRouter struct {
 }
 
 func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
+	// This is a crappy implementation. But I can't be bothered to improve any
+	// more right now.
 	r.ParseForm()
-	var data auth.RegistratorInput
-	emailAddress := r.FormValue("email")
-	err := s.Registrator.Register(r.Context(), data)
+	data := struct {
+		Fullname    string `schema:"fullname,required"`
+		Email       string `schema:"email,required"`
+		DisplayName string `schema:"displayname"`
+		Password    string `schema:"password"`
+	}{}
+	var formData views.RegisterFormData
+	err := decoder.Decode(&data, r.PostForm)
+	var registerInput auth.RegistratorInput
+	if err == nil {
+		if registerInput.Email, err = mail.ParseAddress(data.Email); err != nil {
+			formData.Email.Value = data.Email
+			formData.Email.Errors = []string{"Must be a valid email address"}
+		}
+	}
+	if err == nil {
+		registerInput.Password = password.Parse(data.Password)
+	}
+	if data.Email == "" {
+		formData.Email.Errors = []string{"Must be filled out"}
+	}
+	if err == nil {
+		registerInput.Name = data.Fullname
+		registerInput.DisplayName = data.DisplayName
+		err = s.Registrator.Register(r.Context(), registerInput)
+	}
 	if err != nil {
-		views.RegisterFormContents(views.RegisterFormData{
-			Email: emailAddress,
-		}).Render(r.Context(), w)
+		formData.Fullname = data.Fullname
+		formData.DisplayName = data.DisplayName
+		views.RegisterFormContents(formData).Render(r.Context(), w)
 		return
 	}
 
 	w.Header().Add("hx-push-url", "./validate-email")
 	w.Header().Add("hx-Retarget", "body")
 	views.ValidateEmailPage(views.ValidateEmailForm{
-		EmailAddress: emailAddress,
+		EmailAddress: data.Email,
 	}).Render(r.Context(), w)
 }
 

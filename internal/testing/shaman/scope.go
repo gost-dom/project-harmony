@@ -144,9 +144,9 @@ type TextboxRole struct {
 // Write is intended to simulate the user typing in. Currently it merely sets
 // the value content attribute, making it only applicable to input elements, not
 // custom implementations of the textbox aria role.
-func (tb TextboxRole) Write(input string) {
-	tb.SetAttribute("value", input)
-}
+func (tb TextboxRole) Write(input string) { tb.SetAttribute("value", input) }
+
+func (tb TextboxRole) Clear() { tb.SetAttribute("value", "") }
 
 func (tb TextboxRole) ARIADescription() string {
 	return GetDescription(tb)
