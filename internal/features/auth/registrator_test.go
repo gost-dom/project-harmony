@@ -19,7 +19,7 @@ import (
 func CreateValidInput() RegistratorInput {
 	email, _ := mail.ParseAddress("jd@example.com")
 	return RegistratorInput{
-		Email:       *email,
+		Email:       email,
 		Password:    password.Parse("valid_password"),
 		Name:        "John Smith",
 		DisplayName: "John",

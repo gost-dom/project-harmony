@@ -22,7 +22,7 @@ type AuthenticatorTestSuite struct {
 func (s *AuthenticatorTestSuite) SetupTest() {
 	input := CreateValidInput()
 	email, _ := mail.ParseAddress("jd@example.com")
-	input.Email = *email
+	input.Email = email
 	input.Password = password.Parse("valid_password")
 	repo := NewAccountRepoStub(s.T())
 

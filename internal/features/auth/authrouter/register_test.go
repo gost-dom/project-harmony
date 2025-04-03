@@ -1,6 +1,8 @@
 package authrouter_test
 
 import (
+	"harmony/internal/features/auth"
+	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/features/auth/authrouter"
 	ariarole "harmony/internal/testing/aria-role"
 	. "harmony/internal/testing/gomegamatchers"
@@ -38,7 +40,7 @@ func (s *RegisterTestSuite) SetupTest() {
 }
 
 func (s *RegisterTestSuite) TestSubmitValidForm() {
-	s.registrator.EXPECT().Register(mock.Anything, mock.Anything).Return(nil).Maybe()
+	s.registrator.EXPECT().Register(mock.Anything, mock.Anything).Return(nil).Once()
 	s.Expect(s.Get(ByH1)).To(HaveTextContent("Register Account"))
 
 	form := RegisterForm{s.Subscope(ByRole(ariarole.Form))}
@@ -54,6 +56,66 @@ func (s *RegisterTestSuite) TestSubmitValidForm() {
 	s.Expect(s.Get(ByH1)).To(HaveTextContent("Validate Email"))
 	chalRespForm := EmailChallengeResponseForm{s.Subscope(ByRole(ariarole.Form))}
 	s.Expect(chalRespForm.Email()).To(HaveAttribute("value", "john.smith@example.com"))
+	actualInput := s.registrator.Calls[0].Arguments[1].(auth.RegistratorInput)
+	s.Expect(actualInput.DisplayName).To(Equal("John"))
+	s.Expect(actualInput.Name).To(Equal("John Smith"))
+	s.Expect(actualInput.Email.Address).To(Equal("john.smith@example.com"))
+	s.Expect(actualInput.Password).To(BeSameBassword("str0ngVal!dPassword"))
+}
+
+func (s *RegisterTestSuite) TestMissingFullname() {
+	s.registrator.EXPECT().Register(mock.Anything, mock.Anything).Return(nil).Maybe()
+	s.Expect(s.Get(ByH1)).To(HaveTextContent("Register Account"))
+
+	form := RegisterForm{s.Subscope(ByRole(ariarole.Form))}
+	form.FillWithValidValues()
+	form.FullName().Clear()
+	form.Submit().Click()
+
+	// Verify that the valid form directs to the email validation page with the
+	// email field filled out.
+	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"))
+}
+
+func (s *RegisterTestSuite) TestMissingEmail() {
+	s.registrator.EXPECT().Register(mock.Anything, mock.Anything).Return(nil).Maybe()
+	s.Expect(s.Get(ByH1)).To(HaveTextContent("Register Account"))
+
+	form := RegisterForm{s.Subscope(ByRole(ariarole.Form))}
+	form.FillWithValidValues()
+	form.Email().Clear()
+	form.Submit().Click()
+
+	// Verify that the valid form directs to the email validation page with the
+	// email field filled out.
+	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"))
+
+	s.Expect(form.Email()).ToNot(HaveARIADescription("Must be a valid email address"))
+
+	s.Expect(form.Email()).To(HaveARIADescription("Must be filled out"))
+}
+
+func (s *RegisterTestSuite) TestInvalidEmail() {
+	s.registrator.EXPECT().Register(mock.Anything, mock.Anything).Return(nil).Maybe()
+	s.Expect(s.Get(ByH1)).To(HaveTextContent("Register Account"))
+
+	form := RegisterForm{s.Subscope(ByRole(ariarole.Form))}
+	form.FullName().Write("John Smith")
+	form.DisplayName().Write("John")
+	form.Email().Write("invalid.email.example.com")
+	form.Password().Write("str0ngVal!dPassword")
+	form.Submit().Click()
+
+	// Verify that the valid form directs to the email validation page with the
+	// email field filled out.
+	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"))
+
+	form = RegisterForm{s.Subscope(ByRole(ariarole.Form))}
+	s.Expect(form.FullName()).To(HaveAttribute("value", "John Smith"))
+	s.Expect(form.DisplayName()).To(HaveAttribute("value", "John"))
+	s.Expect(form.Email()).To(HaveAttribute("value", "invalid.email.example.com"))
+	s.Expect(form.Password()).To(HaveAttribute("value", ""))
+	s.Expect(form.Email()).To(HaveARIADescription("Must be a valid email address"))
 }
 
 type RegisterForm struct{ shaman.Scope }
@@ -65,16 +127,27 @@ func (f RegisterForm) Password() shaman.TextboxRole    { return f.PasswordText(B
 
 func (f RegisterForm) Submit() html.HTMLElement { return f.Get(shaman.ByRole(ariarole.Button)) }
 
+func (f RegisterForm) FillWithValidValues() {
+	f.FullName().Write("John Smith")
+	f.DisplayName().Write("John")
+	f.Email().Write("john.smith@example.com")
+	f.Password().Write("str0ngVal!dPassword")
+}
+
 type EmailChallengeResponseForm struct{ shaman.Scope }
 
 func (f EmailChallengeResponseForm) Email() shaman.TextboxRole { return f.Textbox(ByName("Email")) }
 
-func HaveARIADescription(expected string) types.GomegaMatcher {
+func HaveARIADescription(expected interface{}) types.GomegaMatcher {
+	matcher, ok := expected.(types.GomegaMatcher)
+	if !ok {
+		return HaveARIADescription(Equal(expected))
+	}
 	var data = struct {
 		Matcher     types.GomegaMatcher
-		Expected    string
+		Expected    any
 		Description string
-	}{Matcher: Equal(expected), Expected: expected}
+	}{Matcher: matcher, Expected: expected}
 	return gcustom.MakeMatcher(func(e dom.Element) (bool, error) {
 		data.Description = shaman.GetDescription(e)
 		return data.Matcher.Match(data.Description)
@@ -87,3 +160,9 @@ func HaveARIADescription(expected string) types.GomegaMatcher {
 // 		return matcher.Match(e.TagName())
 // 	}).WithTemplate("Expected:\n{{.FormattedActual}}\n{{.To}} have tag {{.Data.FailureMessage .Actual.TagName}}", matcher)
 // }
+
+func BeSameBassword(pw string) types.GomegaMatcher {
+	return gcustom.MakeMatcher(func(actual password.Password) (bool, error) {
+		return password.Parse(pw).Equals(actual), nil
+	})
+}

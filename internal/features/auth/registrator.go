@@ -18,7 +18,7 @@ type AccountRepository interface {
 }
 
 type RegistratorInput struct {
-	Email       mail.Address
+	Email       *mail.Address
 	Password    password.Password
 	Name        string
 	DisplayName string
@@ -35,10 +35,16 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 	if err != nil {
 		return err
 	}
+	if r.Repository == nil {
+		return errors.New("TODO: Get repo working")
+	}
+	if err != nil {
+		return err
+	}
 	account := domain.PasswordAuthentication{
 		Account: domain.Account{
 			ID:          domain.AccountID(authdomain.NewID()),
-			Email:       domain.NewUnvalidatedEmail(input.Email),
+			Email:       domain.NewUnvalidatedEmail(*input.Email),
 			Name:        input.Name,
 			DisplayName: input.DisplayName,
 		},
