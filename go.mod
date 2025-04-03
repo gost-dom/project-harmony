@@ -4,6 +4,7 @@ go 1.24
 
 require (
 	github.com/a-h/templ v0.3.833
+	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/sessions v1.4.0
 	github.com/gost-dom/browser v0.5.0
 	github.com/gost-dom/surgeon v0.0.0-20250310114259-45edf00bd5ac

@@ -5,6 +5,7 @@ import (
 	"errors"
 	domain "harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
+	"net/mail"
 )
 
 var ErrInvalidInput = errors.New("Invalid input")
@@ -16,7 +17,7 @@ type AccountRepository interface {
 }
 
 type RegistratorInput struct {
-	Email       string
+	Email       mail.Address
 	Password    password.Password
 	Name        string
 	DisplayName string
@@ -34,14 +35,10 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 	if err := errors.Join(err1, err2); err != nil {
 		return err
 	}
-	email, err := domain.NewUnvalidatedEmail(input.Email)
-	if err != nil {
-		return ErrInvalidInput
-	}
 	account := domain.PasswordAuthentication{
 		Account: domain.Account{
 			ID:          domain.AccountID(id),
-			Email:       email,
+			Email:       domain.NewUnvalidatedEmail(input.Email),
 			Name:        input.Name,
 			DisplayName: input.DisplayName,
 		},
@@ -52,8 +49,8 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 	res.AddEvent(domain.AccountRegistered{AccountID: account.ID})
 	res.AddEvent(domain.EmailValidationRequest{
 		AccountID:  account.ID,
-		Code:       email.Challenge.Code,
-		ValidUntil: email.Challenge.NotAfter,
+		Code:       account.Email.Challenge.Code,
+		ValidUntil: account.Email.Challenge.NotAfter,
 	})
 	return r.Repository.Insert(ctx, res)
 }

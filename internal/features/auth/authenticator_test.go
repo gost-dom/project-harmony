@@ -1,6 +1,7 @@
 package auth_test
 
 import (
+	"net/mail"
 	"testing"
 
 	. "harmony/internal/features/auth"
@@ -20,7 +21,8 @@ type AuthenticatorTestSuite struct {
 
 func (s *AuthenticatorTestSuite) SetupTest() {
 	input := CreateValidInput()
-	input.Email = "jd@example.com"
+	email, _ := mail.ParseAddress("jd@example.com")
+	input.Email = *email
 	input.Password = password.Parse("valid_password")
 	repo := NewAccountRepoStub(s.T())
 
