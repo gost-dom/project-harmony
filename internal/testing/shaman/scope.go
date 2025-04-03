@@ -147,3 +147,7 @@ type TextboxRole struct {
 func (tb TextboxRole) Write(input string) {
 	tb.SetAttribute("value", input)
 }
+
+func (tb TextboxRole) ARIADescription() string {
+	return GetDescription(tb)
+}
