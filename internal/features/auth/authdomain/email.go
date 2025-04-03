@@ -32,17 +32,17 @@ func (c EmailChallenge) Expired() bool { return time.Now().After(c.NotAfter) }
 // Email is a value object encapsulating the complexities of email address
 // validation through a challenge.
 type Email struct {
-	Address   string
+	Address   mail.Address
 	Validated bool
 	Challenge *EmailChallenge
 }
 
 // Equals returns true of the two emails have the same address.
 func (e Email) Equals(address string) bool {
-	return strings.EqualFold(e.Address, address) && address != ""
+	return strings.EqualFold(e.Address.Address, address) && address != ""
 }
 
-func (e Email) String() string { return e.Address }
+func (e Email) String() string { return e.Address.Address }
 
 // ChallengeResponse processes a challenge response and returns a validated Email if
 // the response is correct. Returns a zero-value Email and
@@ -60,8 +60,7 @@ func (e Email) ChallengeResponse(response EmailValidationCode) (Email, error) {
 	return res, nil
 }
 
-func NewUnvalidatedEmail(address string) (Email, error) {
-	_, err := mail.ParseAddress(address)
+func NewUnvalidatedEmail(address mail.Address) Email {
 	email := Email{
 		Address: address,
 		Challenge: &EmailChallenge{
@@ -69,5 +68,5 @@ func NewUnvalidatedEmail(address string) (Email, error) {
 			NotAfter: time.Now().Add(15 * time.Minute).UTC(),
 		},
 	}
-	return email, err
+	return email
 }

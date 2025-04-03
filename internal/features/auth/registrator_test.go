@@ -1,11 +1,11 @@
 package auth_test
 
 import (
+	"net/mail"
 	"testing"
 	"testing/synctest"
 	"time"
 
-	"harmony/internal/features/auth"
 	. "harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
@@ -17,8 +17,9 @@ import (
 )
 
 func CreateValidInput() RegistratorInput {
+	email, _ := mail.ParseAddress("jd@example.com")
 	return RegistratorInput{
-		Email:       "jd@example.com",
+		Email:       *email,
 		Password:    password.Parse("valid_password"),
 		Name:        "John Smith",
 		DisplayName: "John",
@@ -57,15 +58,6 @@ func (s *RegisterTestSuite) TestValidRegistrationInput() {
 	s.Expect(s.repo.Events).To(gomega.ContainElement(
 		authdomain.AccountRegistered{AccountID: entity.ID}),
 	)
-}
-
-func (s *RegisterTestSuite) TestInvalidEmail() {
-	input := s.validInput
-	input.Email = "invalid_email.com"
-	err := s.Register(s.Context(), input)
-
-	s.Assert().ErrorIs(err, auth.ErrInvalidInput)
-	s.Assert().True(s.repo.Empty())
 }
 
 func (s *RegisterTestSuite) TestActivation() {

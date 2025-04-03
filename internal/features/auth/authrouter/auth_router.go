@@ -38,12 +38,19 @@ type AuthRouter struct {
 func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	var data auth.RegistratorInput
-	decoder.Decode(&data, r.PostForm)
+	emailAddress := r.FormValue("email")
+	err := s.Registrator.Register(r.Context(), data)
+	if err != nil {
+		views.RegisterFormContents(views.RegisterFormData{
+			Email: emailAddress,
+		}).Render(r.Context(), w)
+		return
+	}
 
 	w.Header().Add("hx-push-url", "./validate-email")
 	w.Header().Add("hx-Retarget", "body")
 	views.ValidateEmailPage(views.ValidateEmailForm{
-		EmailAddress: data.Email,
+		EmailAddress: emailAddress,
 	}).Render(r.Context(), w)
 }
 
