@@ -11,7 +11,10 @@ import (
 	"harmony/internal/features/auth/authrouter/views"
 
 	"github.com/a-h/templ"
+	"github.com/gorilla/schema"
 )
+
+var decoder = schema.NewDecoder()
 
 type Authenticator interface {
 	Authenticate(
@@ -21,18 +24,26 @@ type Authenticator interface {
 	) (authdomain.AuthenticatedAccount, error)
 }
 
+type Registrator interface {
+	Register(ctx context.Context, input auth.RegistratorInput) error
+}
+
 type AuthRouter struct {
 	*http.ServeMux
 	Authenticator  Authenticator
+	Registrator    Registrator
 	SessionManager SessionManager
 }
 
 func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
+	var data auth.RegistratorInput
+	decoder.Decode(&data, r.PostForm)
+
 	w.Header().Add("hx-push-url", "./validate-email")
 	w.Header().Add("hx-Retarget", "body")
 	views.ValidateEmailPage(views.ValidateEmailForm{
-		EmailAddress: r.FormValue("email"),
+		EmailAddress: data.Email,
 	}).Render(r.Context(), w)
 }
 
