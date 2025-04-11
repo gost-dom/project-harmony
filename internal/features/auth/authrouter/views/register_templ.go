@@ -72,6 +72,7 @@ type RegisterFormData struct {
 	Email             FormField
 	TermsOfUse        bool
 	TermsOfUseMissing bool
+	NewsletterSignup  bool
 	DisplayName       string
 }
 
@@ -179,7 +180,17 @@ func RegisterFormContents(data RegisterFormData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div><div><input type=\"checkbox\" name=\"newsletter-signup\" id=\"newsletter-signup\"> <label for=\"newsletter-signup\">Sign up for the newsletter</label></div><button type=\"submit\" class=\"w-full text-white bg-cta hover:bg-ctabase-900 focus:ring-4\n    focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm\n    px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700\n    dark:focus:ring-primary-800\">Sign up!</button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div><div><input type=\"checkbox\" name=\"newsletter-signup\" id=\"newsletter-signup\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if data.NewsletterSignup {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " checked")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "> <label for=\"newsletter-signup\">Sign up for the newsletter</label></div><button type=\"submit\" class=\"w-full text-white bg-cta hover:bg-ctabase-900 focus:ring-4\n    focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm\n    px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700\n    dark:focus:ring-primary-800\">Sign up!</button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -220,7 +231,7 @@ func registerBody(formData RegisterFormData) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"bg-white rounded-lg shadow-md border md:mt-0 w-full sm:max-w-xl xl:p-0 dark:bg-gray-800 dark:border-gray-700\"><main class=\"p-6 space-y-4 md:space-y-6 sm:p-8\"><h1 class=\"text-center text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:text-white\">Register Account</h1><form id=\"login-form\" class=\"space-y-4 md:space-y-6\" hx-post=\"\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"bg-white rounded-lg shadow-md border md:mt-0 w-full sm:max-w-xl xl:p-0 dark:bg-gray-800 dark:border-gray-700\"><main class=\"p-6 space-y-4 md:space-y-6 sm:p-8\"><h1 class=\"text-center text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:text-white\">Register Account</h1><form id=\"login-form\" class=\"space-y-4 md:space-y-6\" hx-post=\"\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -232,7 +243,7 @@ func registerBody(formData RegisterFormData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</form></main></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</form></main></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

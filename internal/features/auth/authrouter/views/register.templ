@@ -39,6 +39,7 @@ type RegisterFormData struct {
 	Email             FormField
 	TermsOfUse        bool
 	TermsOfUseMissing bool
+	NewsletterSignup  bool
 	DisplayName       string
 }
 
@@ -105,6 +106,7 @@ templ RegisterFormContents(data RegisterFormData) {
 			type="checkbox"
 			name="newsletter-signup"
 			id="newsletter-signup"
+			checked?={ data.NewsletterSignup }
 		/>
 		<label for="newsletter-signup">Sign up for the newsletter</label>
 	</div>
