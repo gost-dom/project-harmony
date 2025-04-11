@@ -28,3 +28,16 @@ func (m *SessionManager) LoggedInUser(r *http.Request) *auth.Account {
 	}
 	return nil
 }
+
+func (s SessionManager) SetAccount(
+	w http.ResponseWriter,
+	req *http.Request,
+	account auth.Account,
+) error {
+	session, err := s.SessionStore.Get(req, sessionNameAuth)
+	if err != nil {
+		return err
+	}
+	session.Values[sessionCookieName] = string(account.Id)
+	return session.Save(req, w)
+}

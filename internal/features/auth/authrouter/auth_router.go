@@ -6,8 +6,6 @@ import (
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authrouter/views"
 	"net/http"
-
-	"github.com/gorilla/sessions"
 )
 
 type Authenticator interface {
@@ -16,15 +14,11 @@ type Authenticator interface {
 
 type AuthRouter struct {
 	*http.ServeMux
-	Authenticator Authenticator
-	SessionStore  sessions.Store
+	Authenticator  Authenticator
+	SessionManager SessionManager
 }
 
 func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
-	// Get a session. We're ignoring the error resulted from decoding an
-	// existing session: Get() always returns a session, even if empty.
-
-	session, _ := s.SessionStore.Get(r, sessionNameAuth)
 	r.ParseForm()
 	email := r.FormValue("email")
 	password := r.FormValue("password")
@@ -33,9 +27,7 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 		redirectUrl = "/"
 	}
 	if account, err := s.Authenticator.Authenticate(r.Context(), email, password); err == nil {
-		session.Values[sessionCookieName] = string(account.Id)
-		// TODO: Handle err
-		session.Save(r, w)
+		s.SessionManager.SetAccount(w, r, account)
 		w.Header().Add("hx-push-url", redirectUrl)
 	} else {
 		authError := errors.Is(err, auth.ErrBadCredentials)
