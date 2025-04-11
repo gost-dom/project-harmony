@@ -35,9 +35,11 @@ func (e FormField) ValidationError() string {
 }
 
 type RegisterFormData struct {
-	Fullname    string `schema:"fullname,required"`
-	Email       FormField
-	DisplayName string
+	Fullname          string `schema:"fullname,required"`
+	Email             FormField
+	TermsOfUse        bool
+	TermsOfUseMissing bool
+	DisplayName       string
 }
 
 templ RegisterFormContents(data RegisterFormData) {
@@ -85,11 +87,18 @@ templ RegisterFormContents(data RegisterFormData) {
 	}
 	<div>
 		<input
+			id="terms-of-use"
 			type="checkbox"
 			name="terms-of-use"
-			id="terms-of-use"
+			checked?={ data.TermsOfUse }
+			if data.TermsOfUseMissing {
+				aria-describedby="terms-of-use-missing"
+			}
 		/>
 		<label for="terms-of-use">I agree to the terms of use</label>
+		if data.TermsOfUseMissing {
+			<div id="terms-of-use-missing">You must accept the terms of use</div>
+		}
 	</div>
 	<div>
 		<input
