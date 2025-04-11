@@ -138,7 +138,7 @@ type EmailChallengeResponseForm struct{ shaman.Scope }
 
 func (f EmailChallengeResponseForm) Email() shaman.TextboxRole { return f.Textbox(ByName("Email")) }
 
-func HaveARIADescription(expected interface{}) types.GomegaMatcher {
+func HaveARIADescription(expected any) types.GomegaMatcher {
 	matcher, ok := expected.(types.GomegaMatcher)
 	if !ok {
 		return HaveARIADescription(Equal(expected))
@@ -153,13 +153,6 @@ func HaveARIADescription(expected interface{}) types.GomegaMatcher {
 		return data.Matcher.Match(data.Description)
 	}).WithTemplate("Expected:\n{{.FormattedActual}}\n{{.To}} have ARIA Description: {{.Data.Expected}}\n{{.Data.Matcher.FailureMessage .Data.Description}}", &data)
 }
-
-// func HaveTag(expected string) GomegaMatcher {
-// 	matcher := gomega.Equal(expected)
-// 	return gcustom.MakeMatcher(func(e dom.Element) (bool, error) {
-// 		return matcher.Match(e.TagName())
-// 	}).WithTemplate("Expected:\n{{.FormattedActual}}\n{{.To}} have tag {{.Data.FailureMessage .Actual.TagName}}", matcher)
-// }
 
 func BeSameBassword(pw string) types.GomegaMatcher {
 	return gcustom.MakeMatcher(func(actual password.Password) (bool, error) {
