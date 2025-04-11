@@ -5,8 +5,8 @@ import (
 	"net/mail"
 )
 
-templ Register() {
-	@Layout(Contents{Body: registerBody(RegisterFormData{})})
+templ Register(data RegisterFormData) {
+	@Layout(Contents{Body: registerBody(data)})
 }
 
 type EmailField string

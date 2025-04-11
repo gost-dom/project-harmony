@@ -3,6 +3,7 @@ package authrouter
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"net/mail"
 
@@ -45,11 +46,12 @@ func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
 	// more right now.
 	r.ParseForm()
 	data := struct {
-		Fullname    string `schema:"fullname,required"`
-		Email       string `schema:"email,required"`
-		DisplayName string `schema:"displayname"`
-		Password    string `schema:"password"`
-		TermsOfUse  bool   `schema:"terms-of-use,required"`
+		Fullname         string `schema:"fullname,required"`
+		Email            string `schema:"email,required"`
+		DisplayName      string `schema:"displayname"`
+		Password         string `schema:"password"`
+		TermsOfUse       bool   `schema:"terms-of-use,required"`
+		NewsletterSignup bool   `schema:"newsletter-signup"`
 	}{}
 	var formData views.RegisterFormData
 	err := decoder.Decode(&data, r.PostForm)
@@ -69,13 +71,16 @@ func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		registerInput.Name = data.Fullname
 		registerInput.DisplayName = data.DisplayName
+		registerInput.NewsletterSignup = data.NewsletterSignup
 		err = s.Registrator.Register(r.Context(), registerInput)
 	}
 	if err != nil {
+		slog.Error("error", "err", err)
 		formData.Fullname = data.Fullname
 		formData.DisplayName = data.DisplayName
 		formData.TermsOfUse = data.TermsOfUse
 		formData.TermsOfUseMissing = !data.TermsOfUse
+		formData.NewsletterSignup = data.NewsletterSignup
 		views.RegisterFormContents(formData).Render(r.Context(), w)
 		return
 	}
@@ -126,7 +131,9 @@ func (r *AuthRouter) Init() {
 		views.Login(redirectUrl, views.LoginFormData{}).Render(r.Context(), w)
 	})
 	r.HandleFunc("POST /login", r.PostAuthLogin)
-	r.Handle("GET /register", templ.Handler(views.Register()))
+	r.HandleFunc("GET /register", func(w http.ResponseWriter, r *http.Request) {
+		views.Register(views.RegisterFormData{}).Render(r.Context(), w)
+	})
 	r.HandleFunc("POST /register", r.PostRegister)
 	r.Handle(
 		"GET /validate-email",
