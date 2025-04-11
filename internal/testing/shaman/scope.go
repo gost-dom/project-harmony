@@ -131,6 +131,11 @@ func (s Scope) Textbox(opts ...ElementPredicate) TextboxRole {
 	return TextboxRole{s.Get(opts...)}
 }
 
+func (s Scope) Checkbox(opts ...ElementPredicate) CheckboxRole {
+	opts = append(opts, ByRole(ariarole.Checkbox))
+	return CheckboxRole{s.Get(opts...)}
+}
+
 func (s Scope) PasswordText(opts ...ElementPredicate) TextboxRole {
 	opts = append(opts, ByRole(ariarole.PasswordText))
 	return TextboxRole{s.Get(opts...)}
@@ -150,4 +155,19 @@ func (tb TextboxRole) Clear() { tb.SetAttribute("value", "") }
 
 func (tb TextboxRole) ARIADescription() string {
 	return GetDescription(tb)
+}
+
+type CheckboxRole struct {
+	html.HTMLElement
+}
+
+func (cb CheckboxRole) Check()   { cb.setChecked(true) }
+func (cb CheckboxRole) Uncheck() { cb.setChecked(false) }
+
+func (cb CheckboxRole) setChecked(val bool) {
+	input, ok := cb.HTMLElement.(html.HTMLInputElement)
+	if !ok {
+		panic("CheckboxRole.Check/Uncheck: only input elements are supported")
+	}
+	input.SetChecked(val)
 }

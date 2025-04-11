@@ -49,6 +49,7 @@ func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
 		Email       string `schema:"email,required"`
 		DisplayName string `schema:"displayname"`
 		Password    string `schema:"password"`
+		TermsOfUse  bool   `schema:"terms-of-use,required"`
 	}{}
 	var formData views.RegisterFormData
 	err := decoder.Decode(&data, r.PostForm)
@@ -73,6 +74,8 @@ func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		formData.Fullname = data.Fullname
 		formData.DisplayName = data.DisplayName
+		formData.TermsOfUse = data.TermsOfUse
+		formData.TermsOfUseMissing = !data.TermsOfUse
 		views.RegisterFormContents(formData).Render(r.Context(), w)
 		return
 	}

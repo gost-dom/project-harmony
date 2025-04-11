@@ -48,6 +48,7 @@ func (s *RegisterTestSuite) TestSubmitValidForm() {
 	form.DisplayName().Write("John")
 	form.Email().Write("john.smith@example.com")
 	form.Password().Write("str0ngVal!dPassword")
+	form.TermsOfUse().Check()
 	form.Submit().Click()
 
 	// Verify that the valid form directs to the email validation page with the
@@ -104,6 +105,7 @@ func (s *RegisterTestSuite) TestInvalidEmail() {
 	form.DisplayName().Write("John")
 	form.Email().Write("invalid.email.example.com")
 	form.Password().Write("str0ngVal!dPassword")
+	form.TermsOfUse().Check()
 	form.Submit().Click()
 
 	// Verify that the valid form directs to the email validation page with the
@@ -118,12 +120,32 @@ func (s *RegisterTestSuite) TestInvalidEmail() {
 	s.Expect(form.Email()).To(HaveARIADescription("Must be a valid email address"))
 }
 
+func (s *RegisterTestSuite) TestMissingAccept() {
+	s.registrator.EXPECT().Register(mock.Anything, mock.Anything).Return(nil).Maybe()
+	s.Expect(s.Get(ByH1)).To(HaveTextContent("Register Account"))
+
+	form := RegisterForm{s.Subscope(ByRole(ariarole.Form))}
+	form.FillWithValidValues()
+	form.TermsOfUse().Uncheck()
+	form.Submit().Click()
+
+	// Verify that the valid form directs to the email validation page with the
+	// email field filled out.
+	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"))
+
+	form = RegisterForm{s.Subscope(ByRole(ariarole.Form))}
+	s.Expect(form.TermsOfUse()).To(HaveARIADescription("You must accept the terms of use"))
+}
+
 type RegisterForm struct{ shaman.Scope }
 
 func (f RegisterForm) FullName() shaman.TextboxRole    { return f.Textbox(ByName("Full name")) }
 func (f RegisterForm) DisplayName() shaman.TextboxRole { return f.Textbox(ByName("Display name")) }
 func (f RegisterForm) Email() shaman.TextboxRole       { return f.Textbox(ByName("Email")) }
 func (f RegisterForm) Password() shaman.TextboxRole    { return f.PasswordText(ByName("Password")) }
+func (f RegisterForm) TermsOfUse() shaman.CheckboxRole {
+	return f.Checkbox(ByName("I agree to the terms of use"))
+}
 
 func (f RegisterForm) Submit() html.HTMLElement { return f.Get(shaman.ByRole(ariarole.Button)) }
 
