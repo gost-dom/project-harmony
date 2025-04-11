@@ -6,13 +6,13 @@ require (
 	github.com/a-h/templ v0.3.833
 	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/sessions v1.4.0
-	github.com/gost-dom/browser v0.5.0
+	github.com/gost-dom/browser v0.5.5
 	github.com/gost-dom/surgeon v0.0.0-20250310114259-45edf00bd5ac
 	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/onsi/gomega v1.36.2
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/crypto v0.36.0
+	golang.org/x/crypto v0.37.0
 )
 
 require (
@@ -25,14 +25,14 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/tommie/v8go/deps/android_amd64 v0.0.0-20250226014905-5d762b37670f // indirect
-	github.com/tommie/v8go/deps/android_arm64 v0.0.0-20250226014905-5d762b37670f // indirect
-	github.com/tommie/v8go/deps/darwin_amd64 v0.0.0-20250226014905-5d762b37670f // indirect
-	github.com/tommie/v8go/deps/darwin_arm64 v0.0.0-20250226014905-5d762b37670f // indirect
-	github.com/tommie/v8go/deps/linux_amd64 v0.0.0-20250226014905-5d762b37670f // indirect
-	github.com/tommie/v8go/deps/linux_arm64 v0.0.0-20250226014905-5d762b37670f // indirect
-	golang.org/x/net v0.37.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	github.com/tommie/v8go/deps/android_amd64 v0.0.0-20250402043228-5f86851c373c // indirect
+	github.com/tommie/v8go/deps/android_arm64 v0.0.0-20250402043228-5f86851c373c // indirect
+	github.com/tommie/v8go/deps/darwin_amd64 v0.0.0-20250402043228-5f86851c373c // indirect
+	github.com/tommie/v8go/deps/darwin_arm64 v0.0.0-20250402043228-5f86851c373c // indirect
+	github.com/tommie/v8go/deps/linux_amd64 v0.0.0-20250402043228-5f86851c373c // indirect
+	github.com/tommie/v8go/deps/linux_arm64 v0.0.0-20250402043228-5f86851c373c // indirect
+	golang.org/x/net v0.39.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
