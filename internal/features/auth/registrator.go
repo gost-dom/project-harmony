@@ -17,10 +17,11 @@ type AccountRepository interface {
 }
 
 type RegistratorInput struct {
-	Email       *mail.Address
-	Password    password.Password
-	Name        string
-	DisplayName string
+	Email            *mail.Address
+	Password         password.Password
+	Name             string
+	DisplayName      string
+	NewsletterSignup bool
 }
 
 type Registrator struct {

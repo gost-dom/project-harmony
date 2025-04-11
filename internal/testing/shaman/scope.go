@@ -167,6 +167,9 @@ func (cb CheckboxRole) Uncheck() { cb.setChecked(false) }
 func (cb CheckboxRole) setChecked(val bool) {
 	input, ok := cb.HTMLElement.(html.HTMLInputElement)
 	if !ok {
+		// To support generic checkbox roles, the approach should probably be to
+		// check for the presence of the aria-checked content attribute, and
+		// call Click() on the element if it has the wrong state.
 		panic("CheckboxRole.Check/Uncheck: only input elements are supported")
 	}
 	input.SetChecked(val)

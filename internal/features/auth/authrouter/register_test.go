@@ -56,12 +56,42 @@ func (s *RegisterTestSuite) TestSubmitValidForm() {
 	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/validate-email"))
 	s.Expect(s.Get(ByH1)).To(HaveTextContent("Validate Email"))
 	chalRespForm := EmailChallengeResponseForm{s.Subscope(ByRole(ariarole.Form))}
-	s.Expect(chalRespForm.Email()).To(HaveAttribute("value", "john.smith@example.com"))
+	s.Expect(chalRespForm.Email()).
+		To(HaveAttribute("value", "john.smith@example.com"), "Email is filled on the challenge response page")
+
 	actualInput := s.registrator.Calls[0].Arguments[1].(auth.RegistratorInput)
 	s.Expect(actualInput.DisplayName).To(Equal("John"))
 	s.Expect(actualInput.Name).To(Equal("John Smith"))
 	s.Expect(actualInput.Email.Address).To(Equal("john.smith@example.com"))
 	s.Expect(actualInput.Password).To(BeSameBassword("str0ngVal!dPassword"))
+	s.Expect(actualInput.NewsletterSignup).To(BeFalse())
+}
+
+func (s *RegisterTestSuite) TestCSRF() {
+	s.registrator.EXPECT().Register(mock.Anything, mock.Anything).Return(nil).Maybe()
+
+	s.CookieJar.Clear()
+	s.Expect(s.Get(ByH1)).To(HaveTextContent("Register Account"))
+
+	form := RegisterForm{s.Subscope(ByRole(ariarole.Form))}
+	form.FillWithValidValues()
+	form.Submit().Click()
+
+	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"))
+	s.Assert().Empty(s.registrator.Calls)
+}
+
+func (s *RegisterTestSuite) TestSubmitValidFormWithNewsletterSignup() {
+	s.registrator.EXPECT().Register(mock.Anything, mock.Anything).Return(nil).Once()
+	s.Expect(s.Get(ByH1)).To(HaveTextContent("Register Account"))
+
+	form := RegisterForm{s.Subscope(ByRole(ariarole.Form))}
+	form.FillWithValidValues()
+	form.NewsletterSignup().Check()
+	form.Submit().Click()
+
+	actualInput := s.registrator.Calls[0].Arguments[1].(auth.RegistratorInput)
+	s.Expect(actualInput.NewsletterSignup).To(BeTrue())
 }
 
 func (s *RegisterTestSuite) TestMissingFullname() {
@@ -146,6 +176,9 @@ func (f RegisterForm) Password() shaman.TextboxRole    { return f.PasswordText(B
 func (f RegisterForm) TermsOfUse() shaman.CheckboxRole {
 	return f.Checkbox(ByName("I agree to the terms of use"))
 }
+func (f RegisterForm) NewsletterSignup() shaman.CheckboxRole {
+	return f.Checkbox(ByName("Sign up for the newsletter"))
+}
 
 func (f RegisterForm) Submit() html.HTMLElement { return f.Get(shaman.ByRole(ariarole.Button)) }
 
@@ -154,6 +187,7 @@ func (f RegisterForm) FillWithValidValues() {
 	f.DisplayName().Write("John")
 	f.Email().Write("john.smith@example.com")
 	f.Password().Write("str0ngVal!dPassword")
+	f.TermsOfUse().Check()
 }
 
 type EmailChallengeResponseForm struct{ shaman.Scope }
