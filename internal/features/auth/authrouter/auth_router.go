@@ -3,9 +3,10 @@ package authrouter
 import (
 	"context"
 	"errors"
+	"net/http"
+
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authrouter/views"
-	"net/http"
 )
 
 type Authenticator interface {
@@ -55,7 +56,6 @@ func (r *AuthRouter) Init() {
 	r.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
 		redirectUrl := r.URL.Query().Get("redirectUrl")
 		views.Login(redirectUrl, views.LoginFormData{}).Render(r.Context(), w)
-
 	})
 	r.HandleFunc("POST /login", r.PostAuthLogin)
 }

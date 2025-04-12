@@ -30,7 +30,7 @@ func (s *LoginPageSuite) SetupTest() {
 	s.BrowserSuite.SetupTest()
 	s.authMock = NewMockAuthenticator(s.T())
 	s.Graph = surgeon.Replace[router.Authenticator](s.Graph, s.authMock)
-	s.OpenWindow("/auth/login")
+	s.OpenWindow("https://example.com/auth/login")
 	s.loginForm = NewLoginForm(s.Scope)
 }
 
@@ -42,7 +42,7 @@ func (s *LoginPageSuite) TestMissingUsername() {
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
 
-	s.Equal("/auth/login", s.Win.Location().Href())
+	s.Equal("/auth/login", s.Win.Location().Pathname())
 
 	s.Expect(s.loginForm.Email()).To(matchers.HaveAttribute("aria-invalid", "true"))
 	s.Expect(s.loginForm.Password()).ToNot(matchers.HaveAttribute("aria-invalid", "true"))
@@ -55,7 +55,7 @@ func (s *LoginPageSuite) TestMissingPassword() {
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.SubmitBtn().Click()
 
-	s.Equal("/auth/login", s.Win.Location().Href())
+	s.Equal("/auth/login", s.Win.Location().Pathname())
 
 	s.Expect(s.loginForm.Email()).ToNot(matchers.HaveAttribute("aria-invalid", "true"))
 	s.Expect(s.loginForm.Password()).To(matchers.HaveAttribute("aria-invalid", "true"))
@@ -73,15 +73,29 @@ func (s *LoginPageSuite) TestValidCredentialsRedirects() {
 	s.Equal("/", s.Win.Location().Pathname())
 }
 
+func (s *LoginPageSuite) TestCSRFHandling() {
+	s.authMock.EXPECT().
+		Authenticate(mock.Anything, "valid-user@example.com", "s3cret").
+		Return(auth.Account{}, nil).Maybe()
+
+	s.CookieJar.Clear()
+	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
+	s.loginForm.Password().SetAttribute("value", "s3cret")
+	s.loginForm.SubmitBtn().Click()
+
+	s.Equal("/auth/login", s.Win.Location().Pathname())
+}
+
 func (s *LoginPageSuite) TestInvalidCredentials() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "bad-user@example.com", "s3cret").
 		Return(auth.Account{}, auth.ErrBadCredentials).Once()
+
 	s.loginForm.Email().SetAttribute("value", "bad-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
 
-	s.Equal("/auth/login", s.Win.Location().Href())
+	s.Equal("/auth/login", s.Win.Location().Pathname())
 
 	alert := s.Get(ByRole(ariarole.Alert))
 
@@ -99,7 +113,7 @@ func (s *LoginPageSuite) TestUnexpectedError() {
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
 
-	s.Equal("/auth/login", s.Win.Location().Href())
+	s.Equal("/auth/login", s.Win.Location().Pathname())
 
 	alert := s.Get(ByRole(ariarole.Alert))
 

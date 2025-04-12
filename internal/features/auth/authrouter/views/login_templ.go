@@ -8,7 +8,10 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import . "harmony/internal/server/views"
+import (
+	"context"
+	. "harmony/internal/server/views"
+)
 
 func Login(redirectUrl string, data LoginFormData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -99,6 +102,11 @@ func invalid(v bool) (res templ.Attributes) {
 	}
 }
 
+func csrfToken(ctx context.Context) string {
+	token, _ := ctx.Value("csrf-token").(string)
+	return token
+}
+
 func LoginForm(redirectUrl string, formData LoginFormData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -127,13 +135,26 @@ func LoginForm(redirectUrl string, formData LoginFormData) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(redirectUrl)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/features/auth/authrouter/views/login.templ`, Line: 64, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/features/auth/authrouter/views/login.templ`, Line: 72, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"> <input type=\"hidden\" name=\"csrf-token\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(csrfToken(ctx))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/features/auth/authrouter/views/login.templ`, Line: 74, Col: 62}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -170,23 +191,23 @@ func LoginForm(redirectUrl string, formData LoginFormData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"flex items-center justify-between\"><div class=\"flex items-start\"><!--\n\t\t\t\t\t\t<div class=\"flex items-center h-5\">\n\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\tclass=\"w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800\"\n\t\t\t\t\t\t\t\ttype=\"checkbox\"\n\t\t\t\t\t\t\t\tid=\"remember\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"ml-3 text-sm\">\n\t\t\t\t\t\t\t<label\n\t\t\t\t\t\t\t\tclass=\"block text-sm font-medium  text-gray-500 dark:text-gray-300\"\n\t\t\t\t\t\t\t\tfor=\"remember\"\n\t\t\t\t\t\t\t>Remember me</label>\n\t\t\t\t\t\t</div>\n            --></div><!--\n\t\t\t\t\t<a href=\"#\" class=\"text-sm font-medium text-primary-600 hover:underline dark:text-primary-500\">Forgot password?</a>\n          --></div><button id=\"submit-login-form-button\" type=\"submit\" class=\"w-full text-white bg-cta hover:bg-ctabase-900 focus:ring-4\n    focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm\n    px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700\n    dark:focus:ring-primary-800\">Sign in</button> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"flex items-center justify-between\"><div class=\"flex items-start\"><!--\n\t\t\t\t\t\t<div class=\"flex items-center h-5\">\n\t\t\t\t\t\t\t<input\n\t\t\t\t\t\t\t\tclass=\"w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800\"\n\t\t\t\t\t\t\t\ttype=\"checkbox\"\n\t\t\t\t\t\t\t\tid=\"remember\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"ml-3 text-sm\">\n\t\t\t\t\t\t\t<label\n\t\t\t\t\t\t\t\tclass=\"block text-sm font-medium  text-gray-500 dark:text-gray-300\"\n\t\t\t\t\t\t\t\tfor=\"remember\"\n\t\t\t\t\t\t\t>Remember me</label>\n\t\t\t\t\t\t</div>\n            --></div><!--\n\t\t\t\t\t<a href=\"#\" class=\"text-sm font-medium text-primary-600 hover:underline dark:text-primary-500\">Forgot password?</a>\n          --></div><button id=\"submit-login-form-button\" type=\"submit\" class=\"w-full text-white bg-cta hover:bg-ctabase-900 focus:ring-4\n    focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm\n    px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700\n    dark:focus:ring-primary-800\">Sign in</button> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if formData.InvalidCredentials {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div id=\"alert-div\" role=\"alert\" aria-live=\"assertive\" class=\"text-red-700\">Email or password did not match</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div id=\"alert-div\" role=\"alert\" aria-live=\"assertive\" class=\"text-red-700\">Email or password did not match</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
 		if formData.UnexpectedError {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div id=\"alert-div\" role=\"alert\" aria-live=\"assertive\" class=\"text-red-700\">An unexpected error occurred. Please try again ...</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div id=\"alert-div\" role=\"alert\" aria-live=\"assertive\" class=\"text-red-700\">An unexpected error occurred. Please try again ...</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<!--\n    <p class=\"text-sm font-light text-gray-500 dark:text-gray-400\">\n        Don’t have an account yet? <a href=\"#\" class=\"font-medium text-primary-600 hover:underline dark:text-primary-500\">Sign up</a>\n    </p>\n    -->")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<!--\n    <p class=\"text-sm font-light text-gray-500 dark:text-gray-400\">\n        Don’t have an account yet? <a href=\"#\" class=\"font-medium text-primary-600 hover:underline dark:text-primary-500\">Sign up</a>\n    </p>\n    -->")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
