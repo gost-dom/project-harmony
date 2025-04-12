@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-var ErrDuplicateKey = errors.New("Duplicate key")
+var ErrDuplicateKey = errors.New("duplicate key")
 
 type EntityTranslator[T any] interface {
 	ID(entity T) string
@@ -53,7 +53,7 @@ func (s RepositoryStub[T]) Get(_ context.Context, id string) (res T) {
 		res = *tmp
 	} else {
 		s.t.Helper()
-		s.t.Errorf("RepositoryStub.Get: No entity with id: %v", id)
+		s.t.Errorf("repo.get: id not found: %v", id)
 		tmp = new(T)
 	}
 	return
@@ -71,23 +71,23 @@ func (s RepositoryStub[T]) All() (res []*T) {
 	return res
 }
 
-func (s RepositoryStub[T]) Single() *T {
-	ee := s.All()
+func (repo RepositoryStub[T]) Single() *T {
+	ee := repo.All()
 	if len(ee) != 1 {
-		s.t.Helper()
-		s.t.Errorf("Error getting single instance. Expected 1 element, had %d", len(ee))
+		repo.t.Helper()
+		repo.t.Errorf("repo.single: expected 1 element, had %d", len(ee))
 		return nil
 	}
 	return ee[0]
 }
 
-func (s RepositoryStub[T]) Empty() bool { return len(s.Entities) == 0 }
+func (repo RepositoryStub[T]) Empty() bool { return len(repo.Entities) == 0 }
 
-func (s RepositoryStub[T]) GetTestInstance(id string) *T {
-	if _, found := s.Entities[id]; !found {
+func (repo RepositoryStub[T]) GetTestInstance(id string) *T {
+	if _, found := repo.Entities[id]; !found {
 		panic("ID not found: " + id)
 	}
-	return s.Entities[id]
+	return repo.Entities[id]
 }
 
 type E interface {
@@ -102,14 +102,14 @@ func SingleEventOfType[T any](e E) (res T) {
 	for _, ee := range e.AllEvents() {
 		if r, ok := ee.(T); ok {
 			if found {
-				t.Errorf("Found multiple instances of type %s", reflect.TypeFor[T]().Name())
+				t.Errorf("single-event: multiple instances of type %s", reflect.TypeFor[T]().Name())
 			}
 			res = r
 			found = true
 		}
 	}
 	if !found {
-		t.Errorf("Found no instance of type %s", reflect.TypeFor[T]().Name())
+		t.Errorf("single-event: no event of type %s", reflect.TypeFor[T]().Name())
 	}
 	return
 }
