@@ -19,10 +19,21 @@ type AuthenticatorTestSuite struct {
 	Account *authdomain.PasswordAuthentication
 }
 
+// MustParseEmail creates a *mail.Address from an email string. The function
+// panics if the address is not a valid address. This is intended for use in
+// test scenarios where an example email address is hardcoded or generated in a
+// way that is assumed to generate valid email addresses.
+func MustParseEmail(address string) *mail.Address {
+	email, err := mail.ParseAddress(address)
+	if err != nil {
+		panic(err)
+	}
+	return email
+}
+
 func (s *AuthenticatorTestSuite) SetupTest() {
 	input := CreateValidInput()
-	email, _ := mail.ParseAddress("jd@example.com")
-	input.Email = email
+	input.Email = MustParseEmail("jd@example.com")
 	input.Password = password.Parse("valid_password")
 	repo := NewAccountRepoStub(s.T())
 
