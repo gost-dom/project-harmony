@@ -51,9 +51,8 @@ func (s *RegisterTestSuite) TestSubmitValidForm() {
 	form.TermsOfUse().Check()
 	form.Submit().Click()
 
-	// Verify that the valid form directs to the email validation page with the
-	// email field filled out.
-	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/validate-email"))
+	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/validate-email"),
+		"Browser should be redirected to the email validation page on successful registration")
 	s.Expect(s.Get(ByH1)).To(HaveTextContent("Validate Email"))
 	chalRespForm := EmailChallengeResponseForm{s.Subscope(ByRole(ariarole.Form))}
 	s.Expect(chalRespForm.Email()).
@@ -103,9 +102,8 @@ func (s *RegisterTestSuite) TestMissingFullname() {
 	form.FullName().Clear()
 	form.Submit().Click()
 
-	// Verify that the valid form directs to the email validation page with the
-	// email field filled out.
-	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"))
+	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"),
+		"The browser should stay on the registration page when full name is missing")
 }
 
 func (s *RegisterTestSuite) TestMissingEmail() {
@@ -117,9 +115,8 @@ func (s *RegisterTestSuite) TestMissingEmail() {
 	form.Email().Clear()
 	form.Submit().Click()
 
-	// Verify that the valid form directs to the email validation page with the
-	// email field filled out.
-	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"))
+	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"),
+		"The browser should stay on the registration page when email is missing")
 
 	s.Expect(form.Email()).ToNot(HaveARIADescription("Must be a valid email address"))
 
@@ -138,9 +135,8 @@ func (s *RegisterTestSuite) TestInvalidEmail() {
 	form.TermsOfUse().Check()
 	form.Submit().Click()
 
-	// Verify that the valid form directs to the email validation page with the
-	// email field filled out.
-	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"))
+	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"),
+		"The browser should stay on the registration page when email is invalid")
 
 	form = RegisterForm{s.Subscope(ByRole(ariarole.Form))}
 	s.Expect(form.FullName()).To(HaveAttribute("value", "John Smith"))
@@ -159,9 +155,8 @@ func (s *RegisterTestSuite) TestMissingAccept() {
 	form.TermsOfUse().Uncheck()
 	form.Submit().Click()
 
-	// Verify that the valid form directs to the email validation page with the
-	// email field filled out.
-	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"))
+	s.Expect(s.Win.Location().Pathname()).To(Equal("/auth/register"),
+		"The browser should stay on the registration page when terms are not accepted")
 
 	form = RegisterForm{s.Subscope(ByRole(ariarole.Form))}
 	s.Expect(form.TermsOfUse()).To(HaveARIADescription("You must accept the terms of use"))
