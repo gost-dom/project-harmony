@@ -13,17 +13,28 @@ import (
 	"github.com/gost-dom/surgeon"
 )
 
+// CookieJar wraps cookiejar.Jar to provide additional functionality
+// for testing, particularly for CSRF protection scenarios where
+// browser session state needs to be manipulated.
 type CookieJar struct {
 	*cookiejar.Jar
 }
 
+// Clear all cookies. Useful for testing CSRF handling.
 func (j *CookieJar) Clear() {
-	j.Jar, _ = cookiejar.New(nil)
+	var err error
+	j.Jar, err = cookiejar.New(nil)
+	if err != nil {
+		// This should never happen. cookiejar.New(...) will always return a nil
+		// error (in it's current implementation). And a nil value will still
+		panic("Unexpected error creating a cookie jar")
+	}
 }
 
 func NewCookieJar() *CookieJar {
-	jar, _ := cookiejar.New(nil)
-	return &CookieJar{jar}
+	var result CookieJar
+	result.Clear()
+	return &result
 }
 
 // BrowserSuite is an extension to [suite.Suite] that adds common behaviour for
