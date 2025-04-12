@@ -86,6 +86,21 @@ func (s *LoginPageSuite) TestCSRFHandling() {
 	s.Equal("/auth/login", s.Win.Location().Pathname())
 }
 
+func (s *LoginPageSuite) TestCSRFWithMultipleWindows() {
+	s.authMock.EXPECT().
+		Authenticate(mock.Anything, "valid-user@example.com", "s3cret").
+		Return(auth.Account{}, nil).Maybe()
+
+	_, err := s.Browser.Open("https://example.com/")
+	s.Assert().NoError(err)
+
+	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
+	s.loginForm.Password().SetAttribute("value", "s3cret")
+	s.loginForm.SubmitBtn().Click()
+
+	s.Equal("/", s.Win.Location().Pathname())
+}
+
 func (s *LoginPageSuite) TestInvalidCredentials() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "bad-user@example.com", "s3cret").

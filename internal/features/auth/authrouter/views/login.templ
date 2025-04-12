@@ -57,19 +57,25 @@ func invalid(v bool) (res templ.Attributes) {
 	}
 }
 
-templ csrfToken() {
-	if token, ok := ctx.Value("csrf-token").(string); ok {
+templ CSRFFields() {
+	{{
+	source := ctx.Value("tokenSource")
+	g, ok := source.(func() (string, string))
+	}}
+	if ok {
+		{{ id, token := g() }}
+		<input type="hidden" name="csrf-id" value={ id }/>
 		<input type="hidden" name="csrf-token" value={ token }/>
 	}
 }
 
 templ LoginForm(redirectUrl string, formData LoginFormData) {
+	@CSRFFields()
 	<input
 		type="hidden"
 		name="redirectUrl"
 		value={ redirectUrl }
 	/>
-	@csrfToken()
 	@Field(FieldOptions{
 		InputOptions: InputOptions{
 			Id:              "email",
