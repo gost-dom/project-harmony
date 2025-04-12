@@ -8,9 +8,9 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
-// ErrBadEmailValidationCode is returned when an incorrect email validation
+// ErrBadEmailChallengeResponse is returned when an incorrect email validation
 // challenge response was provided when proving ownership of an email address.
-var ErrBadEmailValidationCode = errors.New("Email.ChallenreResponse: Bad email validation code")
+var ErrBadEmailChallengeResponse = errors.New("authdomain: bad email challenge response")
 
 type EmailValidationCode string
 
@@ -51,7 +51,7 @@ func (e Email) ChallengeResponse(response EmailValidationCode) (Email, error) {
 		return e, nil
 	}
 	if e.Challenge == nil || e.Challenge.Code != response || e.Challenge.Expired() {
-		return e, ErrBadEmailValidationCode
+		return e, ErrBadEmailChallengeResponse
 	}
 	res := e
 	res.Validated = true

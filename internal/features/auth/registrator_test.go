@@ -76,7 +76,7 @@ func (s *RegisterTestSuite) TestActivation() {
 
 	s.Assert().ErrorIs(entity.ValidateEmail(
 		authdomain.NewValidationCode()),
-		authdomain.ErrBadEmailValidationCode, "Validating wrong code")
+		authdomain.ErrBadEmailChallengeResponse, "Validating wrong code")
 
 	code := repotest.SingleEventOfType[authdomain.EmailValidationRequest](s.repo).Code
 	s.Assert().NoError(entity.ValidateEmail(code), "Validating right code")
@@ -113,7 +113,7 @@ func (s *RegisterTestSuite) TestActivationCodeExpired() {
 		time.Sleep(16 * time.Minute)
 		synctest.Wait()
 
-		s.Assert().ErrorIs(entity.ValidateEmail(code), authdomain.ErrBadEmailValidationCode)
+		s.Assert().ErrorIs(entity.ValidateEmail(code), authdomain.ErrBadEmailChallengeResponse)
 		s.Assert().False(entity.Email.Validated, "Email validated - after validation")
 	})
 }
