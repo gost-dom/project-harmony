@@ -208,5 +208,5 @@ func HaveARIADescription(expected any) types.GomegaMatcher {
 func BeSamePassword(pw string) types.GomegaMatcher {
 	return gcustom.MakeMatcher(func(actual password.Password) (bool, error) {
 		return password.Parse(pw).Equals(actual), nil
-	})
+	}).WithTemplate("Expected password {{.To}} be the: {{.Data}}", pw)
 }
