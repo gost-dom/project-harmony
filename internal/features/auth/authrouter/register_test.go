@@ -63,7 +63,7 @@ func (s *RegisterTestSuite) TestSubmitValidForm() {
 	s.Expect(actualInput.DisplayName).To(Equal("John"))
 	s.Expect(actualInput.Name).To(Equal("John Smith"))
 	s.Expect(actualInput.Email.Address).To(Equal("john.smith@example.com"))
-	s.Expect(actualInput.Password).To(BeSameBassword("str0ngVal!dPassword"))
+	s.Expect(actualInput.Password).To(BeSamePassword("str0ngVal!dPassword"))
 	s.Expect(actualInput.NewsletterSignup).To(BeFalse())
 }
 
@@ -210,7 +210,7 @@ func HaveARIADescription(expected any) types.GomegaMatcher {
 	}).WithTemplate("Expected:\n{{.FormattedActual}}\n{{.To}} have ARIA Description: {{.Data.Expected}}\n{{.Data.Matcher.FailureMessage .Data.Description}}", &data)
 }
 
-func BeSameBassword(pw string) types.GomegaMatcher {
+func BeSamePassword(pw string) types.GomegaMatcher {
 	return gcustom.MakeMatcher(func(actual password.Password) (bool, error) {
 		return password.Parse(pw).Equals(actual), nil
 	})
