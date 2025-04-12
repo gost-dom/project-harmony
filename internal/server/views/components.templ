@@ -1,5 +1,10 @@
 package views
 
+import (
+	"context"
+	"io"
+)
+
 type InputOptions struct {
 	Id              string
 	Name            string
@@ -30,6 +35,8 @@ templ input(o InputOptions) {
 	/>
 }
 
+func (o InputOptions) Render(ctx context.Context, w io.Writer) error { return input(o).Render(ctx, w) }
+
 type FieldOptions struct {
 	InputOptions
 	Label string
@@ -47,9 +54,30 @@ templ Field(o FieldOptions) {
 			class="block text-sm font-medium text-gray-900 dark:text-white"
 			for={ o.Id }
 		>{ o.Label }</label>
+		@o.InputOptions
+		if o.Invalid {
+			<div id={ descId }>{ o.ValidationError }</div>
+		}
+	</div>
+}
+
+templ (o FieldOptions) Field() {
+	{{
+	var descId string = o.Id + "-missing"
+	if o.Invalid {
+		o.Attributes["aria-describedby"] = descId
+	}
+	}}
+	<div>
+		<label
+			class="block text-sm font-medium text-gray-900 dark:text-white"
+			for={ o.Id }
+		>{ o.Label }</label>
 		@input(o.InputOptions)
 		if o.Invalid {
 			<div id={ descId }>{ o.ValidationError }</div>
 		}
 	</div>
 }
+
+func (o FieldOptions) Render(ctx context.Context, w io.Writer) error { return o.Field().Render(ctx, w) }
