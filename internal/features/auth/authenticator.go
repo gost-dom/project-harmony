@@ -11,7 +11,7 @@ import (
 )
 
 type AccountEmailFinder interface {
-	FindByEmail(ctx context.Context, id string) (domain.PasswordAuthentication, error)
+	FindByEmail(ctx context.Context, email string) (domain.PasswordAuthentication, error)
 }
 
 type Authenticator struct {
@@ -22,10 +22,10 @@ func NewID() (string, error) { return gonanoid.New(32) }
 
 func (a *Authenticator) Authenticate(
 	ctx context.Context,
-	username string,
+	email string,
 	password password.Password,
 ) (domain.AuthenticatedAccount, error) {
-	acc, err := a.Repository.FindByEmail(ctx, username)
+	acc, err := a.Repository.FindByEmail(ctx, email)
 	if err == nil {
 		if acc.Validate(password) {
 			return acc.Authenticated()
