@@ -1,9 +1,6 @@
 package views
 
-import (
-	"context"
-	. "harmony/internal/server/views"
-)
+import . "harmony/internal/server/views"
 
 templ Login(redirectUrl string, data LoginFormData) {
 	@Layout(Contents{Body: loginBody(redirectUrl, data)})
@@ -60,9 +57,10 @@ func invalid(v bool) (res templ.Attributes) {
 	}
 }
 
-func csrfToken(ctx context.Context) string {
-	token, _ := ctx.Value("csrf-token").(string)
-	return token
+templ csrfToken() {
+	if token, ok := ctx.Value("csrf-token").(string); ok {
+		<input type="hidden" name="csrf-token" value={ token }/>
+	}
 }
 
 templ LoginForm(redirectUrl string, formData LoginFormData) {
@@ -71,7 +69,7 @@ templ LoginForm(redirectUrl string, formData LoginFormData) {
 		name="redirectUrl"
 		value={ redirectUrl }
 	/>
-	<input type="hidden" name="csrf-token" value={ csrfToken(ctx) }/>
+	@csrfToken()
 	@Field(FieldOptions{
 		InputOptions: InputOptions{
 			Id:              "email",
