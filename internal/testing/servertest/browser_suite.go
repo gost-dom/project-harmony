@@ -94,5 +94,7 @@ func (s *BrowserSuite) OpenWindow(path string) html.Window {
 
 func (s *BrowserSuite) TearDownTest() {
 	s.Win = nil
+	s.Browser = nil
+	s.CookieJar = nil
 	s.CancelCtx()
 }
