@@ -42,8 +42,12 @@ type AuthRouter struct {
 }
 
 func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
-	// This is a crappy implementation. But I can't be bothered to improve any
-	// more right now.
+	// Consider improving this implementation for more clearly separate
+	// - Parsing and validating input
+	// - Call use case on valid input
+	// - Rerender form in invalid input, or use case error
+	// - Redirect to email validation page on success
+	// TODO: Provide good error messages for users for all scenarios
 	r.ParseForm()
 	data := struct {
 		Fullname         string `schema:"fullname,required"`
