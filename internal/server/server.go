@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -44,12 +45,25 @@ func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 	s.AuthRouter.RenderLogin(w, r)
 }
 
-func getCSRFCookie(r *http.Request) string {
-	cookie, err := r.Cookie("csrftoken")
+func csrfCookieName(id string) string { return fmt.Sprintf("csrf-%s", id) }
+
+func getCSRFCookie(id string, r *http.Request) string {
+	cookie, err := r.Cookie(csrfCookieName(id))
 	if err != nil {
 		return ""
 	}
 	return cookie.Value
+}
+
+func deleteCSRFCookie(id string, w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     csrfCookieName(id),
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+	})
 }
 
 func CSRFProtection(h http.Handler) http.Handler {
@@ -58,9 +72,10 @@ func CSRFProtection(h http.Handler) http.Handler {
 		case "POST", "PUT", "PATCH", "DELETE":
 			{
 				r.ParseForm()
+				formTokenId := r.FormValue("csrf-id")
 				formToken := r.FormValue("csrf-token")
-				expectedToken := getCSRFCookie(r)
-
+				expectedToken := getCSRFCookie(formTokenId, r)
+				deleteCSRFCookie(formTokenId, w)
 				if formToken != expectedToken || expectedToken == "" {
 					http.Error(w, "Invalid CSRF token", http.StatusBadRequest)
 					return
@@ -80,38 +95,46 @@ func CSRFProtection(h http.Handler) http.Handler {
 			)
 		}
 
-		token, err := gonanoid.New()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		var fn CSRFGenerator = func() (string, string) {
+			id, err1 := gonanoid.New()
+			token, err2 := gonanoid.New()
+			if err := errors.Join(err1, err2); err != nil {
+				slog.Error("Error generating token", "err", err)
+				return "", ""
+			}
+			http.SetCookie(
+				w,
+				&http.Cookie{
+					Name:     csrfCookieName(id),
+					Value:    token,
+					Path:     "/",
+					HttpOnly: true,
+					Secure:   true,
+					SameSite: http.SameSiteStrictMode,
+					MaxAge:   3600,
+				},
+			)
+			return id, token
 		}
-		http.SetCookie(
-			w,
-			&http.Cookie{
-				Name:     "csrftoken",
-				Value:    token,
-				Path:     "/",
-				HttpOnly: true,
-				Secure:   true,
-			},
-		)
-		newCtx := context.WithValue(r.Context(), "csrf-token", token)
+		newCtx := context.WithValue(r.Context(), "tokenSource", fn)
 		newReq := r.WithContext(newCtx)
 		h.ServeHTTP(w, newReq)
 	})
 }
 
+type CSRFGenerator = func() (string, string)
+
 func (s *Server) Init() {
 	mux := http.NewServeMux()
-	mux.Handle("/auth/", CSRFProtection(http.StripPrefix("/auth", s.AuthRouter)))
-	mux.Handle("GET /{$}", CSRFProtection(templ.Handler(views.Index())))
-	mux.Handle("GET /host/{$}", CSRFProtection(http.HandlerFunc(s.GetHost)))
+	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
+	mux.Handle("GET /{$}", templ.Handler(views.Index()))
+	mux.Handle("GET /host/{$}", http.HandlerFunc(s.GetHost))
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(
 			http.Dir(staticFilesPath()))),
 	)
-	s.Handler = noCache(mux)
+	s.Handler = noCache(CSRFProtection(mux))
 }
 
 func NewAuthRouter() *AuthRouter {
