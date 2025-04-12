@@ -1,2 +1,0 @@
-<div class=\"w-full mx-auto flex flex-col items-center\"><div class=\"my-6 font-bold text-3xl dark:text-white\"><h3>Project Harmony</h3></div>
-</div>

@@ -1,3 +1,4 @@
 node_modules/
 tmp/
-.cache
+.cache/
+**/*_templ.txt
