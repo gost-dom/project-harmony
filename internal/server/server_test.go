@@ -27,7 +27,7 @@ func (s *NavigateToLoginSuite) SetupTest() {
 		Return(auth.Account{}, nil).Maybe()
 	s.Graph = surgeon.Replace[authrouter.Authenticator](s.Graph, authMock)
 
-	s.OpenWindow("http://localhost:1234/")
+	s.OpenWindow("https://example.com/")
 	s.Win.Clock().RunAll()
 }
 

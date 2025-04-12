@@ -1,16 +1,19 @@
 package server
 
 import (
+	"context"
 	"fmt"
-
-	. "harmony/internal/features/auth/authrouter"
-	"harmony/internal/project"
-	"harmony/internal/server/views"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"path/filepath"
 
+	. "harmony/internal/features/auth/authrouter"
+	"harmony/internal/project"
+	"harmony/internal/server/views"
+
 	"github.com/a-h/templ"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 func noCache(h http.Handler) http.Handler {
@@ -41,11 +44,68 @@ func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 	s.AuthRouter.RenderLogin(w, r)
 }
 
+func getCSRFCookie(r *http.Request) string {
+	cookie, err := r.Cookie("csrftoken")
+	if err != nil {
+		return ""
+	}
+	return cookie.Value
+}
+
+func CSRFProtection(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "POST", "PUT", "PATCH", "DELETE":
+			{
+				r.ParseForm()
+				formToken := r.FormValue("csrf-token")
+				expectedToken := getCSRFCookie(r)
+
+				if formToken != expectedToken || expectedToken == "" {
+					http.Error(w, "Invalid CSRF token", http.StatusBadRequest)
+					return
+				}
+			}
+		case "GET", "TRACE", "OPTIONS", "HEAD":
+			// These methods are not mutating, so CSRF protection is not necessary
+		default:
+			// Unexpected HTTP method. If it's unexpected, it's unlikely that it
+			// will have an effect on the server, so a warning log message
+			// should be fine.
+			slog.WarnContext(
+				r.Context(),
+				"CSRFMiddleware: Unexpected HTTP Method",
+				"method",
+				r.Method,
+			)
+		}
+
+		token, err := gonanoid.New()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.SetCookie(
+			w,
+			&http.Cookie{
+				Name:     "csrftoken",
+				Value:    token,
+				Path:     "/",
+				HttpOnly: true,
+				Secure:   true,
+			},
+		)
+		newCtx := context.WithValue(r.Context(), "csrf-token", token)
+		newReq := r.WithContext(newCtx)
+		h.ServeHTTP(w, newReq)
+	})
+}
+
 func (s *Server) Init() {
 	mux := http.NewServeMux()
-	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
-	mux.Handle("GET /{$}", templ.Handler(views.Index()))
-	mux.HandleFunc("GET /host/{$}", s.GetHost)
+	mux.Handle("/auth/", CSRFProtection(http.StripPrefix("/auth", s.AuthRouter)))
+	mux.Handle("GET /{$}", CSRFProtection(templ.Handler(views.Index())))
+	mux.Handle("GET /host/{$}", CSRFProtection(http.HandlerFunc(s.GetHost)))
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(

@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/sessions v1.4.0
 	github.com/gost-dom/browser v0.5.0
 	github.com/gost-dom/surgeon v0.0.0-20250310114259-45edf00bd5ac
+	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/onsi/gomega v1.36.2
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b
 	github.com/stretchr/testify v1.10.0

@@ -20,6 +20,8 @@ github.com/gorilla/sessions v1.4.0 h1:kpIYOp/oi6MG/p5PgxApU8srsSw9tuFbt46Lt7auzq
 github.com/gorilla/sessions v1.4.0/go.mod h1:FLWm50oby91+hl7p/wRxDth9bWSuk0qVL2emc7lT5ik=
 github.com/gost-dom/css v0.1.0 h1:O4aXjnYonQH1EDwKysXCQOgGVLwCWd/+HJeGO15sDIE=
 github.com/gost-dom/css v0.1.0/go.mod h1:BYfl+dr6Dzl6RoKn4op6TynJ7GmFqP0kFCM44NEVgNs=
+github.com/gost-dom/fixture v0.1.0 h1:7PnEpkuww1QBOh4gyoR8updPfyosHJfxmFRY+2t05+w=
+github.com/gost-dom/fixture v0.1.0/go.mod h1:7mSGaBhOfi/NO+YiD426CQ1DTkko62vYxoSVRmveqqY=
 github.com/gost-dom/surgeon v0.0.0-20250310114259-45edf00bd5ac h1:60E9YeTYFT8xao2WyqbvjlOeueuMkEI09YhnpsHyAtM=
 github.com/gost-dom/surgeon v0.0.0-20250310114259-45edf00bd5ac/go.mod h1:yTxFs5diMkm08rnY/k+BJrBmWf5OEfinFAc3+56ikXM=
 github.com/gost-dom/v8go v0.0.0-20250226155312-422158da51fa h1:3aeBc/+rftAe2hHJy1YvUXI90qCQpmep2n26N+Ljhl4=
@@ -28,6 +30,8 @@ github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
 github.com/kr/text v0.2.0/go.mod h1:eLer722TekiGuMkidMxC/pM04lWEeraHUUmBw8l2grE=
+github.com/matoous/go-nanoid/v2 v2.1.0 h1:P64+dmq21hhWdtvZfEAofnvJULaRR1Yib0+PnU669bE=
+github.com/matoous/go-nanoid/v2 v2.1.0/go.mod h1:KlbGNQ+FhrUNIHUxZdL63t7tl4LaPkZNpUULS8H4uVM=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/onsi/ginkgo/v2 v2.22.2 h1:/3X8Panh8/WwhU/3Ssa6rCKqPLuAkVY2I0RoyDLySlU=
