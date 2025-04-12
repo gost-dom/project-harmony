@@ -78,11 +78,10 @@ func NewUnvalidatedEmail(address string) (Email, error) {
 type AccountID string
 
 type Account struct {
-	ID                  AccountID
-	Email               Email
-	Name                string
-	DisplayName         string
-	EmailValidationCode EmailValidationCode
+	ID          AccountID
+	Email       Email
+	Name        string
+	DisplayName string
 }
 
 // ValidateEmail is the email "challenge response" for the email validation
