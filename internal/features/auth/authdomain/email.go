@@ -3,6 +3,7 @@ package authdomain
 import (
 	"errors"
 	"net/mail"
+	"strings"
 	"time"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
@@ -38,7 +39,7 @@ type Email struct {
 
 // Equals returns true of the two emails have the same address.
 func (e Email) Equals(address string) bool {
-	return e.address == address && address != ""
+	return strings.EqualFold(e.address, address) && address != ""
 }
 
 func (e Email) String() string { return e.address }
