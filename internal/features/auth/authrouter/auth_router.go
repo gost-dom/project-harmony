@@ -27,7 +27,10 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 		redirectUrl = "/"
 	}
 	if account, err := s.Authenticator.Authenticate(r.Context(), email, password); err == nil {
-		s.SessionManager.SetAccount(w, r, account)
+		if err := s.SessionManager.SetAccount(w, r, account); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		w.Header().Add("hx-push-url", redirectUrl)
 	} else {
 		authError := errors.Is(err, auth.ErrBadCredentials)
