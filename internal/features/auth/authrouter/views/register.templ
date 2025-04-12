@@ -70,7 +70,6 @@ templ RegisterFormContents(data RegisterFormData) {
 			Name:            "email",
 			InputType:       "text",
 			Required:        true,
-			Autofocus:       true,
 			Value:           string(data.Email.Value),
 			Invalid:         data.Email.Invalid(),
 			ValidationError: data.Email.ValidationError(),
@@ -82,7 +81,6 @@ templ RegisterFormContents(data RegisterFormData) {
 			Id:        "password",
 			Name:      "password",
 			InputType: "password",
-			Autofocus: true,
 		},
 		Label: "Password",
 	}

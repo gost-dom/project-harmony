@@ -132,7 +132,6 @@ func RegisterFormContents(data RegisterFormData) templ.Component {
 				Name:            "email",
 				InputType:       "text",
 				Required:        true,
-				Autofocus:       true,
 				Value:           string(data.Email.Value),
 				Invalid:         data.Email.Invalid(),
 				ValidationError: data.Email.ValidationError(),
@@ -147,7 +146,6 @@ func RegisterFormContents(data RegisterFormData) templ.Component {
 				Id:        "password",
 				Name:      "password",
 				InputType: "password",
-				Autofocus: true,
 			},
 			Label: "Password",
 		}.Render(ctx, templ_7745c5c3_Buffer)

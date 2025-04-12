@@ -86,7 +86,6 @@ func validateEmailPageBody(form ValidateEmailForm) templ.Component {
 					Name:      "email",
 					InputType: "text",
 					Required:  true,
-					Autofocus: true,
 					Value:     form.EmailAddress,
 				},
 				Label: "Email",
