@@ -4,6 +4,8 @@ import (
 	"errors"
 	"harmony/internal/features/auth/authdomain/password"
 	"time"
+
+	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 // ErrAccountEmailNotValidated is returned when an action requires the account
@@ -12,6 +14,8 @@ import (
 var ErrAccountEmailNotValidated = errors.New("Email address not validated")
 
 type AccountID string
+
+func NewID() string { return gonanoid.Must(32) }
 
 type Account struct {
 	ID          AccountID
