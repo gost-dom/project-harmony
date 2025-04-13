@@ -3,6 +3,7 @@ package authrepo_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,17 +14,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var ErrCommunication = CommunicationError{}
-
-type CommunicationError struct{ error }
-
-func (CommunicationError) Is(err error) bool {
-	_, is := err.(CommunicationError)
-	return is
-}
-func (e CommunicationError) Error() string {
-	return fmt.Sprintf("couchdb: communication error: %v", e.error)
-}
+// ErrConn indicates that an error occurred trying to communicate with CouchDB
+// itself. Possible causes:
+//   - Temporary condition such as a disconnected network
+//   - Configuration issue, e.g., a wrong host name
+var ErrConn = errors.New("couchdb: connection error")
 
 type Doc struct {
 	Foo string
@@ -46,7 +41,7 @@ func (c CouchConnection) Bootstrap() error {
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return CommunicationError{err}
+		return fmt.Errorf("%w: %v", ErrConn, err)
 	}
 	switch resp.StatusCode {
 	case 201, 202, 412:
@@ -131,5 +126,8 @@ func TestDatabaseBootstrap(t *testing.T) {
 		return
 	}
 	_, err := NewCouchConnection("http://invalid.localhost/")
-	assert.ErrorIs(t, err, ErrCommunication)
+	assert.ErrorIs(t, err, ErrConn)
+	assert.ErrorContains(t, err,
+		"couchdb: connection error: ",
+		"En error messages was appended to the standard error. Details not specified by the test")
 }
