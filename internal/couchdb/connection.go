@@ -45,6 +45,10 @@ func (c Connection) Bootstrap(ctx context.Context) error {
 }
 
 func NewCouchConnection(couchURL string) (conn Connection, err error) {
+	if couchURL == "" {
+		err = errors.New("couchdb: NewCouchConnection: empty couchURL")
+		return
+	}
 	var url *url.URL
 	url, err = url.Parse(couchURL)
 	conn = Connection{url, false}
