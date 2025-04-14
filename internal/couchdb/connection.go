@@ -14,11 +14,18 @@ import (
 	"os"
 )
 
+// Connection provides basic functionality to use CouchDB. A single instance is
+// safe to use from multiple goroutines.
 type Connection struct {
 	dbURL       *url.URL
 	initialized bool
 }
 
+// DefaultConnection is a Connection that is initialized with the default
+// connection URL from environment variables.
+//
+// This is not guaranteed to be valid. Client code can call [AssertInitialized]
+// if it depends on this value to be valid.
 var DefaultConnection Connection
 
 // Bootstrap creates the database, as well as updates any design documents, such
@@ -194,7 +201,8 @@ func (c Connection) req(
 	return resp, err
 }
 
-// AssertInitialized verifies that a DefaultConnection exists
+// AssertInitialized verifies that a DefaultConnection exists. The function
+// panics if no defualt connection was initialized.
 func AssertInitialized() {
 	if !DefaultConnection.initialized {
 		panic("couchdb: DefaultConnection not initialized")
