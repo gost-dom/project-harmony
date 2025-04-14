@@ -55,7 +55,10 @@ func TestDatabaseBootstrap(t *testing.T) {
 	}
 	_, err := couchdb.NewCouchConnection("http://invalid.localhost/")
 	assert.ErrorIs(t, err, couchdb.ErrConn)
-	assert.ErrorContains(t, err,
+	assert.ErrorContains(
+		t,
+		err,
 		"couchdb: connection error: ",
-		"En error messages was appended to the standard error. Details not specified by the test")
+		"An error message was appended to the standard couchdb error. Details not specified by the test",
+	)
 }
