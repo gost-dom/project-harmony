@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"harmony/internal/features/auth/authdomain"
 	domain "harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 )
@@ -29,9 +30,8 @@ type Registrator struct {
 // Register attempts to create a new user account with password-based
 // authentication.
 func (r Registrator) Register(ctx context.Context, input RegistratorInput) error {
-	id, err1 := NewID()
-	hash, err2 := input.Password.Hash()
-	if err := errors.Join(err1, err2); err != nil {
+	hash, err := input.Password.Hash()
+	if err != nil {
 		return err
 	}
 	email, err := domain.NewUnvalidatedEmail(input.Email)
@@ -40,7 +40,7 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 	}
 	account := domain.PasswordAuthentication{
 		Account: domain.Account{
-			ID:          domain.AccountID(id),
+			ID:          domain.AccountID(authdomain.NewID()),
 			Email:       email,
 			Name:        input.Name,
 			DisplayName: input.DisplayName,

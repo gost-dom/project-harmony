@@ -6,8 +6,6 @@ import (
 	"errors"
 	domain "harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
-
-	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 type AccountEmailFinder interface {
@@ -17,8 +15,6 @@ type AccountEmailFinder interface {
 type Authenticator struct {
 	Repository AccountEmailFinder
 }
-
-func NewID() (string, error) { return gonanoid.New(32) }
 
 func (a *Authenticator) Authenticate(
 	ctx context.Context,

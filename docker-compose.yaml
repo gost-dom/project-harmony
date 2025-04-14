@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  db:
+    image: couchdb
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=password
+    ports:
+      - 5984:5984
+    volumes:
+      # - "./couchdb/local.ini:/opt/couchdb/etc/local.d/local.ini:ro"
+      - "./.cache/db:/opt/couchdb/data"
