@@ -12,6 +12,18 @@ import (
 
 type Connection struct{ dbURL *url.URL }
 
+// do wraps http Client.Do method, but converts the error to an ErrConn. This
+// makes the caller able to distinguish between
+// - The couchdb server responded with an unexpected status code.
+// - The call failed, and no response could be retrieved from couch DB
+func (c Connection) do(req *http.Request) (*http.Response, error) {
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		err = fmt.Errorf("%w: %v", ErrConn, err)
+	}
+	return resp, err
+}
+
 // Bootstrap creates the database, as well as updates any design documents, such
 // as views. Panics on unrecoverable errors, e.g., an invalid configuration.
 func (c Connection) Bootstrap() error {
@@ -22,9 +34,9 @@ func (c Connection) Bootstrap() error {
 		// error should be an invalid URL, but the url has already been parsed.
 		panic("couchdb: invalid configuration: url invalid")
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.do(req)
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrConn, err)
+		return err
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
@@ -75,7 +87,7 @@ func (c Connection) Insert(id string, doc any) (rev string, err error) {
 	url := c.docURL(id)
 	req, err := http.NewRequest("PUT", url, &b)
 	if err != nil {
-		err = fmt.Errorf("couchdb: put failed: %v", err)
+		err = fmt.Errorf("%w: put failed: %v", ErrConn, err)
 		return
 	}
 	resp, err := http.DefaultClient.Do(req)
@@ -117,7 +129,7 @@ func (c Connection) Get(id string, doc any) (rev string, err error) {
 	case 404:
 		err = ErrNotFound
 	default:
-		err = fmt.Errorf("couch: insert id(%s): %w", id, errUnexpectedStatusCode(resp))
+		err = fmt.Errorf("couchdb: insert id(%s): %w", id, errUnexpectedStatusCode(resp))
 	}
 	return
 }
@@ -126,22 +138,22 @@ func (c Connection) Get(id string, doc any) (rev string, err error) {
 // the updated revision of the document. If there is a conflict, it will return
 // ErrConflict
 func (c Connection) Update(id, oldRev string, doc any) (newRev string, err error) {
-	var b bytes.Buffer
-	var req *http.Request
+	var (
+		b    bytes.Buffer
+		req  *http.Request
+		resp *http.Response
+	)
 	enc := json.NewEncoder(&b)
 	if err = enc.Encode(doc); err != nil {
 		return
 	}
 	req, err = http.NewRequest("PUT", c.docURL(id), &b)
 	if err != nil {
-		err = fmt.Errorf("couchdb: put failed: %v", err)
+		err = fmt.Errorf("%w: put failed: %v", ErrConn, err)
 		return
 	}
 	req.Header.Add("If-Match", oldRev)
-	var resp *http.Response
-	resp, err = http.DefaultClient.Do(req)
-	if err != nil {
-		err = fmt.Errorf("%w: %v", ErrConn, err)
+	if resp, err = http.DefaultClient.Do(req); err != nil {
 		return
 	}
 	defer resp.Body.Close()
