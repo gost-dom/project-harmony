@@ -66,21 +66,16 @@ func (r AccountRepository) insertPasswordDoc(
 	return err
 }
 
-func (r AccountRepository) insertAccount(ctx context.Context, acc authdomain.Account) error {
-	err := r.insertAccountDoc(ctx, acc)
-	if err == nil {
-		err = r.insertEmailDoc(ctx, acc)
-	}
-	return err
-}
-
 func (r AccountRepository) Insert(
 	ctx context.Context,
 	acc authdomain.PasswordAuthentication,
 ) error {
-	err := r.insertAccount(ctx, acc.Account)
+	err := r.insertAccountDoc(ctx, acc.Account)
 	if err == nil {
 		err = r.insertPasswordDoc(ctx, acc)
+	}
+	if err == nil {
+		err = r.insertEmailDoc(ctx, acc.Account)
 	}
 	return err
 }
