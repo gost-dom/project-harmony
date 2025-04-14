@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"harmony/internal/features/auth/authdomain"
+	"harmony/internal/testing/domaintest"
 	"io"
 	"net/http"
 	"net/url"
@@ -21,6 +23,11 @@ import (
 var ErrConn = errors.New("couchdb: connection error")
 
 var ErrConflict = errors.New("couchdb: conflict")
+var ErrNotFound = errors.New("couchdb: not found")
+
+func errUnexpectedStatusCode(resp *http.Response) error {
+	return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+}
 
 type Doc struct {
 	Foo string
@@ -92,7 +99,8 @@ func (c CouchConnection) Insert(id string, doc any) (rev string, err error) {
 		return
 	}
 
-	req, err := http.NewRequest("PUT", c.docUrl(id), &b)
+	url := c.docUrl(id)
+	req, err := http.NewRequest("PUT", url, &b)
 	if err != nil {
 		err = fmt.Errorf("couchdb: put failed: %v", err)
 		return
@@ -102,10 +110,14 @@ func (c CouchConnection) Insert(id string, doc any) (rev string, err error) {
 		return
 	}
 	defer resp.Body.Close()
-	rev = resp.Header.Get("Etag")
 
-	if resp.StatusCode != 201 {
-		err = fmt.Errorf("couch: bad status code: %d", resp.StatusCode)
+	switch resp.StatusCode {
+	case 201:
+		rev = resp.Header.Get("Etag")
+	case 409:
+		err = ErrConflict
+	default:
+		err = fmt.Errorf("couch: insert id(%s): %w", id, errUnexpectedStatusCode(resp))
 		return
 	}
 	return
@@ -117,15 +129,23 @@ func (c CouchConnection) Get(id string, doc any) (rev string, err error) {
 		return
 	}
 	defer resp.Body.Close()
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return
+	switch resp.StatusCode {
+	case 200:
+		var bodyBytes []byte
+		bodyBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return
+		}
+		cd := couchDoc{}
+		if err = json.Unmarshal(bodyBytes, &cd); err == nil {
+			err = json.Unmarshal(bodyBytes, &doc)
+		}
+		rev = cd.Rev
+	case 404:
+		err = ErrNotFound
+	default:
+		err = fmt.Errorf("couch: insert id(%s): %w", id, errUnexpectedStatusCode(resp))
 	}
-	cd := couchDoc{}
-	if err = json.Unmarshal(bodyBytes, &cd); err == nil {
-		err = json.Unmarshal(bodyBytes, &doc)
-	}
-	rev = cd.Rev
 	return
 }
 
@@ -156,7 +176,6 @@ func (c CouchConnection) Update(id, oldRev string, doc any) (newRev string, err 
 	case 201:
 		var bodyBytes []byte
 		bodyBytes, err = io.ReadAll(resp.Body)
-		fmt.Println("Bytes", string(bodyBytes))
 		if err != nil {
 			return
 		}
@@ -219,4 +238,73 @@ func TestDatabaseBootstrap(t *testing.T) {
 	assert.ErrorContains(t, err,
 		"couchdb: connection error: ",
 		"En error messages was appended to the standard error. Details not specified by the test")
+}
+
+type accountEmailDoc struct {
+	authdomain.AccountID
+}
+
+type AccountRepository struct {
+	CouchConnection
+}
+
+func (r AccountRepository) accDocId(id authdomain.AccountID) string {
+	return fmt.Sprintf("auth:account:%s", id)
+}
+
+func (r AccountRepository) addrDocId(addr string) string {
+	return fmt.Sprintf("auth:account:email:%s", addr)
+}
+func (r AccountRepository) accEmailDocID(acc authdomain.Account) string {
+	return r.addrDocId(acc.Email.Address)
+}
+
+func (r AccountRepository) Insert(acc authdomain.Account) error {
+	_, err := r.CouchConnection.Insert(r.accDocId(acc.ID), acc)
+	if err == nil {
+		_, err = r.CouchConnection.Insert(
+			r.accEmailDocID(acc),
+			struct{ authdomain.AccountID }{acc.ID},
+		)
+	}
+	return err
+}
+
+func (r AccountRepository) Get(id authdomain.AccountID) (res authdomain.Account, err error) {
+	_, err = r.CouchConnection.Get(r.accDocId(id), &res)
+	return
+}
+
+func (r AccountRepository) FindByEmail(email string) (res authdomain.Account, err error) {
+	var doc accountEmailDoc
+	_, err = r.CouchConnection.Get(r.addrDocId(email), &doc)
+	if err == nil {
+		res, err = r.Get(doc.AccountID)
+	}
+	return
+}
+
+func TestAccountRoundtrip(t *testing.T) {
+	conn, err := NewCouchConnection("http://admin:password@localhost:5984/harmony")
+	assert.NoError(t, err)
+	repo := AccountRepository{conn}
+	acc := domaintest.InitAccount()
+	assert.NoError(t, repo.Insert(acc))
+	reloaded, err := repo.Get(acc.ID)
+	assert.Equal(t, acc, reloaded)
+
+	foundByEmail, err := repo.FindByEmail(acc.Email.Address)
+	assert.NoError(t, err, "Error finding by email")
+	assert.Equal(t, acc, foundByEmail, "Entity found by email")
+}
+
+func TestDuplicateEmail(t *testing.T) {
+	email := domaintest.NewAddress()
+	acc1 := domaintest.InitAccount(domaintest.WithEmail(email))
+	acc2 := domaintest.InitAccount(domaintest.WithEmail(email))
+	conn, err := NewCouchConnection("http://admin:password@localhost:5984/harmony")
+	assert.NoError(t, err)
+	repo := AccountRepository{conn}
+	assert.NoError(t, repo.Insert(acc1))
+	assert.ErrorIs(t, repo.Insert(acc2), ErrConflict)
 }
