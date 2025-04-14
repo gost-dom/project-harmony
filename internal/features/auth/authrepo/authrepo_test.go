@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"harmony/internal/features/auth/authdomain"
+	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/testing/domaintest"
 	"io"
 	"net/http"
@@ -82,8 +83,11 @@ func NewCouchConnection(couchURL string) (conn CouchConnection, err error) {
 	return
 }
 
-// docUrl generates the full resource URL for couchDB.
-func (c CouchConnection) docUrl(id string) string { return c.dbURL.JoinPath(id).String() }
+// docUrl generates the full couchDB resource URL for a given document ID. The
+// full URL will include both database name and credentials.
+func (c CouchConnection) docUrl(id string) string {
+	return c.dbURL.JoinPath(url.PathEscape(id)).String()
+}
 
 // Insert creates a new document with the specified id. If the operation
 // succeeds, the revision of the new document is returned in the rev return
@@ -244,6 +248,11 @@ type accountEmailDoc struct {
 	authdomain.AccountID
 }
 
+type accountPasswordDoc struct {
+	ID           authdomain.AccountID
+	PasswordHash []byte
+}
+
 type AccountRepository struct {
 	CouchConnection
 }
@@ -255,17 +264,49 @@ func (r AccountRepository) accDocId(id authdomain.AccountID) string {
 func (r AccountRepository) addrDocId(addr string) string {
 	return fmt.Sprintf("auth:account:email:%s", addr)
 }
+
 func (r AccountRepository) accEmailDocID(acc authdomain.Account) string {
 	return r.addrDocId(acc.Email.Address)
 }
 
-func (r AccountRepository) Insert(acc authdomain.Account) error {
+func passwordDocId(id authdomain.AccountID) string {
+	return fmt.Sprintf("auth:accunt:%s:password", id)
+}
+
+func (r AccountRepository) insertAccountDoc(acc authdomain.Account) error {
 	_, err := r.CouchConnection.Insert(r.accDocId(acc.ID), acc)
+	return err
+}
+
+func (r AccountRepository) insertEmailDoc(acc authdomain.Account) error {
+	doc := accountEmailDoc{acc.ID}
+	_, err := r.CouchConnection.Insert(
+		r.accEmailDocID(acc),
+		doc,
+	)
+	return err
+}
+
+func (r AccountRepository) insertPasswordDoc(acc authdomain.PasswordAuthentication) error {
+	doc := accountPasswordDoc{
+		acc.ID,
+		acc.PasswordHash.UnsecureRead(),
+	}
+	_, err := r.CouchConnection.Insert(passwordDocId(acc.ID), doc)
+	return err
+}
+
+func (r AccountRepository) insertAccount(acc authdomain.Account) error {
+	err := r.insertAccountDoc(acc)
 	if err == nil {
-		_, err = r.CouchConnection.Insert(
-			r.accEmailDocID(acc),
-			struct{ authdomain.AccountID }{acc.ID},
-		)
+		err = r.insertEmailDoc(acc)
+	}
+	return err
+}
+func (r AccountRepository) Insert(acc authdomain.PasswordAuthentication) error {
+	err := r.insertAccount(acc.Account)
+	if err == nil {
+		err = r.insertPasswordDoc(acc)
 	}
 	return err
 }
@@ -275,12 +316,19 @@ func (r AccountRepository) Get(id authdomain.AccountID) (res authdomain.Account,
 	return
 }
 
-func (r AccountRepository) FindByEmail(email string) (res authdomain.Account, err error) {
-	var doc accountEmailDoc
-	_, err = r.CouchConnection.Get(r.addrDocId(email), &doc)
-	if err == nil {
-		res, err = r.Get(doc.AccountID)
+func (r AccountRepository) FindByEmail(
+	email string,
+) (res authdomain.PasswordAuthentication, err error) {
+	var emailDoc accountEmailDoc
+	var pwDoc accountPasswordDoc
+	_, err1 := r.CouchConnection.Get(r.addrDocId(email), &emailDoc)
+	_, err2 := r.CouchConnection.Get(passwordDocId(emailDoc.AccountID), &pwDoc)
+	acc, err3 := r.Get(emailDoc.AccountID)
+	if err = errors.Join(err1, err2, err3); err != nil {
+		return
 	}
+	res.Account = acc
+	res.PasswordHash = password.HashFromBytes(pwDoc.PasswordHash)
 	return
 }
 
@@ -288,20 +336,21 @@ func TestAccountRoundtrip(t *testing.T) {
 	conn, err := NewCouchConnection("http://admin:password@localhost:5984/harmony")
 	assert.NoError(t, err)
 	repo := AccountRepository{conn}
-	acc := domaintest.InitAccount()
+	acc := domaintest.InitPasswordAuthAccount(domaintest.WithPassword("foobar"))
 	assert.NoError(t, repo.Insert(acc))
 	reloaded, err := repo.Get(acc.ID)
-	assert.Equal(t, acc, reloaded)
+	assert.Equal(t, acc.Account, reloaded)
 
 	foundByEmail, err := repo.FindByEmail(acc.Email.Address)
 	assert.NoError(t, err, "Error finding by email")
 	assert.Equal(t, acc, foundByEmail, "Entity found by email")
+	assert.True(t, foundByEmail.Validate(password.Parse("foobar")), "Password validates")
 }
 
 func TestDuplicateEmail(t *testing.T) {
 	email := domaintest.NewAddress()
-	acc1 := domaintest.InitAccount(domaintest.WithEmail(email))
-	acc2 := domaintest.InitAccount(domaintest.WithEmail(email))
+	acc1 := domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email))
+	acc2 := domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email))
 	conn, err := NewCouchConnection("http://admin:password@localhost:5984/harmony")
 	assert.NoError(t, err)
 	repo := AccountRepository{conn}
