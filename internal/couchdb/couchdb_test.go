@@ -14,13 +14,14 @@ type Doc struct {
 
 func TestDatabaseRoundtrip(t *testing.T) {
 	conn, err := couchdb.NewCouchConnection("http://admin:password@localhost:5984/harmony")
+	ctx := t.Context()
 	assert.NoError(t, err)
 
 	// Insert a document
 	id := gonanoid.Must()
 
 	doc := Doc{Foo: "Bar"}
-	rev, err := conn.Insert(id, doc)
+	rev, err := conn.Insert(ctx, id, doc)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, rev, "A revision was returned")
 
@@ -34,7 +35,7 @@ func TestDatabaseRoundtrip(t *testing.T) {
 	assert.Equal(t, doc, actual)
 
 	actual.Foo = "Baz"
-	_, err = conn.Update(id, rev, actual)
+	_, err = conn.Update(ctx, id, rev, actual)
 	assert.NoError(t, err, "Update error")
 
 	var actualV2 Doc
@@ -42,7 +43,7 @@ func TestDatabaseRoundtrip(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "Baz", actual.Foo)
 
-	_, err = conn.Update(id, rev, actual)
+	_, err = conn.Update(ctx, id, rev, actual)
 	assert.ErrorIs(t, err, couchdb.ErrConflict)
 }
 

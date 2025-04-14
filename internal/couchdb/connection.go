@@ -2,39 +2,22 @@ package couchdb
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 )
 
 type Connection struct{ dbURL *url.URL }
 
-// do wraps http Client.Do method, but converts the error to an ErrConn. This
-// makes the caller able to distinguish between
-// - The couchdb server responded with an unexpected status code.
-// - The call failed, and no response could be retrieved from couch DB
-func (c Connection) do(req *http.Request) (*http.Response, error) {
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		err = fmt.Errorf("%w: %v", ErrConn, err)
-	}
-	return resp, err
-}
-
 // Bootstrap creates the database, as well as updates any design documents, such
 // as views. Panics on unrecoverable errors, e.g., an invalid configuration.
-func (c Connection) Bootstrap() error {
-	req, err := http.NewRequest("PUT", c.dbURL.String(), nil)
-	if err != nil {
-		// This is an unrecoverable error. The system configuration is wrong.
-		// But this really shouldn't happen, because the only possible source of
-		// error should be an invalid URL, but the url has already been parsed.
-		panic("couchdb: invalid configuration: url invalid")
-	}
-	resp, err := c.do(req)
+func (c Connection) Bootstrap(ctx context.Context) error {
+	resp, err := c.req(ctx, "PUT", c.dbURL.String(), nil, nil)
 	if err != nil {
 		return err
 	}
@@ -59,7 +42,7 @@ func NewCouchConnection(couchURL string) (conn Connection, err error) {
 	url, err = url.Parse(couchURL)
 	conn = Connection{url}
 	if err == nil {
-		err = conn.Bootstrap()
+		err = conn.Bootstrap(context.Background())
 	}
 	return
 }
@@ -73,7 +56,7 @@ func (c Connection) docURL(id string) string {
 // Insert creates a new document with the specified id. If the operation
 // succeeds, the revision of the new document is returned in the rev return
 // value.
-func (c Connection) Insert(id string, doc any) (rev string, err error) {
+func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string, err error) {
 	if id == "" {
 		err = errors.New("couchdb: missing id")
 		return
@@ -85,15 +68,17 @@ func (c Connection) Insert(id string, doc any) (rev string, err error) {
 	}
 
 	url := c.docURL(id)
-	req, err := http.NewRequest("PUT", url, &b)
-	if err != nil {
-		err = fmt.Errorf("%w: put failed: %v", ErrConn, err)
-		return
-	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return
-	}
+	// req, err := http.NewRequestWithContext(ctx, "PUT", url, &b)
+	// if err != nil {
+	// 	err = fmt.Errorf("%w: put failed: %v", ErrConn, err)
+	// 	return
+	// }
+	// resp, err := c.do(req)
+	// if err != nil {
+	// 	return
+	// }
+	var resp *http.Response
+	resp, err = c.req(ctx, "PUT", url, nil, &b)
 	defer resp.Body.Close()
 
 	switch resp.StatusCode {
@@ -137,26 +122,27 @@ func (c Connection) Get(id string, doc any) (rev string, err error) {
 // Update updates the document in the database. If successful, it will return
 // the updated revision of the document. If there is a conflict, it will return
 // ErrConflict
-func (c Connection) Update(id, oldRev string, doc any) (newRev string, err error) {
+func (c Connection) Update(
+	ctx context.Context,
+	id, oldRev string,
+	doc any,
+) (newRev string, err error) {
 	var (
-		b    bytes.Buffer
-		req  *http.Request
+		b bytes.Buffer
+		// req  *http.Request
 		resp *http.Response
 	)
 	enc := json.NewEncoder(&b)
 	if err = enc.Encode(doc); err != nil {
 		return
 	}
-	req, err = http.NewRequest("PUT", c.docURL(id), &b)
-	if err != nil {
-		err = fmt.Errorf("%w: put failed: %v", ErrConn, err)
-		return
-	}
-	req.Header.Add("If-Match", oldRev)
-	if resp, err = http.DefaultClient.Do(req); err != nil {
+	var header = make(http.Header)
+	header.Add("If-Match", oldRev)
+	if resp, err = c.req(ctx, "PUT", c.docURL(id), header, &b); err != nil {
 		return
 	}
 	defer resp.Body.Close()
+
 	switch resp.StatusCode {
 	case 201:
 		var bodyBytes []byte
@@ -175,4 +161,29 @@ func (c Connection) Update(id, oldRev string, doc any) (newRev string, err error
 		err = fmt.Errorf("couchdb: unexpected http status code: %d", resp.StatusCode)
 	}
 	return
+}
+
+// req wraps http NewRequest and Client.Do method, but converts the error to an ErrConn. This
+// makes the caller able to distinguish between:
+//   - The couchdb server responded with an unexpected status code.
+//   - The call failed, and no response could be retrieved from couch DB
+func (c Connection) req(
+	ctx context.Context,
+	method, url string,
+	headers http.Header,
+	body io.Reader,
+) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
+	if err != nil {
+		err = fmt.Errorf("%w: %w: %v", ErrConn, ErrRequest, err)
+		return nil, err
+	}
+	if headers != nil {
+		maps.Copy(req.Header, headers)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		err = fmt.Errorf("%w: %v", ErrConn, err)
+	}
+	return resp, err
 }

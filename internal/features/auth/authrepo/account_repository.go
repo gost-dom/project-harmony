@@ -1,6 +1,7 @@
 package authrepo
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"harmony/internal/couchdb"
@@ -39,40 +40,47 @@ func passwordDocId(id authdomain.AccountID) string {
 	return fmt.Sprintf("auth:accunt:%s:password", id)
 }
 
-func (r AccountRepository) insertAccountDoc(acc authdomain.Account) error {
-	_, err := r.Connection.Insert(r.accDocId(acc.ID), acc)
+func (r AccountRepository) insertAccountDoc(ctx context.Context, acc authdomain.Account) error {
+	_, err := r.Connection.Insert(ctx, r.accDocId(acc.ID), acc)
 	return err
 }
 
-func (r AccountRepository) insertEmailDoc(acc authdomain.Account) error {
+func (r AccountRepository) insertEmailDoc(ctx context.Context, acc authdomain.Account) error {
 	doc := accountEmailDoc{acc.ID}
-	_, err := r.Connection.Insert(
+	_, err := r.Connection.Insert(ctx,
 		r.accEmailDocID(acc),
 		doc,
 	)
 	return err
 }
 
-func (r AccountRepository) insertPasswordDoc(acc authdomain.PasswordAuthentication) error {
+func (r AccountRepository) insertPasswordDoc(
+	ctx context.Context,
+	acc authdomain.PasswordAuthentication,
+) error {
 	doc := accountPasswordDoc{
 		acc.ID,
 		acc.PasswordHash.UnsecureRead(),
 	}
-	_, err := r.Connection.Insert(passwordDocId(acc.ID), doc)
+	_, err := r.Connection.Insert(ctx, passwordDocId(acc.ID), doc)
 	return err
 }
 
-func (r AccountRepository) insertAccount(acc authdomain.Account) error {
-	err := r.insertAccountDoc(acc)
+func (r AccountRepository) insertAccount(ctx context.Context, acc authdomain.Account) error {
+	err := r.insertAccountDoc(ctx, acc)
 	if err == nil {
-		err = r.insertEmailDoc(acc)
+		err = r.insertEmailDoc(ctx, acc)
 	}
 	return err
 }
-func (r AccountRepository) Insert(acc authdomain.PasswordAuthentication) error {
-	err := r.insertAccount(acc.Account)
+
+func (r AccountRepository) Insert(
+	ctx context.Context,
+	acc authdomain.PasswordAuthentication,
+) error {
+	err := r.insertAccount(ctx, acc.Account)
 	if err == nil {
-		err = r.insertPasswordDoc(acc)
+		err = r.insertPasswordDoc(ctx, acc)
 	}
 	return err
 }

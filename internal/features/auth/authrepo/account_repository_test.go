@@ -15,7 +15,7 @@ func TestAccountRoundtrip(t *testing.T) {
 	assert.NoError(t, err)
 	repo := AccountRepository{conn}
 	acc := domaintest.InitPasswordAuthAccount(domaintest.WithPassword("foobar"))
-	assert.NoError(t, repo.Insert(acc))
+	assert.NoError(t, repo.Insert(t.Context(), acc))
 	reloaded, err := repo.Get(acc.ID)
 	assert.Equal(t, acc.Account, reloaded)
 
@@ -26,12 +26,13 @@ func TestAccountRoundtrip(t *testing.T) {
 }
 
 func TestDuplicateEmail(t *testing.T) {
+	ctx := t.Context()
 	email := domaintest.NewAddress()
 	acc1 := domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email))
 	acc2 := domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email))
 	conn, err := couchdb.NewCouchConnection("http://admin:password@localhost:5984/harmony")
 	assert.NoError(t, err)
 	repo := AccountRepository{conn}
-	assert.NoError(t, repo.Insert(acc1))
-	assert.ErrorIs(t, repo.Insert(acc2), ErrConflict)
+	assert.NoError(t, repo.Insert(ctx, acc1))
+	assert.ErrorIs(t, repo.Insert(ctx, acc2), ErrConflict)
 }
