@@ -26,6 +26,7 @@ func (c Connection) Bootstrap() error {
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrConn, err)
 	}
+	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case 201, 202, 412: // 412 means the database already exists.
 		return nil
