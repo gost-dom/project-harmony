@@ -40,7 +40,7 @@ func TestDatabaseRoundtrip(t *testing.T) {
 	var actualV2 Doc
 	_, err = conn.Get(id, &actualV2)
 	assert.NoError(t, err)
-	assert.Equal(t, "Baz", actual.Foo)
+	assert.Equal(t, "Baz", actualV2.Foo)
 
 	_, err = conn.Update(ctx, id, rev, actual)
 	assert.ErrorIs(t, err, couchdb.ErrConflict)
