@@ -7,12 +7,19 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"maps"
 	"net/http"
 	"net/url"
+	"os"
 )
 
-type Connection struct{ dbURL *url.URL }
+type Connection struct {
+	dbURL       *url.URL
+	initialized bool
+}
+
+var DefaultConnection Connection
 
 // Bootstrap creates the database, as well as updates any design documents, such
 // as views. Panics on unrecoverable errors, e.g., an invalid configuration.
@@ -40,9 +47,11 @@ func (c Connection) Bootstrap(ctx context.Context) error {
 func NewCouchConnection(couchURL string) (conn Connection, err error) {
 	var url *url.URL
 	url, err = url.Parse(couchURL)
-	conn = Connection{url}
+	conn = Connection{url, false}
 	if err == nil {
-		err = conn.Bootstrap(context.Background())
+		if err = conn.Bootstrap(context.Background()); err == nil {
+			conn.initialized = true
+		}
 	}
 	return
 }
@@ -186,4 +195,25 @@ func (c Connection) req(
 		err = fmt.Errorf("%w: %v", ErrConn, err)
 	}
 	return resp, err
+}
+
+// AssertInitialized verifies that a DefaultConnection exists
+func AssertInitialized() {
+	if !DefaultConnection.initialized {
+		panic("couchdb: DefaultConnection not initialized")
+	}
+}
+
+func init() {
+	couchURL := os.Getenv("COUCHDB_URL")
+	if couchURL == "" {
+		// Default local test DB
+		couchURL = "http://admin:password@localhost:5984/harmony"
+	}
+	conn, err := NewCouchConnection(couchURL)
+	if err == nil {
+		DefaultConnection = conn
+	} else {
+		slog.Error("couchdb: Error initializing")
+	}
 }

@@ -13,9 +13,8 @@ type Doc struct {
 }
 
 func TestDatabaseRoundtrip(t *testing.T) {
-	conn, err := couchdb.NewCouchConnection("http://admin:password@localhost:5984/harmony")
+	conn := couchdb.DefaultConnection
 	ctx := t.Context()
-	assert.NoError(t, err)
 
 	// Insert a document
 	id := gonanoid.Must()

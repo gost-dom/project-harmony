@@ -10,10 +10,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func initRepository() AccountRepository {
+	couchdb.AssertInitialized()
+	conn := couchdb.DefaultConnection
+	return AccountRepository{conn}
+}
+
 func TestAccountRoundtrip(t *testing.T) {
-	conn, err := couchdb.NewCouchConnection("http://admin:password@localhost:5984/harmony")
-	assert.NoError(t, err)
-	repo := AccountRepository{conn}
+	repo := initRepository()
+
 	acc := domaintest.InitPasswordAuthAccount(domaintest.WithPassword("foobar"))
 	assert.NoError(t, repo.Insert(t.Context(), acc))
 	reloaded, err := repo.Get(acc.ID)
@@ -27,12 +32,11 @@ func TestAccountRoundtrip(t *testing.T) {
 
 func TestDuplicateEmail(t *testing.T) {
 	ctx := t.Context()
+	repo := initRepository()
+
 	email := domaintest.NewAddress()
 	acc1 := domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email))
 	acc2 := domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email))
-	conn, err := couchdb.NewCouchConnection("http://admin:password@localhost:5984/harmony")
-	assert.NoError(t, err)
-	repo := AccountRepository{conn}
 	assert.NoError(t, repo.Insert(ctx, acc1))
 	assert.ErrorIs(t, repo.Insert(ctx, acc2), ErrConflict)
 }
