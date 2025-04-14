@@ -77,17 +77,10 @@ func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string,
 	}
 
 	url := c.docURL(id)
-	// req, err := http.NewRequestWithContext(ctx, "PUT", url, &b)
-	// if err != nil {
-	// 	err = fmt.Errorf("%w: put failed: %v", ErrConn, err)
-	// 	return
-	// }
-	// resp, err := c.do(req)
-	// if err != nil {
-	// 	return
-	// }
 	var resp *http.Response
-	resp, err = c.req(ctx, "PUT", url, nil, &b)
+	if resp, err = c.req(ctx, "PUT", url, nil, &b); err != nil {
+		return
+	}
 	defer resp.Body.Close()
 
 	switch resp.StatusCode {
@@ -96,7 +89,7 @@ func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string,
 	case 409:
 		err = ErrConflict
 	default:
-		err = fmt.Errorf("couch: insert id(%s): %w", id, errUnexpectedStatusCode(resp))
+		err = fmt.Errorf("couchdb: insert id(%s): %w", id, errUnexpectedStatusCode(resp))
 		return
 	}
 	return

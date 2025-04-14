@@ -22,6 +22,7 @@ func TestAccountRoundtrip(t *testing.T) {
 	acc := domaintest.InitPasswordAuthAccount(domaintest.WithPassword("foobar"))
 	assert.NoError(t, repo.Insert(t.Context(), acc))
 	reloaded, err := repo.Get(acc.ID)
+	assert.NoError(t, err)
 	assert.Equal(t, acc.Account, reloaded)
 
 	foundByEmail, err := repo.FindByEmail(acc.Email.Address)
