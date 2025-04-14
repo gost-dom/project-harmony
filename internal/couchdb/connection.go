@@ -52,9 +52,9 @@ func NewCouchConnection(couchURL string) (conn Connection, err error) {
 	return
 }
 
-// docUrl generates the full couchDB resource URL for a given document ID. The
+// docURL generates the full couchDB resource URL for a given document ID. The
 // full URL will include both database name and credentials.
-func (c Connection) docUrl(id string) string {
+func (c Connection) docURL(id string) string {
 	return c.dbURL.JoinPath(url.PathEscape(id)).String()
 }
 
@@ -72,7 +72,7 @@ func (c Connection) Insert(id string, doc any) (rev string, err error) {
 		return
 	}
 
-	url := c.docUrl(id)
+	url := c.docURL(id)
 	req, err := http.NewRequest("PUT", url, &b)
 	if err != nil {
 		err = fmt.Errorf("couchdb: put failed: %v", err)
@@ -98,7 +98,7 @@ func (c Connection) Insert(id string, doc any) (rev string, err error) {
 
 func (c Connection) Get(id string, doc any) (rev string, err error) {
 	var resp *http.Response
-	if resp, err = http.Get(c.docUrl(id)); err != nil {
+	if resp, err = http.Get(c.docURL(id)); err != nil {
 		return
 	}
 	defer resp.Body.Close()
@@ -132,7 +132,7 @@ func (c Connection) Update(id, oldRev string, doc any) (newRev string, err error
 	if err = enc.Encode(doc); err != nil {
 		return
 	}
-	req, err = http.NewRequest("PUT", c.docUrl(id), &b)
+	req, err = http.NewRequest("PUT", c.docURL(id), &b)
 	if err != nil {
 		err = fmt.Errorf("couchdb: put failed: %v", err)
 		return
