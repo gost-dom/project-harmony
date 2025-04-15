@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"harmony/internal/couchdb"
+	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 )
@@ -13,6 +14,11 @@ var ErrConflict = couchdb.ErrConflict
 
 type accountEmailDoc struct {
 	authdomain.AccountID
+}
+
+type documentWithEvents[T any] struct {
+	Document T
+	Events   []auth.DomainEvent
 }
 
 type accountPasswordDoc struct {
@@ -68,14 +74,14 @@ func (r AccountRepository) insertPasswordDoc(
 
 func (r AccountRepository) Insert(
 	ctx context.Context,
-	acc authdomain.PasswordAuthentication,
+	acc auth.AccountUseCaseResult,
 ) error {
-	err := r.insertAccountDoc(ctx, acc.Account)
+	err := r.insertAccountDoc(ctx, acc.Entity.Account)
 	if err == nil {
-		err = r.insertPasswordDoc(ctx, acc)
+		err = r.insertPasswordDoc(ctx, acc.Entity)
 	}
 	if err == nil {
-		err = r.insertEmailDoc(ctx, acc.Account)
+		err = r.insertEmailDoc(ctx, acc.Entity.Account)
 	}
 	return err
 }

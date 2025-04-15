@@ -2,6 +2,7 @@ package authrepo_test
 
 import (
 	"harmony/internal/couchdb"
+	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain/password"
 	. "harmony/internal/features/auth/authrepo"
 	"harmony/internal/testing/domaintest"
@@ -20,7 +21,8 @@ func TestAccountRoundtrip(t *testing.T) {
 	repo := initRepository()
 
 	acc := domaintest.InitPasswordAuthAccount(domaintest.WithPassword("foobar"))
-	assert.NoError(t, repo.Insert(t.Context(), acc))
+	uc := auth.AccountUseCaseResult{Entity: acc}
+	assert.NoError(t, repo.Insert(t.Context(), uc))
 	reloaded, err := repo.Get(acc.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, acc.Account, reloaded)
@@ -36,8 +38,10 @@ func TestDuplicateEmail(t *testing.T) {
 	repo := initRepository()
 
 	email := domaintest.NewAddress()
-	acc1 := domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email))
-	acc2 := domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email))
+	acc1 := auth.UseCaseOfEntity(
+		domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email)))
+	acc2 := auth.UseCaseOfEntity(
+		domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email)))
 	assert.NoError(t, repo.Insert(ctx, acc1))
 	assert.ErrorIs(t, repo.Insert(ctx, acc2), ErrConflict)
 }

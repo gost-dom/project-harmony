@@ -26,6 +26,8 @@ type UseCaseResult[T any] struct {
 	Events []DomainEvent
 }
 
+func UseCaseOfEntity[T any](e T) UseCaseResult[T] { return UseCaseResult[T]{Entity: e} }
+
 func NewResult[T any](entity T) *UseCaseResult[T] {
 	return &UseCaseResult[T]{Entity: entity}
 }
