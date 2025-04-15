@@ -33,7 +33,7 @@ func (r AccountRepository) addrDocId(addr string) string {
 }
 
 func (r AccountRepository) accEmailDocID(acc authdomain.Account) string {
-	return r.addrDocId(acc.Email.Address)
+	return r.addrDocId(acc.Email.String())
 }
 
 func passwordDocId(id authdomain.AccountID) string {

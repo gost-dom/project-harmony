@@ -4,30 +4,33 @@ import (
 	"fmt"
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
+	"net/mail"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
-func NewAddress() string { return fmt.Sprintf("%s@example.com", gonanoid.Must()) }
+func NewAddress() string {
+	return fmt.Sprintf("%s@example.com", gonanoid.Must())
+}
 
 func InitEmail() authdomain.Email {
-	res, err := authdomain.NewUnvalidatedEmail(NewAddress())
-	if err != nil {
-		panic(err)
-	}
+	addr, err := mail.ParseAddress(NewAddress())
+	must("domaintest: InitEmail", err)
+	res := authdomain.NewUnvalidatedEmail(*addr)
 	return res
 }
 
-func must(err error) {
+func must(prefix string, err error) {
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("%s: %v", prefix, err))
 	}
 }
 
 func WithEmail(email string) InitAccountOption {
+	addr, err := mail.ParseAddress(email)
+	must("domaintest: Withemail", err)
 	return func(acc *authdomain.Account) {
-		em, err := authdomain.NewUnvalidatedEmail(email)
-		must(err)
+		em := authdomain.NewUnvalidatedEmail(*addr)
 		acc.Email = em
 	}
 }

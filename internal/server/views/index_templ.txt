@@ -1,1 +1,0 @@
-<div class=\"container mx-auto py-4\"><h1 class=\"text-4xl font-bold text-center py-4\">Project Harmony</h1><p>This is just a demo</p><p><a href=\"/host\" hx-boost=\"true\">Go to hosting</a></p></div>

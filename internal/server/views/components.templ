@@ -44,6 +44,9 @@ type FieldOptions struct {
 
 templ Field(o FieldOptions) {
 	{{
+	if o.Attributes == nil {
+		o.Attributes = make(templ.Attributes)
+	}
 	var descId string = o.Id + "-missing"
 	if o.Invalid {
 		o.Attributes["aria-describedby"] = descId
@@ -64,6 +67,9 @@ templ Field(o FieldOptions) {
 templ (o FieldOptions) Field() {
 	{{
 	var descId string = o.Id + "-missing"
+	if o.Attributes == nil {
+		o.Attributes = make(templ.Attributes)
+	}
 	if o.Invalid {
 		o.Attributes["aria-describedby"] = descId
 	}

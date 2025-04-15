@@ -14,14 +14,10 @@ import (
 // mathers.
 type GomegaSuite struct {
 	suite.Suite
-	gomega gomega.Gomega
 }
 
 func (s *GomegaSuite) Expect(actual any, extra ...any) gomega.Assertion {
-	if s.gomega == nil {
-		s.gomega = gomega.NewWithT(s.T())
-	}
-	return s.gomega.Expect(actual, extra...)
+	return gomega.NewWithT(s.T()).Expect(actual, extra...)
 }
 
-func (s GomegaSuite) Context() context.Context { return s.T().Context() }
+func (s *GomegaSuite) Context() context.Context { return s.T().Context() }

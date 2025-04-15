@@ -2,6 +2,7 @@ package shaman
 
 import (
 	"fmt"
+	ariarole "harmony/internal/testing/aria-role"
 	"iter"
 	"strings"
 	"testing"
@@ -22,20 +23,21 @@ type ElementPredicate interface{ IsMatch(dom.Element) bool }
 // An ElementPredicateFunc wraps a single function as a predicate to be used
 // with [Scope.FindAll] or [Scope.Get].
 //
-// It is better to create a type implementing both [ElementPredicate] AND
-// [fmt.Stringer], as it allows for better error messages when expected elements
-// cannot be found.
+// This type is intended for quick prototyping of test code.
 //
-// This type is exposed for the sake of easier prototyping of test code.
+// It is strongly suggested to create a new type for predicates that also implements
+// [fmt.Stringer].
+//
+// See also [ElementPredicate]
 type ElementPredicateFunc func(dom.Element) bool
 
 func (f ElementPredicateFunc) IsMatch(e dom.Element) bool { return f(e) }
 
-// options treats multiple options as one, simplifying the search for multiple
-// options, as well as stringifying multiple options.
-type options []ElementPredicate
+// predicates treats multiple predicates as one, simplifying the search for multiple
+// predicates, as well as stringifying multiple predicates.
+type predicates []ElementPredicate
 
-func (o options) IsMatch(e dom.Element) bool {
+func (o predicates) IsMatch(e dom.Element) bool {
 	for _, o := range o {
 		if !o.IsMatch(e) {
 			return false
@@ -44,7 +46,7 @@ func (o options) IsMatch(e dom.Element) bool {
 	return true
 }
 
-func (o options) String() string {
+func (o predicates) String() string {
 	names := make([]string, len(o))
 	for i, o := range o {
 		if s, ok := o.(fmt.Stringer); ok {
@@ -86,7 +88,7 @@ func (h Scope) All() iter.Seq[dom.Element] {
 }
 
 func (h Scope) FindAll(opts ...ElementPredicate) iter.Seq[dom.Element] {
-	opt := options(opts)
+	opt := predicates(opts)
 	return func(yield func(dom.Element) bool) {
 		next, done := iter.Pull(h.All())
 		defer done()
@@ -112,14 +114,63 @@ func (h Scope) Get(opts ...ElementPredicate) html.HTMLElement {
 	defer stop()
 	if v, ok := next(); ok {
 		if _, ok := next(); ok {
-			h.t.Fatalf("Multiple elements matching options: %s", options(opts))
+			h.t.Fatalf("Multiple elements matching options: %s", predicates(opts))
 		}
 		return v.(html.HTMLElement)
 	}
-	h.t.Fatalf("No elements mathing options: %s", options(opts))
+	h.t.Fatalf("No elements mathing options: %s", predicates(opts))
 	return nil
 }
 
 func (h Scope) Subscope(opts ...ElementPredicate) Scope {
 	return NewScope(h.t, h.Get(opts...))
+}
+
+func (s Scope) Textbox(opts ...ElementPredicate) TextboxRole {
+	opts = append(opts, ByRole(ariarole.Textbox))
+	return TextboxRole{s.Get(opts...)}
+}
+
+func (s Scope) Checkbox(opts ...ElementPredicate) CheckboxRole {
+	opts = append(opts, ByRole(ariarole.Checkbox))
+	return CheckboxRole{s.Get(opts...)}
+}
+
+func (s Scope) PasswordText(opts ...ElementPredicate) TextboxRole {
+	opts = append(opts, ByRole(ariarole.PasswordText))
+	return TextboxRole{s.Get(opts...)}
+}
+
+// A helper to interact with "text boxes"
+type TextboxRole struct {
+	html.HTMLElement
+}
+
+// Write is intended to simulate the user typing in. Currently it merely sets
+// the value content attribute, making it only applicable to input elements, not
+// custom implementations of the textbox aria role.
+func (tb TextboxRole) Write(input string) { tb.SetAttribute("value", input) }
+
+func (tb TextboxRole) Clear() { tb.SetAttribute("value", "") }
+
+func (tb TextboxRole) ARIADescription() string {
+	return GetDescription(tb)
+}
+
+type CheckboxRole struct {
+	html.HTMLElement
+}
+
+func (cb CheckboxRole) Check()   { cb.setChecked(true) }
+func (cb CheckboxRole) Uncheck() { cb.setChecked(false) }
+
+func (cb CheckboxRole) setChecked(val bool) {
+	input, ok := cb.HTMLElement.(html.HTMLInputElement)
+	if !ok {
+		// To support generic checkbox roles, the approach should probably be to
+		// check for the presence of the aria-checked content attribute, and
+		// call Click() on the element if it has the wrong state.
+		panic("CheckboxRole.Check/Uncheck: only input elements are supported")
+	}
+	input.SetChecked(val)
 }

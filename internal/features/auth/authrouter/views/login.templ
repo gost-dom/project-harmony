@@ -39,7 +39,6 @@ text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:te
         "
 				>Login</h1>
 				<form
-					id="login-form"
 					class="space-y-4 md:space-y-6"
 					hx-post="/auth/login"
 					hx-swap="innerHTML"
@@ -147,9 +146,7 @@ templ LoginForm(redirectUrl string, formData LoginFormData) {
 			class="text-red-700"
 		>An unexpected error occurred. Please try again ...</div>
 	}
-	<!--
-    <p class="text-sm font-light text-gray-500 dark:text-gray-400">
-        Don’t have an account yet? <a href="#" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Sign up</a>
-    </p>
-    -->
+	<p class="text-sm font-light text-gray-500 dark:text-gray-400">
+		Don't have an account yet? <a href="register" hx-boost="true">Click here to register. </a>
+	</p>
 }

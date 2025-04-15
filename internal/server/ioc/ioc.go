@@ -2,6 +2,7 @@ package ioc
 
 import (
 	"harmony/internal/features/auth"
+	authioc "harmony/internal/features/auth/ioc"
 	"harmony/internal/server"
 
 	"github.com/gost-dom/surgeon"
@@ -17,6 +18,7 @@ func init() {
 		[]byte("enckey12341234567890123456789012"),
 	))
 	Graph.Inject(auth.New())
+	Graph = authioc.Install(Graph)
 }
 
 func Server() *server.Server { return Graph.Instance() }
