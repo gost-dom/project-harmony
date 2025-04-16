@@ -17,8 +17,8 @@ type accountEmailDoc struct {
 }
 
 type documentWithEvents[T any] struct {
-	Document T
-	Events   []auth.DomainEvent
+	Document T                  `json:"doc"`
+	Events   []auth.DomainEvent `json:"events,omitempty"`
 }
 
 type accountPasswordDoc struct {
@@ -51,10 +51,16 @@ func (r AccountRepository) insertAccountDoc(ctx context.Context, acc authdomain.
 	return err
 }
 
-func (r AccountRepository) insertEmailDoc(ctx context.Context, acc authdomain.Account) error {
-	doc := accountEmailDoc{acc.ID}
+func (r AccountRepository) insertEmailDoc(
+	ctx context.Context,
+	acc auth.AccountUseCaseResult,
+) error {
+	doc := documentWithEvents[accountEmailDoc]{
+		Document: accountEmailDoc{acc.Entity.ID},
+		Events:   acc.Events,
+	}
 	_, err := r.Connection.Insert(ctx,
-		r.accEmailDocID(acc),
+		r.accEmailDocID(acc.Entity.Account),
 		doc,
 	)
 	return err
@@ -81,7 +87,7 @@ func (r AccountRepository) Insert(
 		err = r.insertPasswordDoc(ctx, acc.Entity)
 	}
 	if err == nil {
-		err = r.insertEmailDoc(ctx, acc.Entity.Account)
+		err = r.insertEmailDoc(ctx, acc)
 	}
 	return err
 }
@@ -94,11 +100,11 @@ func (r AccountRepository) Get(id authdomain.AccountID) (res authdomain.Account,
 func (r AccountRepository) FindByEmail(
 	email string,
 ) (res authdomain.PasswordAuthentication, err error) {
-	var emailDoc accountEmailDoc
+	var emailDoc documentWithEvents[accountEmailDoc]
 	var pwDoc accountPasswordDoc
 	_, err1 := r.Connection.Get(r.addrDocId(email), &emailDoc)
-	_, err2 := r.Connection.Get(passwordDocId(emailDoc.AccountID), &pwDoc)
-	acc, err3 := r.Get(emailDoc.AccountID)
+	_, err2 := r.Connection.Get(passwordDocId(emailDoc.Document.AccountID), &pwDoc)
+	acc, err3 := r.Get(emailDoc.Document.AccountID)
 	if err = errors.Join(err1, err2, err3); err != nil {
 		return
 	}

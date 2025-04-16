@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"harmony/internal/couchdb"
+	"strings"
 	"testing"
 )
 
@@ -34,7 +35,7 @@ type row struct {
 	} `json:"value"`
 }
 
-type allDocs struct {
+type ViewResult struct {
 	Offset    int   `json:"offset"`
 	Rows      []row `json:"rows"`
 	TotalRows int   `json:"total_rows"`
@@ -72,18 +73,21 @@ func NewCouchHelper(opts ...couchOption) CouchHelper {
 
 func (h CouchHelper) DeleteAllDocs() {
 	conn := h.Connection
-	var docs allDocs
+	var docs ViewResult
 	_, err := conn.Get("_all_docs", &docs)
 	if err != nil {
 		h.t.Errorf("couchdbtest: cannot initialize: %v", err)
 	}
 	rows := docs.Rows
 	var deleteDoc BulkDocs
-	deleteDoc.Docs = make([]DeleteDoc, len(rows))
-	for i, d := range rows {
-		deleteDoc.Docs[i] = DeleteDoc{ID: d.ID, Rev: d.Value.Rev,
-			Deleted: true,
+	deleteDoc.Docs = make([]DeleteDoc, 0, len(rows))
+	for _, d := range rows {
+		if strings.HasPrefix(d.ID, "_design/") {
+			continue
 		}
+		deleteDoc.Docs = append(deleteDoc.Docs, DeleteDoc{ID: d.ID, Rev: d.Value.Rev,
+			Deleted: true,
+		})
 	}
 	resp, err := conn.RawPost(context.Background(), "_bulk_docs", deleteDoc)
 	if err != nil {
@@ -102,4 +106,9 @@ func (h CouchHelper) DeleteAllDocs() {
 			"couchdbtest: DeleteAllDocs: unexpected status code: %d",
 			resp.StatusCode)
 	}
+}
+
+func init() {
+	couchdb.AssertInitialized()
+	NewCouchHelper(WithConnection(couchdb.DefaultConnection)).DeleteAllDocs()
 }

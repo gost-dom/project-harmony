@@ -2,6 +2,7 @@ package authdomain
 
 import (
 	"errors"
+	"harmony/internal/domain"
 	"harmony/internal/features/auth/authdomain/password"
 	"time"
 
@@ -14,6 +15,9 @@ import (
 var ErrAccountEmailNotValidated = errors.New("Email address not validated")
 
 type AccountID string
+type EventID string
+
+func newEventID() EventID { return EventID(NewID()) }
 
 func NewID() string { return gonanoid.Must(32) }
 
@@ -61,9 +65,19 @@ type AccountRegistered struct {
 // registered, and the owner needs to provide a challenge response to prove
 // ownership of the email address.
 type EmailValidationRequest struct {
-	AccountID
-	Code       EmailValidationCode
-	ValidUntil time.Time
+	EventID    `json:"id"`
+	AccountID  `json:"account_id"`
+	Code       EmailValidationCode `json:"validation_code"`
+	ValidUntil time.Time           `json:"valid_until"`
+}
+
+func CreateValidationRequestEvent(account Account) domain.DomainEvent {
+	return EmailValidationRequest{
+		EventID:    newEventID(),
+		AccountID:  account.ID,
+		Code:       account.Email.Challenge.Code,
+		ValidUntil: account.Email.Challenge.NotAfter,
+	}
 }
 
 // Authenticated tells the account that authentication has been successful.

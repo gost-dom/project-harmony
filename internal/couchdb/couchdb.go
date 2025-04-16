@@ -32,3 +32,15 @@ type couchDoc struct {
 func errUnexpectedStatusCode(resp *http.Response) error {
 	return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 }
+
+type ViewRow[T any] struct {
+	Key   string `json:"id"`
+	Rev   string `json:"rev"`
+	Value T      `json:"value"`
+}
+
+type ViewResult[T any] struct {
+	Offset    int          `json:"offset"`
+	Rows      []ViewRow[T] `json:"rows"`
+	TotalRows int          `json:"total_rows"`
+}

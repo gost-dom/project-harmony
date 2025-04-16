@@ -1,12 +1,16 @@
 package authrepo_test
 
 import (
+	"fmt"
+	"testing"
+
 	"harmony/internal/couchdb"
 	"harmony/internal/features/auth"
+	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 	. "harmony/internal/features/auth/authrepo"
+	_ "harmony/internal/testing/couchtest" // clear database before tests
 	"harmony/internal/testing/domaintest"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -44,4 +48,18 @@ func TestDuplicateEmail(t *testing.T) {
 		domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email)))
 	assert.NoError(t, repo.Insert(ctx, acc1))
 	assert.ErrorIs(t, repo.Insert(ctx, acc2), ErrConflict)
+}
+
+func TestInsertDomainEvents(t *testing.T) {
+	ctx := t.Context()
+	repo := initRepository()
+
+	acc := auth.UseCaseOfEntity(domaintest.InitPasswordAuthAccount())
+	event := authdomain.CreateValidationRequestEvent(acc.Entity.Account)
+	acc.AddEvent(event)
+	assert.NoError(t, repo.Insert(ctx, acc))
+	var res couchdb.ViewResult[authdomain.EmailValidationRequest]
+	_, err := repo.Connection.Get("_design/events/_view/unpublished_events", &res)
+	fmt.Printf("%+v", res.Rows)
+	assert.NoError(t, err)
 }

@@ -28,9 +28,7 @@ type Connection struct {
 // if it depends on this value to be valid.
 var DefaultConnection Connection
 
-// Bootstrap creates the database, as well as updates any design documents, such
-// as views. Panics on unrecoverable errors, e.g., an invalid configuration.
-func (c Connection) Bootstrap(ctx context.Context) error {
+func (c Connection) createDB(ctx context.Context) error {
 	resp, err := c.req(ctx, "PUT", c.dbURL.String(), nil, nil)
 	if err != nil {
 		return err
@@ -49,6 +47,56 @@ func (c Connection) Bootstrap(ctx context.Context) error {
 	default:
 		panic("couchdb: unable to bootstrap database")
 	}
+}
+
+type view struct {
+	Map      string `json:"map,omitempty"`
+	Reduce   string `json:"reduce,omitempty"`
+	ReReduce string `json:"rereduce,omitempty"`
+}
+
+type views map[string]view
+
+type designDoc struct {
+	Views views `json:"views"`
+}
+
+func newDesignDoc() designDoc {
+	return designDoc{Views: make(views)}
+}
+
+const mapUnpublishedEvents = `function(doc) { 
+	if (doc.events) { 
+		for (const e of doc.events) { 
+			emit(doc.id, e) 
+		} 
+	} 
+}`
+
+func (c Connection) createViews(ctx context.Context) error {
+	var doc designDoc
+	_, err := c.Get("_design/events", &doc)
+	if err == ErrNotFound {
+		doc = newDesignDoc()
+		doc.Views["unpublished_events"] = view{
+			Map: mapUnpublishedEvents,
+		}
+		_, err = c.Insert(ctx, "_design/events", doc)
+	}
+	return err
+}
+
+// Bootstrap creates the database, as well as updates any design documents, such
+// as views. Panics on unrecoverable errors, e.g., an invalid configuration.
+func (c Connection) Bootstrap(ctx context.Context) error {
+	if err := c.createDB(ctx); err != nil {
+		return err
+	}
+	if err := c.createViews(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewCouchConnection(couchURL string) (conn Connection, err error) {
@@ -70,7 +118,7 @@ func NewCouchConnection(couchURL string) (conn Connection, err error) {
 // docURL generates the full couchDB resource URL for a given document ID. The
 // full URL will include both database name and credentials.
 func (c Connection) docURL(id string) string {
-	return c.dbURL.JoinPath(url.PathEscape(id)).String()
+	return c.dbURL.JoinPath(id).String()
 }
 
 // Insert creates a new document with the specified id. If the operation
@@ -93,6 +141,10 @@ func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string,
 		return
 	}
 	defer resp.Body.Close()
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		slog.Error("couchdb: insert: reading response body: %v", err)
+	}
 
 	switch resp.StatusCode {
 	case 201:
@@ -100,6 +152,11 @@ func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string,
 	case 409:
 		err = ErrConflict
 	default:
+		slog.ErrorContext(
+			ctx, "couchdb: insert failed",
+			"status", resp.StatusCode,
+			"resp", string(respBody),
+		)
 		err = fmt.Errorf("couchdb: insert id(%s): %w", id, errUnexpectedStatusCode(resp))
 		return
 	}
@@ -236,6 +293,6 @@ func init() {
 	if err == nil {
 		DefaultConnection = conn
 	} else {
-		slog.Error("couchdb: Error initializing")
+		slog.Error("couchdb: Error initializing", "err", err)
 	}
 }
