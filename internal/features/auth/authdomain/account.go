@@ -5,8 +5,6 @@ import (
 	"harmony/internal/domain"
 	"harmony/internal/features/auth/authdomain/password"
 	"time"
-
-	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 // ErrAccountEmailNotValidated is returned when an action requires the account
@@ -15,11 +13,8 @@ import (
 var ErrAccountEmailNotValidated = errors.New("Email address not validated")
 
 type AccountID string
-type EventID string
 
-func newEventID() EventID { return EventID(NewID()) }
-
-func NewID() string { return gonanoid.Must(32) }
+var NewID = domain.NewID
 
 type Account struct {
 	ID          AccountID
@@ -65,19 +60,21 @@ type AccountRegistered struct {
 // registered, and the owner needs to provide a challenge response to prove
 // ownership of the email address.
 type EmailValidationRequest struct {
-	EventID    `json:"id"`
 	AccountID  `json:"account_id"`
 	Code       EmailValidationCode `json:"validation_code"`
 	ValidUntil time.Time           `json:"valid_until"`
 }
 
 func CreateValidationRequestEvent(account Account) domain.DomainEvent {
-	return EmailValidationRequest{
-		EventID:    newEventID(),
+	return domain.NewDomainEvent(EmailValidationRequest{
 		AccountID:  account.ID,
 		Code:       account.Email.Challenge.Code,
 		ValidUntil: account.Email.Challenge.NotAfter,
-	}
+	})
+}
+
+func CreateAccountRegisteredEvent(account Account) domain.DomainEvent {
+	return domain.NewDomainEvent(AccountRegistered{AccountID: account.ID})
 }
 
 // Authenticated tells the account that authentication has been successful.

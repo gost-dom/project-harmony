@@ -53,7 +53,7 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 	}
 
 	res := *NewResult(account)
-	res.AddEvent(domain.AccountRegistered{AccountID: account.ID})
+	res.AddEvent(domain.CreateAccountRegisteredEvent(account.Account))
 	res.AddEvent(domain.CreateValidationRequestEvent(account.Account))
 	return r.Repository.Insert(ctx, res)
 }
