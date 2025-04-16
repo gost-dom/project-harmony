@@ -2,6 +2,7 @@ package couchdb_test
 
 import (
 	"harmony/internal/couchdb"
+	"harmony/internal/testing/couchtest"
 	"testing"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
@@ -61,4 +62,9 @@ func TestDatabaseBootstrap(t *testing.T) {
 		"couchdb: connection error: ",
 		"An error message was appended to the standard couchdb error. Details not specified by the test",
 	)
+}
+
+func init() {
+	couchdb.AssertInitialized()
+	couchtest.NewCouchHelper(couchtest.WithConnection(couchdb.DefaultConnection)).DeleteAllDocs()
 }

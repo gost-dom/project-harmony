@@ -106,6 +106,23 @@ func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string,
 	return
 }
 
+func (c Connection) RawPost(ctx context.Context, path string, body any) (*http.Response, error) {
+	var reader io.Reader
+	reader, ok := body.(io.Reader)
+	if !ok {
+		var b bytes.Buffer
+		enc := json.NewEncoder(&b)
+		if err := enc.Encode(body); err != nil {
+			return nil, err
+		}
+		reader = &b
+	}
+
+	var header = make(http.Header)
+	header.Add("Content-Type", "application/json")
+	return c.req(ctx, "POST", c.docURL(path), header, reader)
+}
+
 func (c Connection) Get(id string, doc any) (rev string, err error) {
 	var resp *http.Response
 	if resp, err = http.Get(c.docURL(id)); err != nil {
