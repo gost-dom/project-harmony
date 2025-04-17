@@ -95,7 +95,7 @@ var names = make(map[string]reflect.Type)
 // Note, while the code could have inferred the name from the type itself, that
 // would could data in the database to the code, preventing the ability to
 // refactor.
-func RegisterType(typ_ reflect.Type, name string) {
+func RegisterEventType(typ_ reflect.Type, name string) {
 	_, typeExists := types[typ_]
 	_, nameExists := names[name]
 	if typ_.Kind() != reflect.Struct {
