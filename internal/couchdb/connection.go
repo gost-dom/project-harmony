@@ -132,11 +132,13 @@ type changeEventChange struct {
 	Deleted bool   `json:"deleted,omitempty"` // omitempty probably irrelevant, as we only read
 }
 
-type changeEvent struct {
+// ChangeEvent is a record emitted by subscribing to /{db}/_changes server-sent
+// events
+type ChangeEvent struct {
 	Seq     string            `json:"seq"`
 	ID      string            `json:"id"`
 	Changes []json.RawMessage `json:"changes"`
-	Doc     json.RawMessage   `json:"doc,omitempty"`
+	Doc     json.RawMessage   `json:"doc,omitempty"` // Inlcuded if include_docs options is used
 }
 
 type DocumentWithEvents[T any] struct {
@@ -146,33 +148,84 @@ type DocumentWithEvents[T any] struct {
 	Events   []domain.Event `json:"events,omitempty"`
 }
 
-func (c Connection) processNewDomainEvents(ctx context.Context) (err error) {
-	conn, err := sse.NewClientFromURL(
-		c.dbURL.String() + "/_changes?feed=eventsource&since=now&include_docs=true&filter=_view&view=events/unpublished_events",
-	)
-	if err != nil {
-		return err
+type changeOption func(*url.Values)
+
+// ChangeOptViewFilter specifies to filter on documents for which the map function of view in design
+// document ddoc produces a value.
+func ChangeOptViewFilter(ddoc, view string) changeOption {
+	return func(v *url.Values) {
+		v.Set("filter", "_view")
+		v.Set("view", fmt.Sprintf("%s/%s", ddoc, view))
 	}
+}
+
+// ChangeOptFilter specifies to filter the events using filter function on
+// design document ddoc.
+func ChangeOptFilter(ddoc, filter string) changeOption {
+	return func(v *url.Values) {
+		v.Set("filter", fmt.Sprintf("%s/%s", ddoc, filter))
+	}
+}
+
+func ChangeOptIncludeDocs() changeOption {
+	return func(v *url.Values) { v.Set("include_docs", "true") }
+}
+
+// Changes subscribe to change events from CouchDB.
+func (c Connection) Changes(
+	ctx context.Context,
+	options ...changeOption,
+) (<-chan ChangeEvent, error) {
+	u := c.dbURL.JoinPath("_changes")
+	q := u.Query()
+	q.Set("feed", "eventsource")
+	q.Set("since", "now")
+	for _, o := range options {
+		o(&q)
+	}
+	u.RawQuery = q.Encode()
+	conn, err := sse.NewClientFromURL(u.String())
+	if err != nil {
+		return nil, err
+	}
+
+	ch := make(chan ChangeEvent)
 	go func() {
 		<-ctx.Done()
-		slog.InfoContext(ctx, "couchdb: closing domain event connection")
+		slog.InfoContext(ctx, "couchdb: closing event stream")
 		conn.Close()
 	}()
 	go func() {
 		for e := range conn.Events {
-			if e.Data == "" {
-				continue
+			// Ignore heartbeat events
+			if e.Data != "" {
+				var cev ChangeEvent
+				err := json.Unmarshal([]byte(e.Data), &cev)
+				if err != nil {
+					slog.ErrorContext(ctx, "couchdb: process event", "err", err, "event", e.Data)
+					continue
+				}
+				ch <- cev
 			}
-			ctx := context.Background()
-			var ev changeEvent
-			err := json.Unmarshal([]byte(e.Data), &ev)
-			if err != nil {
-				slog.ErrorContext(ctx, "couchdb: process event", "err", err, "event", e.Data)
-				continue
-			}
+		}
+		close(ch)
+	}()
+	return ch, nil
+}
 
+func (c Connection) processNewDomainEvents(ctx context.Context) (err error) {
+	ch, err := c.Changes(
+		ctx,
+		ChangeOptViewFilter("events", "unpublished_events"),
+		ChangeOptIncludeDocs(),
+	)
+	if err != nil {
+		return
+	}
+	go func() {
+		for changeEvent := range ch {
 			var doc DocumentWithEvents[json.RawMessage]
-			err = json.Unmarshal(ev.Doc, &doc)
+			err = json.Unmarshal(changeEvent.Doc, &doc)
 			if err != nil {
 				slog.ErrorContext(ctx, "couchdb: process event document", "err", err)
 				continue
@@ -192,48 +245,34 @@ func (c Connection) processNewDomainEvents(ctx context.Context) (err error) {
 			}
 		}
 	}()
-	return
+	return nil
 }
 
 func (c Connection) processUnpublishedDomainEvents(
 	ctx context.Context,
-) (ch <-chan domain.Event, err error) {
-	conn, err := sse.NewClientFromURL(
-		c.dbURL.String() + "/_changes?feed=eventsource&since=now&include_docs=true&filter=events/domain_events",
+) (<-chan domain.Event, error) {
+	ch, err := c.Changes(
+		ctx,
+		ChangeOptFilter("events", "domain_events"),
+		ChangeOptIncludeDocs(),
 	)
-	cha := make(chan domain.Event)
-	ch = cha
 	if err != nil {
 		return nil, err
 	}
+	cha := make(chan domain.Event)
 	go func() {
-		select {
-		case <-ctx.Done():
-			slog.InfoContext(ctx, "couchdb: Closing event stream")
-			conn.Close()
-		}
-	}()
-	go func() {
-		for e := range conn.Events {
-			if e.Data == "" {
-				continue
-			}
-			var cev changeEvent
-			err := json.Unmarshal([]byte(e.Data), &cev)
-			if err != nil {
-				slog.ErrorContext(ctx, "couchdb: process event", "err", err, "event", e.Data)
-				continue
-			}
+		for changeEvent := range ch {
 			var ev domain.Event
-			err = json.Unmarshal(cev.Doc, &ev)
+			err = json.Unmarshal(changeEvent.Doc, &ev)
 			if err != nil {
 				slog.ErrorContext(ctx, "couchdb: process event", "err", err)
 				continue
 			}
 			cha <- ev
 		}
+		close(cha)
 	}()
-	return
+	return cha, nil
 }
 
 func (c Connection) StartListener(
