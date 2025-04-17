@@ -139,12 +139,6 @@ type changeEvent struct {
 	Doc     json.RawMessage   `json:"doc,omitempty"`
 }
 
-type Closer interface{ Close() }
-
-type CloserFunc func()
-
-func (f CloserFunc) Close() { f() }
-
 type DocumentWithEvents[T any] struct {
 	ID       string         `json:"_id,omitempty"`
 	Rev      string         `json:"_rev,omitempty"`
@@ -152,14 +146,18 @@ type DocumentWithEvents[T any] struct {
 	Events   []domain.Event `json:"events,omitempty"`
 }
 
-func (c Connection) processNewDomainEvents(ctx context.Context) (closer Closer, err error) {
+func (c Connection) processNewDomainEvents(ctx context.Context) (err error) {
 	conn, err := sse.NewClientFromURL(
 		c.dbURL.String() + "/_changes?feed=eventsource&since=now&include_docs=true&filter=_view&view=events/unpublished_events",
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	closer = conn
+	go func() {
+		<-ctx.Done()
+		slog.InfoContext(ctx, "couchdb: closing domain event connection")
+		conn.Close()
+	}()
 	go func() {
 		for e := range conn.Events {
 			if e.Data == "" {
@@ -192,8 +190,6 @@ func (c Connection) processNewDomainEvents(ctx context.Context) (closer Closer, 
 				slog.ErrorContext(ctx, "couchdb: process event", "err", err)
 				continue
 			}
-
-			// fmt.Println(e.Data)
 		}
 	}()
 	return
@@ -201,16 +197,22 @@ func (c Connection) processNewDomainEvents(ctx context.Context) (closer Closer, 
 
 func (c Connection) processUnpublishedDomainEvents(
 	ctx context.Context,
-) (ch <-chan domain.Event, closer Closer, err error) {
+) (ch <-chan domain.Event, err error) {
 	conn, err := sse.NewClientFromURL(
 		c.dbURL.String() + "/_changes?feed=eventsource&since=now&include_docs=true&filter=events/domain_events",
 	)
 	cha := make(chan domain.Event)
 	ch = cha
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	closer = conn
+	go func() {
+		select {
+		case <-ctx.Done():
+			slog.InfoContext(ctx, "couchdb: Closing event stream")
+			conn.Close()
+		}
+	}()
 	go func() {
 		for e := range conn.Events {
 			if e.Data == "" {
@@ -236,21 +238,10 @@ func (c Connection) processUnpublishedDomainEvents(
 
 func (c Connection) StartListener(
 	ctx context.Context,
-) (ch <-chan domain.Event, closer Closer, err error) {
-	closer1, err1 := c.processNewDomainEvents(ctx)
-	ch, closer2, err2 := c.processUnpublishedDomainEvents(ctx)
-	closer = CloserFunc(func() {
-		closer1.Close()
-		closer2.Close()
-	})
-	if err = errors.Join(err1, err2); err != nil {
-		if err1 == nil {
-			closer1.Close()
-		}
-		if err2 == nil {
-			closer2.Close()
-		}
-	}
+) (ch <-chan domain.Event, err error) {
+	err1 := c.processNewDomainEvents(ctx)
+	ch, err2 := c.processUnpublishedDomainEvents(ctx)
+	err = errors.Join(err1, err2)
 	return
 }
 

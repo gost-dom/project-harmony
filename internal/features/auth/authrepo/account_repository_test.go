@@ -1,6 +1,7 @@
 package authrepo_test
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	_ "harmony/internal/testing/couchtest" // clear database before tests
 	"harmony/internal/testing/domaintest"
 
-	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,48 +52,64 @@ func TestDuplicateEmail(t *testing.T) {
 	assert.ErrorIs(t, repo.Insert(ctx, acc2), ErrConflict)
 }
 
-func TestInsertDomainEvents(t *testing.T) {
-	ctx := t.Context()
-	repo := initRepository()
+type TimeoutTest struct {
+	t         testing.TB
+	f         func()
+	OnTimeout func()
+}
 
-	var err error
-	ch, closer, err := couchdb.DefaultConnection.StartListener(ctx)
-	assert.NoError(t, err)
-	defer closer.Close()
-	// defer func() {
-	// 	close()
-	// }()
-	acc := auth.UseCaseOfEntity(domaintest.InitPasswordAuthAccount())
-	event := authdomain.CreateValidationRequestEvent(acc.Entity.Account)
-	event2 := authdomain.CreateAccountRegisteredEvent(acc.Entity.Account)
-	acc.AddEvent(event)
-	acc.AddEvent(event2)
-	assert.NoError(t, repo.Insert(ctx, acc))
-	// var res couchdb.ViewResult[domain.Event]
-	// v := make(url.Values)
-	// v.Set("key", `"`+string(event.ID)+`"`)
-	// _, err = repo.Connection.GetPath(
-	// 	"_design/events/_view/unpublished_events",
-	// 	v,
-	// 	&res,
-	// )
-	assert.NoError(t, err)
-	// assert.Equal(t, []domain.Event{event}, res.Values())
+func withTimeout(t testing.TB, f func()) TimeoutTest {
+	return TimeoutTest{t, f, nil}
+}
 
-	var actual []domain.Event
+func (t TimeoutTest) Run() {
+
+	c := make(chan struct{})
+	timeout := time.After(time.Second)
+
+	go func() {
+		t.f()
+		close(c)
+	}()
 	select {
-	case actual1 := <-ch:
-		actual = append(actual, actual1)
-		if len(actual) == 2 {
-			gomega.NewWithT(t).Expect(actual).To(gomega.ConsistOf(
-				event, event2))
+	case <-c:
+	case <-timeout:
+		if t.OnTimeout != nil {
+			t.OnTimeout()
+		} else {
+			t.t.Error("Timeout")
 		}
-	case <-time.After(time.Second):
-		t.Errorf("Timeout waiting for event. Existing events: %v", actual)
 	}
-	// actual2 := <-ch
-	// actual := []domain.Event{actual1}
-	// gomega.NewWithT(t).Expect(actual).To(gomega.ConsistOf(
-	// 	event, event2))
-	// time.Sleep(time.Second / 2)
+}
+
+func TestInsertDomainEvents(t *testing.T) {
+	var actual []domain.Event
+	tt := withTimeout(t, func() {
+		ctx := t.Context()
+		repo := initRepository()
+		ch, err := couchdb.DefaultConnection.StartListener(ctx)
+		assert.NoError(t, err)
+
+		// Insert an entity with two domain events
+		acc := auth.UseCaseOfEntity(domaintest.InitPasswordAuthAccount())
+		event1 := authdomain.CreateValidationRequestEvent(acc.Entity.Account)
+		event2 := authdomain.CreateAccountRegisteredEvent(acc.Entity.Account)
+		acc.AddEvent(event1)
+		acc.AddEvent(event2)
+		assert.NoError(t, repo.Insert(ctx, acc))
+
+		// Wait for the domain events to appear. Ignore other events,
+		expected := []domain.Event{event1, event2}
+		for e := range ch {
+			if reflect.DeepEqual(e, event1) || reflect.DeepEqual(e, event2) {
+				actual = append(actual, e)
+			}
+			if len(actual) == 2 {
+				assert.ElementsMatch(t, expected, actual)
+				break
+			}
+		}
+	})
+	tt.OnTimeout = func() { t.Errorf("Failed finding all expected events. Found %+v", actual) }
+	tt.Run()
 }

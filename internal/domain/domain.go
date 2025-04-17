@@ -57,7 +57,7 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 		t := names[tmp.Type]
 		if t == nil {
 			return fmt.Errorf(
-				"domain: Event.UnmarshalJSON: unknown message type: %s - json",
+				"domain: Event.UnmarshalJSON: unknown message type: %s - json %s",
 				tmp.Type,
 				string(data),
 			)
