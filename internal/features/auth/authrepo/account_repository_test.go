@@ -1,7 +1,6 @@
 package authrepo_test
 
 import (
-	"fmt"
 	"net/url"
 	"testing"
 
@@ -60,7 +59,6 @@ func TestInsertDomainEvents(t *testing.T) {
 	event := authdomain.CreateValidationRequestEvent(acc.Entity.Account)
 	acc.AddEvent(event)
 	assert.NoError(t, repo.Insert(ctx, acc))
-	// var res couchdb.ViewResult[authdomain.EmailValidationRequest]
 	var res couchdb.ViewResult[domain.Event]
 	v := make(url.Values)
 	v.Set("key", `"`+string(event.ID)+`"`)
@@ -69,7 +67,6 @@ func TestInsertDomainEvents(t *testing.T) {
 		v,
 		&res,
 	)
-	fmt.Printf("%+v", res.Rows)
 	assert.NoError(t, err)
 	assert.Equal(t, []domain.Event{event}, res.Values())
 }

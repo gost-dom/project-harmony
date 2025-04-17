@@ -3,6 +3,7 @@ package authdomain
 import (
 	"encoding/json"
 	"harmony/internal/domain"
+	"reflect"
 	"time"
 )
 
@@ -39,5 +40,5 @@ func UnmarshalAuthEvent(data []byte) (domain.EventBody, error) {
 }
 
 func init() {
-	domain.RegisterUnmarshaller(domain.UnmarshallerFunc(UnmarshalAuthEvent))
+	domain.RegisterType(reflect.TypeFor[EmailValidationRequest](), "auth.EmailValidationRequest")
 }
