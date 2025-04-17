@@ -16,11 +16,6 @@ type accountEmailDoc struct {
 	authdomain.AccountID
 }
 
-type documentWithEvents[T any] struct {
-	Document T                  `json:"doc"`
-	Events   []auth.DomainEvent `json:"events,omitempty"`
-}
-
 type accountPasswordDoc struct {
 	ID           authdomain.AccountID
 	PasswordHash []byte
@@ -55,7 +50,7 @@ func (r AccountRepository) insertEmailDoc(
 	ctx context.Context,
 	acc auth.AccountUseCaseResult,
 ) error {
-	doc := documentWithEvents[accountEmailDoc]{
+	doc := couchdb.DocumentWithEvents[accountEmailDoc]{
 		Document: accountEmailDoc{acc.Entity.ID},
 		Events:   acc.Events,
 	}
@@ -100,7 +95,7 @@ func (r AccountRepository) Get(id authdomain.AccountID) (res authdomain.Account,
 func (r AccountRepository) FindByEmail(
 	email string,
 ) (res authdomain.PasswordAuthentication, err error) {
-	var emailDoc documentWithEvents[accountEmailDoc]
+	var emailDoc couchdb.DocumentWithEvents[accountEmailDoc]
 	var pwDoc accountPasswordDoc
 	_, err1 := r.Connection.Get(r.addrDocId(email), &emailDoc)
 	_, err2 := r.Connection.Get(passwordDocId(emailDoc.Document.AccountID), &pwDoc)

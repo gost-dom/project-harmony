@@ -6,12 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"harmony/internal/domain"
 	"io"
 	"log/slog"
 	"maps"
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/lampctl/go-sse"
 )
 
 // Connection provides basic functionality to use CouchDB. A single instance is
@@ -56,10 +59,12 @@ type view struct {
 }
 
 type views map[string]view
+type filters map[string]string
 
 type designDoc struct {
-	Views   views `json:"views"`
-	updated bool  `json:"-"`
+	Views   views   `json:"views"`
+	Filters filters `json:"filters"`
+	updated bool    `json:"-"`
 }
 
 func (d *designDoc) setView(name, mapFn string) {
@@ -75,6 +80,16 @@ func (d *designDoc) setView(name, mapFn string) {
 	d.updated = true
 }
 
+func (d *designDoc) setFilter(name, fn string) {
+	if d.Filters == nil {
+		d.Filters = make(filters)
+	}
+	if filter, ok := d.Filters[name]; !ok || filter != fn {
+		d.Filters[name] = fn
+		d.updated = true
+	}
+}
+
 func newDesignDoc() designDoc {
 	return designDoc{Views: make(views)}
 }
@@ -87,22 +102,156 @@ const mapUnpublishedEvents = `function(doc) {
 	} 
 }`
 
+const newEventFilter = `function(doc, req) {
+	return doc._id.startsWith("domain_event:")
+}`
+
+func updateEventsDesignDoc(doc *designDoc) {
+	doc.setView("unpublished_events", mapUnpublishedEvents)
+	doc.setFilter("domain_events", newEventFilter)
+}
+
 func (c Connection) createViews(ctx context.Context) error {
 	var doc designDoc
 	rev, err := c.Get("_design/events", &doc)
 	if err == ErrNotFound {
 		doc = newDesignDoc()
-		doc.Views["unpublished_events"] = view{
-			Map: mapUnpublishedEvents,
-		}
+		updateEventsDesignDoc(&doc)
 		_, err = c.Insert(ctx, "_design/events", doc)
 	} else {
-		doc.setView("unpublished_events", mapUnpublishedEvents)
+		updateEventsDesignDoc(&doc)
 		if doc.updated {
 			_, err = c.Update(ctx, "_design/events", rev, doc)
 		}
 	}
 	return err
+}
+
+type changeEventChange struct {
+	Rev     string `json:"rev"`
+	Deleted bool   `json:"deleted,omitempty"` // omitempty probably irrelevant, as we only read
+}
+
+type changeEvent struct {
+	Seq     string            `json:"seq"`
+	ID      string            `json:"id"`
+	Changes []json.RawMessage `json:"changes"`
+	Doc     json.RawMessage   `json:"doc,omitempty"`
+}
+
+type Closer interface{ Close() }
+
+type CloserFunc func()
+
+func (f CloserFunc) Close() { f() }
+
+type DocumentWithEvents[T any] struct {
+	ID       string         `json:"_id,omitempty"`
+	Rev      string         `json:"_rev,omitempty"`
+	Document T              `json:"doc"`
+	Events   []domain.Event `json:"events,omitempty"`
+}
+
+func (c Connection) processNewDomainEvents(ctx context.Context) (closer Closer, err error) {
+	conn, err := sse.NewClientFromURL(
+		c.dbURL.String() + "/_changes?feed=eventsource&since=now&include_docs=true&filter=_view&view=events/unpublished_events",
+	)
+	if err != nil {
+		return nil, err
+	}
+	closer = conn
+	go func() {
+		for e := range conn.Events {
+			if e.Data == "" {
+				continue
+			}
+			ctx := context.Background()
+			var ev changeEvent
+			err := json.Unmarshal([]byte(e.Data), &ev)
+			if err != nil {
+				slog.ErrorContext(ctx, "couchdb: process event", "err", err, "event", e.Data)
+				continue
+			}
+
+			var doc DocumentWithEvents[json.RawMessage]
+			err = json.Unmarshal(ev.Doc, &doc)
+			if err != nil {
+				slog.ErrorContext(ctx, "couchdb: process event document", "err", err)
+				continue
+			}
+			for _, domainEvent := range doc.Events {
+				_, err = c.Insert(ctx, "domain_event:"+string(domainEvent.ID), domainEvent)
+				if err != nil {
+					slog.ErrorContext(ctx, "couchdb: insert domain event", "err", err)
+					continue
+				}
+			}
+			doc.Events = nil
+			_, err = c.Update(ctx, doc.ID, doc.Rev, doc)
+			if err != nil {
+				slog.ErrorContext(ctx, "couchdb: process event", "err", err)
+				continue
+			}
+
+			// fmt.Println(e.Data)
+		}
+	}()
+	return
+}
+
+func (c Connection) processUnpublishedDomainEvents(
+	ctx context.Context,
+) (ch <-chan domain.Event, closer Closer, err error) {
+	conn, err := sse.NewClientFromURL(
+		c.dbURL.String() + "/_changes?feed=eventsource&since=now&include_docs=true&filter=events/domain_events",
+	)
+	cha := make(chan domain.Event)
+	ch = cha
+	if err != nil {
+		return nil, nil, err
+	}
+	closer = conn
+	go func() {
+		for e := range conn.Events {
+			if e.Data == "" {
+				continue
+			}
+			var cev changeEvent
+			err := json.Unmarshal([]byte(e.Data), &cev)
+			if err != nil {
+				slog.ErrorContext(ctx, "couchdb: process event", "err", err, "event", e.Data)
+				continue
+			}
+			var ev domain.Event
+			err = json.Unmarshal(cev.Doc, &ev)
+			if err != nil {
+				slog.ErrorContext(ctx, "couchdb: process event", "err", err)
+				continue
+			}
+			cha <- ev
+		}
+	}()
+	return
+}
+
+func (c Connection) StartListener(
+	ctx context.Context,
+) (ch <-chan domain.Event, closer Closer, err error) {
+	closer1, err1 := c.processNewDomainEvents(ctx)
+	ch, closer2, err2 := c.processUnpublishedDomainEvents(ctx)
+	closer = CloserFunc(func() {
+		closer1.Close()
+		closer2.Close()
+	})
+	if err = errors.Join(err1, err2); err != nil {
+		if err1 == nil {
+			closer1.Close()
+		}
+		if err2 == nil {
+			closer2.Close()
+		}
+	}
+	return
 }
 
 // Bootstrap creates the database, as well as updates any design documents, such

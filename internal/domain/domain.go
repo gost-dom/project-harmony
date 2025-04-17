@@ -54,7 +54,15 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 	e.ID = tmp.ID
 	e.PublishedAt = tmp.PublishedAt
 	if err == nil {
-		val := reflect.New(names[tmp.Type])
+		t := names[tmp.Type]
+		if t == nil {
+			return fmt.Errorf(
+				"domain: Event.UnmarshalJSON: unknown message type: %s - json",
+				tmp.Type,
+				string(data),
+			)
+		}
+		val := reflect.New(t)
 		err = json.Unmarshal(tmp.Body, val.Interface())
 		e.Body = EventBody(val.Elem().Interface())
 	}
@@ -76,17 +84,21 @@ var names = make(map[string]reflect.Type)
 // and type name explicing the "Event" suffix, separated by a dot. E.g.,
 // AccountRegisteredEvent in the authentication area is
 // "auth.AccountRegistered".
+//
+// Note, while the code could have inferred the name from the type itself, that
+// would could data in the database to the code, preventing the ability to
+// refactor.
 func RegisterType(typ_ reflect.Type, name string) {
 	_, typeExists := types[typ_]
 	_, nameExists := names[name]
+	if typ_.Kind() != reflect.Struct {
+		panic(fmt.Sprintf("domain: RegisterType: type must be a struct: %v", typ_))
+	}
 	if typeExists {
 		panic(fmt.Sprintf("domain: RegisterType: type already exists: %v", typ_))
 	}
 	if nameExists {
 		panic(fmt.Sprintf("domain: RegisterType: name already exists: %s", name))
-	}
-	if typ_.Kind() != reflect.Struct {
-		panic(fmt.Sprintf("domain: RegisterType: type must be a struct: %v", typ_))
 	}
 
 	types[typ_] = name

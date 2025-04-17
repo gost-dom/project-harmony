@@ -41,4 +41,5 @@ func UnmarshalAuthEvent(data []byte) (domain.EventBody, error) {
 
 func init() {
 	domain.RegisterType(reflect.TypeFor[EmailValidationRequest](), "auth.EmailValidationRequest")
+	domain.RegisterType(reflect.TypeFor[AccountRegistered](), "auth.AccountRegistered")
 }
