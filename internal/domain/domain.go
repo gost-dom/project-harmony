@@ -18,6 +18,7 @@ type EventBody any
 
 type Event struct {
 	ID          EventID    `json:"id"`
+	CreatedAt   time.Time  `json:"created_at"`
 	PublishedAt *time.Time `json:"published_at"`
 	Body        EventBody
 }
@@ -35,6 +36,7 @@ func (e Event) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	js.ID = e.ID
+	js.CreatedAt = e.CreatedAt
 	js.PublishedAt = e.PublishedAt
 	js.Type = typeName
 	js.Body = (rawMessage)
@@ -43,6 +45,7 @@ func (e Event) MarshalJSON() ([]byte, error) {
 
 type eventJSON struct {
 	ID          EventID    `json:"id"`
+	CreatedAt   time.Time  `json:"created_at"`
 	PublishedAt *time.Time `json:"published_at"`
 	Type        string     `json:"type"`
 	Body        json.RawMessage
@@ -53,6 +56,7 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 	err := json.Unmarshal(data, &tmp)
 	e.ID = tmp.ID
 	e.PublishedAt = tmp.PublishedAt
+	e.CreatedAt = tmp.CreatedAt
 	if err == nil {
 		t := names[tmp.Type]
 		if t == nil {
@@ -70,7 +74,10 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 }
 
 func NewDomainEvent(data EventBody) Event {
-	return Event{ID: NewEventID(), Body: data}
+	return Event{
+		ID: NewEventID(), Body: data,
+		CreatedAt: time.Now().UTC(),
+	}
 }
 
 type UnmarshallerFunc func([]byte) (EventBody, error)
