@@ -58,7 +58,21 @@ type view struct {
 type views map[string]view
 
 type designDoc struct {
-	Views views `json:"views"`
+	Views   views `json:"views"`
+	updated bool  `json:"-"`
+}
+
+func (d *designDoc) setView(name, mapFn string) {
+	view, ok := d.Views[name]
+	if ok {
+		if view.Map == mapFn {
+			return
+		}
+	}
+
+	view.Map = mapFn
+	d.Views[name] = view
+	d.updated = true
 }
 
 func newDesignDoc() designDoc {
@@ -68,20 +82,25 @@ func newDesignDoc() designDoc {
 const mapUnpublishedEvents = `function(doc) { 
 	if (doc.events) { 
 		for (const e of doc.events) { 
-			emit(doc.id, e) 
+			emit(e.id, e) 
 		} 
 	} 
 }`
 
 func (c Connection) createViews(ctx context.Context) error {
 	var doc designDoc
-	_, err := c.Get("_design/events", &doc)
+	rev, err := c.Get("_design/events", &doc)
 	if err == ErrNotFound {
 		doc = newDesignDoc()
 		doc.Views["unpublished_events"] = view{
 			Map: mapUnpublishedEvents,
 		}
 		_, err = c.Insert(ctx, "_design/events", doc)
+	} else {
+		doc.setView("unpublished_events", mapUnpublishedEvents)
+		if doc.updated {
+			_, err = c.Update(ctx, "_design/events", rev, doc)
+		}
 	}
 	return err
 }
@@ -143,7 +162,7 @@ func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string,
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		slog.Error("couchdb: insert: reading response body: %v", err)
+		slog.ErrorContext(ctx, "couchdb: insert: reading response body", "err", err)
 	}
 
 	switch resp.StatusCode {
@@ -199,9 +218,9 @@ func (c Connection) Get(id string, doc any) (rev string, err error) {
 		}
 		rev = cd.Rev
 	case 404:
-		err = ErrNotFound
+		err = fmt.Errorf("%w: %s", ErrNotFound, id)
 	default:
-		err = fmt.Errorf("couchdb: insert id(%s): %w", id, errUnexpectedStatusCode(resp))
+		err = fmt.Errorf("couchdb: get(%s): %w", id, errUnexpectedStatusCode(resp))
 	}
 	return
 }
