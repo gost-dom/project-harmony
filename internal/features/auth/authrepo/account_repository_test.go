@@ -2,9 +2,11 @@ package authrepo_test
 
 import (
 	"fmt"
+	"net/url"
 	"testing"
 
 	"harmony/internal/couchdb"
+	"harmony/internal/domain"
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
@@ -58,8 +60,16 @@ func TestInsertDomainEvents(t *testing.T) {
 	event := authdomain.CreateValidationRequestEvent(acc.Entity.Account)
 	acc.AddEvent(event)
 	assert.NoError(t, repo.Insert(ctx, acc))
-	var res couchdb.ViewResult[authdomain.EmailValidationRequest]
-	_, err := repo.Connection.Get("_design/events/_view/unpublished_events", &res)
+	// var res couchdb.ViewResult[authdomain.EmailValidationRequest]
+	var res couchdb.ViewResult[domain.Event]
+	v := make(url.Values)
+	v.Set("key", `"`+string(event.ID)+`"`)
+	_, err := repo.Connection.GetPath(
+		"_design/events/_view/unpublished_events",
+		v,
+		&res,
+	)
 	fmt.Printf("%+v", res.Rows)
 	assert.NoError(t, err)
+	assert.Equal(t, []domain.Event{event}, res.Values())
 }

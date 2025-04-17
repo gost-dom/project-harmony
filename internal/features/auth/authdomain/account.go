@@ -4,7 +4,6 @@ import (
 	"errors"
 	"harmony/internal/domain"
 	"harmony/internal/features/auth/authdomain/password"
-	"time"
 )
 
 // ErrAccountEmailNotValidated is returned when an action requires the account
@@ -48,33 +47,6 @@ func (a *Account) ValidateEmail(code EmailValidationCode) (err error) {
 type PasswordAuthentication struct {
 	Account
 	password.PasswordHash
-}
-
-// AccountRegistered is a domain event published when a new account has been
-// created.
-type AccountRegistered struct {
-	AccountID
-}
-
-// EmailValidationRequest is a domain event published when an email has been
-// registered, and the owner needs to provide a challenge response to prove
-// ownership of the email address.
-type EmailValidationRequest struct {
-	AccountID  `json:"account_id"`
-	Code       EmailValidationCode `json:"validation_code"`
-	ValidUntil time.Time           `json:"valid_until"`
-}
-
-func CreateValidationRequestEvent(account Account) domain.DomainEvent {
-	return domain.NewDomainEvent(EmailValidationRequest{
-		AccountID:  account.ID,
-		Code:       account.Email.Challenge.Code,
-		ValidUntil: account.Email.Challenge.NotAfter,
-	})
-}
-
-func CreateAccountRegisteredEvent(account Account) domain.DomainEvent {
-	return domain.NewDomainEvent(AccountRegistered{AccountID: account.ID})
 }
 
 // Authenticated tells the account that authentication has been successful.

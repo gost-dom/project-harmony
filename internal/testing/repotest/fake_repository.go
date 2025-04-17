@@ -100,7 +100,7 @@ func SingleEventOfType[T any](e E) (res T) {
 	t.Helper()
 	var found bool
 	for _, ee := range e.AllEvents() {
-		if r, ok := ee.DomainEventData.(T); ok {
+		if r, ok := ee.Body.(T); ok {
 			if found {
 				t.Errorf("single-event: multiple instances of type %s", reflect.TypeFor[T]().Name())
 			}

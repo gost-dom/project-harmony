@@ -225,6 +225,34 @@ func (c Connection) Get(id string, doc any) (rev string, err error) {
 	return
 }
 
+func (c Connection) GetPath(path string, q url.Values, doc any) (rev string, err error) {
+	var resp *http.Response
+	u := c.dbURL.JoinPath(path)
+	u.RawQuery = q.Encode()
+	if resp, err = http.Get(u.String()); err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		var bodyBytes []byte
+		bodyBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return
+		}
+		cd := couchDoc{}
+		if err = json.Unmarshal(bodyBytes, &cd); err == nil {
+			err = json.Unmarshal(bodyBytes, &doc)
+		}
+		rev = cd.Rev
+	case 404:
+		err = fmt.Errorf("%w: %s", ErrNotFound, path)
+	default:
+		err = fmt.Errorf("couchdb: get(%s): %w", path, errUnexpectedStatusCode(resp))
+	}
+	return
+}
+
 // Update updates the document in the database. If successful, it will return
 // the updated revision of the document. If there is a conflict, it will return
 // ErrConflict

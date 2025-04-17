@@ -28,17 +28,8 @@ func (t testWrapper) Errorf(format string, args ...any) {
 	t.t.Errorf(format, args...)
 }
 
-type row struct {
-	ID    string `json:"id"`
-	Value struct {
-		Rev string `json:"rev"`
-	} `json:"value"`
-}
-
-type ViewResult struct {
-	Offset    int   `json:"offset"`
-	Rows      []row `json:"rows"`
-	TotalRows int   `json:"total_rows"`
+type allDocsValue struct {
+	Rev string `json:"rev"`
 }
 
 type DeleteDoc struct {
@@ -73,7 +64,7 @@ func NewCouchHelper(opts ...couchOption) CouchHelper {
 
 func (h CouchHelper) DeleteAllDocs() {
 	conn := h.Connection
-	var docs ViewResult
+	var docs couchdb.ViewResult[allDocsValue]
 	_, err := conn.Get("_all_docs", &docs)
 	if err != nil {
 		h.t.Errorf("couchdbtest: cannot initialize: %v", err)
