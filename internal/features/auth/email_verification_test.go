@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"harmony/internal/domain"
+	"harmony/internal/features/auth/authdomain"
+	"harmony/internal/testing/domaintest"
 	"io"
 	"log"
 	"net/http"
@@ -33,6 +35,14 @@ type mailhogGetMessagesResp struct {
 }
 
 func TestSendEmailValidationChallenge(t *testing.T) {
+	acc := domaintest.InitAccount()
+	acc.StartEmailValidationChallenge()
+	assert.False(
+		t,
+		acc.Validated(),
+		"guard: account should be an invalidated account for this test",
+	)
+
 	req, err := http.NewRequest("DELETE", "http://localhost:8025/api/v1/messages", nil)
 	assert.NoError(t, err)
 	resp, err := http.DefaultClient.Do(req)
@@ -41,8 +51,7 @@ func TestSendEmailValidationChallenge(t *testing.T) {
 
 	id := domain.NewID()
 	messageID := fmt.Sprintf("<%s@%s>", id, host)
-	sendMessage(messageID)
-	sendMessage(messageID)
+	sendMessage(messageID, acc)
 	resp, err = http.Get("http://localhost:8025/api/v2/messages")
 	assert.NoError(t, err)
 	defer resp.Body.Close()
@@ -53,7 +62,9 @@ func TestSendEmailValidationChallenge(t *testing.T) {
 	t.Log("\n\nDATA:\n", string(data))
 	t.Logf("\n\nBody: %+v\n", msgResp)
 	expect := gomega.NewWithT(t).Expect
-	expect(msgResp.Messages).To(gomega.ContainElement(HaveHeader("Message-ID", messageID)))
+	expect(
+		msgResp.Messages,
+	).To(gomega.ContainElement(HaveHeader("To", acc.Email.Address.String())))
 }
 
 func HaveHeader(key, value string) types.GomegaMatcher {
@@ -66,20 +77,25 @@ func HaveHeader(key, value string) types.GomegaMatcher {
 	}, gomega.ContainElement(gomega.Equal(value)))
 }
 
-func sendMessage(messageID string) {
-	receiver := "user@harmony.example.com"
-	firstName := "John"
-	code := "123456"
+func sendMessage(messageID string, acc authdomain.Account) {
+	receiver := acc.Email.Address // Yeah, net/mail.Address has an Address field
+	receiver.Name = acc.Name
+	firstName := acc.DisplayName
+	code := string(acc.Email.Challenge.Code)
+
 	bodyLines := []string{
 		fmt.Sprintf(`Hi %s, Welcome to Harmony`, firstName),
 		"",
 		"Before you can use the system, you need to verify that you own this email",
-		fmt.Sprintf("address. Use the following validation code: %s", code),
+		"address. Use the following validation code",
 		"",
-		"You browser you used for creating your account should already be ready to accept",
-		"the code. You can also navigate to the following address:",
+		"    " + code,
 		"",
-		fmt.Sprintf("http://localhost:7331/auth/validate-email?email=%s", receiver),
+		"",
+		"The browser you used when registering should already be ready to accept",
+		"the code. If not, you can also navigate to the following address:",
+		"",
+		fmt.Sprintf("http://localhost:7331/auth/validate-email?email=%s", receiver.Address),
 		"",
 		"The Harmony Team.",
 	}
@@ -87,7 +103,7 @@ func sendMessage(messageID string) {
 	msg := []byte("To: " + receiver + "\r\n" +
 		"Subject: Welcome to Harmony. Please validate your email address.\r\n" +
 		"From: info@harmony.example.com\r\n" +
-		"To: user@harmony.example.com\r\n" +
+		fmt.Sprintf("To: %s\r\n", receiver.String()) +
 		fmt.Sprintf("Message-ID: %s\r\n", messageID) +
 		"\r\n" +
 		body +

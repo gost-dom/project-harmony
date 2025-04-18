@@ -10,7 +10,7 @@ import (
 )
 
 func NewAddress() string {
-	return fmt.Sprintf("%s@example.com", gonanoid.Must())
+	return fmt.Sprintf("%s@example.com", gonanoid.MustGenerate("abcdefghjklmnipqrstuvwxyz", 20))
 }
 
 func InitEmail() authdomain.Email {
@@ -32,6 +32,12 @@ func WithEmail(email string) InitAccountOption {
 	return func(acc *authdomain.Account) {
 		em := authdomain.NewUnvalidatedEmail(*addr)
 		acc.Email = em
+	}
+}
+
+func WithName(name string) InitAccountOption {
+	return func(acc *authdomain.Account) {
+		acc.Name = name
 	}
 }
 
