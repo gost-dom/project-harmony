@@ -39,9 +39,6 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 	if r.Repository == nil {
 		return errors.New("TODO: Get repo working")
 	}
-	if err != nil {
-		return err
-	}
 	account := domain.PasswordAuthentication{
 		Account: domain.Account{
 			ID:          domain.AccountID(authdomain.NewID()),
