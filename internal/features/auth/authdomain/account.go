@@ -6,10 +6,10 @@ import (
 	"harmony/internal/features/auth/authdomain/password"
 )
 
-// ErrAccountEmailNotValidated is returned when an action requires the account
+// ErrAccountNotValidated is returned when an action requires the account
 // to be valid. E.g, email address ownership must be verified before the user
 // can successfully authenticate.
-var ErrAccountEmailNotValidated = errors.New("Email address not validated")
+var ErrAccountNotValidated = errors.New("Account not validated")
 
 type AccountID string
 
@@ -20,6 +20,12 @@ type Account struct {
 	Email       Email
 	Name        string
 	DisplayName string
+}
+
+// Validated returns if the account has been validated. E.g., if the user has
+// completed an email validation challenge.
+func (a Account) Validated() bool {
+	return a.Email.Validated
 }
 
 // ValidateEmail is the email "challenge response" for the email validation
@@ -38,7 +44,7 @@ func (a *Account) ValidateEmail(code EmailValidationCode) (err error) {
 func (a *Account) Authenticated() (AuthenticatedAccount, error) {
 	var res AuthenticatedAccount
 	if !a.Email.Validated {
-		return res, ErrAccountEmailNotValidated
+		return res, ErrAccountNotValidated
 	}
 	res.Account = a
 	return res, nil

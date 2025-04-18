@@ -8,7 +8,7 @@ import (
 
 // Re-export used domain errors
 
-var ErrAccountEmailNotValidated = authdomain.ErrAccountEmailNotValidated
+var ErrAccountNotValidated = authdomain.ErrAccountNotValidated
 
 var ErrBadCredentials = errors.New("authenticate: Bad credentials")
 var ErrNotFound = domain.ErrNotFound
