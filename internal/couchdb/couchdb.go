@@ -3,6 +3,7 @@ package couchdb
 import (
 	"errors"
 	"fmt"
+	"harmony/internal/domain"
 	"net/http"
 )
 
@@ -19,7 +20,7 @@ var ErrConn = errors.New("couchdb: connection error")
 var ErrRequest = errors.New("request error")
 
 var ErrConflict = errors.New("couchdb: conflict")
-var ErrNotFound = errors.New("couchdb: not found")
+var ErrNotFound = fmt.Errorf("couchdb: %w", domain.ErrNotFound)
 
 type Document any
 
