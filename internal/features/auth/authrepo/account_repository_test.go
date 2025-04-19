@@ -53,17 +53,19 @@ func TestDuplicateEmail(t *testing.T) {
 }
 
 type TimeoutTest struct {
-	t                testing.TB
-	f                func()
-	OnTimeoutExpired func()
+	t testing.TB
+	f func()
 }
 
 func withTimeout(t testing.TB, f func()) TimeoutTest {
-	return TimeoutTest{t, f, nil}
+	return TimeoutTest{t, f}
 }
 
 func (t TimeoutTest) Run() {
+	t.RunWithErrorf("Timeout")
+}
 
+func (t TimeoutTest) RunWithErrorf(format string, args ...any) {
 	c := make(chan struct{})
 	timeout := time.After(time.Second)
 
@@ -74,17 +76,13 @@ func (t TimeoutTest) Run() {
 	select {
 	case <-c:
 	case <-timeout:
-		if t.OnTimeoutExpired != nil {
-			t.OnTimeoutExpired()
-		} else {
-			t.t.Error("Timeout")
-		}
+		t.t.Errorf(format, args...)
 	}
 }
 
 func TestInsertDomainEvents(t *testing.T) {
 	var actual []domain.Event
-	tt := withTimeout(t, func() {
+	withTimeout(t, func() {
 		ctx := t.Context()
 		repo := initRepository()
 		ch, err := couchdb.DefaultConnection.StartListener(ctx)
@@ -109,7 +107,5 @@ func TestInsertDomainEvents(t *testing.T) {
 				break
 			}
 		}
-	})
-	tt.OnTimeoutExpired = func() { t.Errorf("Failed finding all expected events. Found %+v", actual) }
-	tt.Run()
+	}).RunWithErrorf("Failed finding all expected events. Found %+v", actual)
 }
