@@ -70,7 +70,7 @@ func (s *RegisterTestSuite) TestActivation() {
 	s.Assert().False(entity.Email.Validated, "Email validated - before validation")
 
 	s.Assert().ErrorIs(entity.ValidateEmail(
-		authdomain.NewValidationCode()),
+		authdomain.EmailValidationCode("invalid")),
 		authdomain.ErrBadEmailChallengeResponse, "Validating wrong code")
 
 	code := repotest.SingleEventOfType[authdomain.EmailValidationRequest](s.repo).Code

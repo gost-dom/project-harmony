@@ -92,7 +92,7 @@ func TestInsertDomainEvents(t *testing.T) {
 
 		// Insert an entity with two domain events
 		acc := auth.UseCaseOfEntity(domaintest.InitPasswordAuthAccount())
-		event1 := authdomain.CreateValidationRequestEvent(acc.Entity.Account)
+		event1 := acc.Entity.StartEmailValidationChallenge()
 		event2 := authdomain.CreateAccountRegisteredEvent(acc.Entity.Account)
 		acc.AddEvent(event1)
 		acc.AddEvent(event2)

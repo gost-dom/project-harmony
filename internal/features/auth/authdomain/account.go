@@ -29,6 +29,32 @@ func (a *Account) ValidateEmail(code EmailValidationCode) (err error) {
 	return
 }
 
+// Authenticated tells the account that authentication has been successful.
+//
+// It has been left for the Account itself to verify that the account itself is
+// in a valid state. While different authentication mechanisms can only verify
+// that the user has succeeded specific challenges, that doesn't prove that the
+// account permits being logged into at all.
+func (a *Account) Authenticated() (AuthenticatedAccount, error) {
+	var res AuthenticatedAccount
+	if !a.Email.Validated {
+		return res, ErrAccountEmailNotValidated
+	}
+	res.Account = a
+	return res, nil
+}
+
+func (a *Account) StartEmailValidationChallenge() domain.Event {
+	challenge := a.Email.NewChallenge()
+	return domain.NewDomainEvent(EmailValidationRequest{
+		AccountID:  a.ID,
+		Code:       challenge.Code,
+		ValidUntil: challenge.NotAfter,
+	})
+}
+
+/* -------- PasswordAuthentication -------- */
+
 // PasswordAuthentication represents an account and it's associated password.
 // This type is introduced for two purposes
 //
@@ -47,21 +73,6 @@ func (a *Account) ValidateEmail(code EmailValidationCode) (err error) {
 type PasswordAuthentication struct {
 	Account
 	password.PasswordHash
-}
-
-// Authenticated tells the account that authentication has been successful.
-//
-// It has been left for the Account itself to verify that the account itself is
-// in a valid state. While different authentication mechanisms can only verify
-// that the user has succeeded specific challenges, that doesn't prove that the
-// account permits being logged into at all.
-func (a *Account) Authenticated() (AuthenticatedAccount, error) {
-	var res AuthenticatedAccount
-	if !a.Email.Validated {
-		return res, ErrAccountEmailNotValidated
-	}
-	res.Account = a
-	return res, nil
 }
 
 /* -------- AuthenticatedAccount -------- */

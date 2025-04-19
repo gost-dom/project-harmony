@@ -22,14 +22,6 @@ type AccountRegistered struct {
 	AccountID
 }
 
-func CreateValidationRequestEvent(account Account) domain.Event {
-	return domain.NewDomainEvent(EmailValidationRequest{
-		AccountID:  account.ID,
-		Code:       account.Email.Challenge.Code,
-		ValidUntil: account.Email.Challenge.NotAfter,
-	})
-}
-
 func CreateAccountRegisteredEvent(account Account) domain.Event {
 	return domain.NewDomainEvent(AccountRegistered{AccountID: account.ID})
 }

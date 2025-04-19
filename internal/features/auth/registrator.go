@@ -54,6 +54,6 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 
 	res := UseCaseOfEntity(account)
 	res.AddEvent(domain.CreateAccountRegisteredEvent(account.Account))
-	res.AddEvent(domain.CreateValidationRequestEvent(account.Account))
+	res.AddEvent(res.Entity.StartEmailValidationChallenge())
 	return r.Repository.Insert(ctx, res)
 }
