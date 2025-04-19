@@ -68,6 +68,9 @@ type designDoc struct {
 }
 
 func (d *designDoc) setView(name, mapFn string) {
+	if d.Views == nil {
+		d.Views = make(views)
+	}
 	view, ok := d.Views[name]
 	if ok {
 		if view.Map == mapFn {
@@ -88,10 +91,6 @@ func (d *designDoc) setFilter(name, fn string) {
 		d.Filters[name] = fn
 		d.updated = true
 	}
-}
-
-func newDesignDoc() designDoc {
-	return designDoc{Views: make(views)}
 }
 
 const mapUnpublishedEvents = `function(doc) { 
@@ -115,7 +114,7 @@ func (c Connection) createViews(ctx context.Context) error {
 	var doc designDoc
 	rev, err := c.Get("_design/events", &doc)
 	if err == ErrNotFound {
-		doc = newDesignDoc()
+		doc = designDoc{}
 		updateEventsDesignDoc(&doc)
 		_, err = c.Insert(ctx, "_design/events", doc)
 	} else {
@@ -270,7 +269,10 @@ func (c Connection) processNewDomainEvents(ctx context.Context) (err error) {
 	return nil
 }
 
-func getDomainEvents(ctx context.Context, ch <-chan ChangeEvent) <-chan domain.Event {
+// domainEventsOfChangeEvents takes a channel of CouchDB change events, assumed
+// to contain new domain event documents, and transforms it to a channel of
+// [domain.Event]
+func domainEventsOfChangeEvents(ctx context.Context, ch <-chan ChangeEvent) <-chan domain.Event {
 	cha := make(chan domain.Event)
 	go func() {
 		defer close(cha)
@@ -298,20 +300,7 @@ func (c Connection) processUnpublishedDomainEvents(
 	if err != nil {
 		return nil, err
 	}
-	// cha := make(chan domain.Event)
-	// go func() {
-	// 	for changeEvent := range ch {
-	// 		var ev domain.Event
-	// 		err = json.Unmarshal(changeEvent.Doc, &ev)
-	// 		if err != nil {
-	// 			slog.ErrorContext(ctx, "couchdb: process event", "err", err)
-	// 			continue
-	// 		}
-	// 		cha <- ev
-	// 	}
-	// 	close(cha)
-	// }()
-	return getDomainEvents(ctx, ch), nil
+	return domainEventsOfChangeEvents(ctx, ch), nil
 }
 
 func (c Connection) StartListener(
