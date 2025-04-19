@@ -27,6 +27,9 @@ func (e Event) MarshalJSON() ([]byte, error) {
 	var js eventJSON
 	typeName := types[reflect.TypeOf(e.Body)]
 
+	if e.Body == nil {
+		return nil, fmt.Errorf("domain: Event.MarshalJSON: body is nil")
+	}
 	if typeName == "" {
 		return nil, fmt.Errorf("domain: Event.MarshalJSON: no registration for type %T", e.Body)
 	}
@@ -52,25 +55,26 @@ type eventJSON struct {
 }
 
 func (e *Event) UnmarshalJSON(data []byte) error {
-	var tmp eventJSON
-	err := json.Unmarshal(data, &tmp)
-	e.ID = tmp.ID
-	e.PublishedAt = tmp.PublishedAt
-	e.CreatedAt = tmp.CreatedAt
-	if err == nil {
-		t := names[tmp.Type]
-		if t == nil {
-			return fmt.Errorf(
-				"domain: Event.UnmarshalJSON: unknown message type: %s - json %s",
-				tmp.Type,
-				string(data),
-			)
-		}
-		val := reflect.New(t)
-		err = json.Unmarshal(tmp.Body, val.Interface())
-		e.Body = EventBody(val.Elem().Interface())
+	var rawEvent eventJSON
+	if err := json.Unmarshal(data, &rawEvent); err != nil {
+		return err
 	}
-	return err
+	t := names[rawEvent.Type]
+	if t == nil {
+		return fmt.Errorf(
+			"domain: Event.UnmarshalJSON: unknown message type: %s - json %s",
+			rawEvent.Type, string(data),
+		)
+	}
+	body := reflect.New(t)
+	if err := json.Unmarshal(rawEvent.Body, body.Interface()); err != nil {
+		return err
+	}
+	e.ID = rawEvent.ID
+	e.PublishedAt = rawEvent.PublishedAt
+	e.CreatedAt = rawEvent.CreatedAt
+	e.Body = EventBody(body.Elem().Interface())
+	return nil
 }
 
 func NewDomainEvent(data EventBody) Event {
