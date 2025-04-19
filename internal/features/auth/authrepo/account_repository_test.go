@@ -53,9 +53,9 @@ func TestDuplicateEmail(t *testing.T) {
 }
 
 type TimeoutTest struct {
-	t         testing.TB
-	f         func()
-	OnTimeout func()
+	t                testing.TB
+	f                func()
+	OnTimeoutExpired func()
 }
 
 func withTimeout(t testing.TB, f func()) TimeoutTest {
@@ -74,8 +74,8 @@ func (t TimeoutTest) Run() {
 	select {
 	case <-c:
 	case <-timeout:
-		if t.OnTimeout != nil {
-			t.OnTimeout()
+		if t.OnTimeoutExpired != nil {
+			t.OnTimeoutExpired()
 		} else {
 			t.t.Error("Timeout")
 		}
@@ -110,6 +110,6 @@ func TestInsertDomainEvents(t *testing.T) {
 			}
 		}
 	})
-	tt.OnTimeout = func() { t.Errorf("Failed finding all expected events. Found %+v", actual) }
+	tt.OnTimeoutExpired = func() { t.Errorf("Failed finding all expected events. Found %+v", actual) }
 	tt.Run()
 }
