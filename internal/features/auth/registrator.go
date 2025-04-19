@@ -52,7 +52,7 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 		PasswordHash: hash,
 	}
 
-	res := *NewResult(account)
+	res := UseCaseOfEntity(account)
 	res.AddEvent(domain.CreateAccountRegisteredEvent(account.Account))
 	res.AddEvent(domain.CreateValidationRequestEvent(account.Account))
 	return r.Repository.Insert(ctx, res)
