@@ -6,6 +6,7 @@ import (
 	"testing/synctest"
 	"time"
 
+	"harmony/internal/domain"
 	. "harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
@@ -13,6 +14,8 @@ import (
 	"harmony/internal/testing/repotest"
 
 	"github.com/onsi/gomega"
+	"github.com/onsi/gomega/gcustom"
+	"github.com/onsi/gomega/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -56,7 +59,7 @@ func (s *RegisterTestSuite) TestValidRegistrationInput() {
 	s.Assert().Equal("John", entity.DisplayName)
 
 	s.Expect(s.repo.Events).To(gomega.ContainElement(
-		authdomain.AccountRegistered{AccountID: entity.ID}),
+		MatchDomainEvent(authdomain.AccountRegistered{AccountID: entity.ID})),
 	)
 }
 
@@ -67,7 +70,7 @@ func (s *RegisterTestSuite) TestActivation() {
 	s.Assert().False(entity.Email.Validated, "Email validated - before validation")
 
 	s.Assert().ErrorIs(entity.ValidateEmail(
-		authdomain.NewValidationCode()),
+		authdomain.EmailValidationCode("invalid")),
 		authdomain.ErrBadEmailChallengeResponse, "Validating wrong code")
 
 	code := repotest.SingleEventOfType[authdomain.EmailValidationRequest](s.repo).Code
@@ -107,5 +110,12 @@ func (s *RegisterTestSuite) TestActivationCodeExpired() {
 
 		s.Assert().ErrorIs(entity.ValidateEmail(code), authdomain.ErrBadEmailChallengeResponse)
 		s.Assert().False(entity.Email.Validated, "Email validated - after validation")
+	})
+}
+
+func MatchDomainEvent(data any) types.GomegaMatcher {
+	m := gomega.Equal(data)
+	return gcustom.MakeMatcher(func(event domain.Event) (bool, error) {
+		return m.Match(event.Body)
 	})
 }

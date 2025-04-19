@@ -60,13 +60,15 @@ func (e Email) ChallengeResponse(response EmailValidationCode) (Email, error) {
 	return res, nil
 }
 
-func NewUnvalidatedEmail(address mail.Address) Email {
-	email := Email{
-		Address: address,
-		Challenge: &EmailChallenge{
-			Code:     NewValidationCode(),
-			NotAfter: time.Now().Add(15 * time.Minute).UTC(),
-		},
+func (e *Email) NewChallenge() EmailChallenge {
+	challenge := EmailChallenge{
+		Code:     NewValidationCode(),
+		NotAfter: time.Now().Add(15 * time.Minute).UTC(),
 	}
-	return email
+	e.Challenge = &challenge
+	return challenge
+}
+
+func NewUnvalidatedEmail(address mail.Address) Email {
+	return Email{Address: address}
 }

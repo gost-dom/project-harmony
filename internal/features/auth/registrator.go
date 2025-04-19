@@ -52,12 +52,8 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 		PasswordHash: hash,
 	}
 
-	res := *NewResult(account)
-	res.AddEvent(domain.AccountRegistered{AccountID: account.ID})
-	res.AddEvent(domain.EmailValidationRequest{
-		AccountID:  account.ID,
-		Code:       account.Email.Challenge.Code,
-		ValidUntil: account.Email.Challenge.NotAfter,
-	})
+	res := UseCaseOfEntity(account)
+	res.AddEvent(domain.CreateAccountRegisteredEvent(account.Account))
+	res.AddEvent(res.Entity.StartEmailValidationChallenge())
 	return r.Repository.Insert(ctx, res)
 }

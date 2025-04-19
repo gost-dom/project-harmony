@@ -2,10 +2,8 @@ package authdomain
 
 import (
 	"errors"
+	"harmony/internal/domain"
 	"harmony/internal/features/auth/authdomain/password"
-	"time"
-
-	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 // ErrAccountEmailNotValidated is returned when an action requires the account
@@ -15,7 +13,7 @@ var ErrAccountEmailNotValidated = errors.New("Email address not validated")
 
 type AccountID string
 
-func NewID() string { return gonanoid.Must(32) }
+var NewID = domain.NewID
 
 type Account struct {
 	ID          AccountID
@@ -30,6 +28,32 @@ func (a *Account) ValidateEmail(code EmailValidationCode) (err error) {
 	a.Email, err = a.Email.ChallengeResponse(code)
 	return
 }
+
+// Authenticated tells the account that authentication has been successful.
+//
+// It has been left for the Account itself to verify that the account itself is
+// in a valid state. While different authentication mechanisms can only verify
+// that the user has succeeded specific challenges, that doesn't prove that the
+// account permits being logged into at all.
+func (a *Account) Authenticated() (AuthenticatedAccount, error) {
+	var res AuthenticatedAccount
+	if !a.Email.Validated {
+		return res, ErrAccountEmailNotValidated
+	}
+	res.Account = a
+	return res, nil
+}
+
+func (a *Account) StartEmailValidationChallenge() domain.Event {
+	challenge := a.Email.NewChallenge()
+	return domain.NewDomainEvent(EmailValidationRequest{
+		AccountID:  a.ID,
+		Code:       challenge.Code,
+		ValidUntil: challenge.NotAfter,
+	})
+}
+
+/* -------- PasswordAuthentication -------- */
 
 // PasswordAuthentication represents an account and it's associated password.
 // This type is introduced for two purposes
@@ -49,36 +73,6 @@ func (a *Account) ValidateEmail(code EmailValidationCode) (err error) {
 type PasswordAuthentication struct {
 	Account
 	password.PasswordHash
-}
-
-// AccountRegistered is a domain event published when a new account has been
-// created.
-type AccountRegistered struct {
-	AccountID
-}
-
-// EmailValidationRequest is a domain event published when an email has been
-// registered, and the owner needs to provide a challenge response to prove
-// ownership of the email address.
-type EmailValidationRequest struct {
-	AccountID
-	Code       EmailValidationCode
-	ValidUntil time.Time
-}
-
-// Authenticated tells the account that authentication has been successful.
-//
-// It has been left for the Account itself to verify that the account itself is
-// in a valid state. While different authentication mechanisms can only verify
-// that the user has succeeded specific challenges, that doesn't prove that the
-// account permits being logged into at all.
-func (a *Account) Authenticated() (AuthenticatedAccount, error) {
-	var res AuthenticatedAccount
-	if !a.Email.Validated {
-		return res, ErrAccountEmailNotValidated
-	}
-	res.Account = a
-	return res, nil
 }
 
 /* -------- AuthenticatedAccount -------- */

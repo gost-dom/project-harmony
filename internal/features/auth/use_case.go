@@ -1,10 +1,12 @@
 package auth
 
+import "harmony/internal/domain"
+
 // TODO: This is a general concept for domain logic - move to a general place
 
 type Entity[T any] interface{ ID() T }
 
-type DomainEvent interface{}
+type DomainEvent = domain.Event
 
 // UseCaseResult represents the outcome of a use case operating on a single
 // entity or aggregate. The use case may result in an updated or new entity, as
@@ -26,9 +28,7 @@ type UseCaseResult[T any] struct {
 	Events []DomainEvent
 }
 
-func NewResult[T any](entity T) *UseCaseResult[T] {
-	return &UseCaseResult[T]{Entity: entity}
-}
+func UseCaseOfEntity[T any](e T) UseCaseResult[T] { return UseCaseResult[T]{Entity: e} }
 
 func (useCase *UseCaseResult[T]) AddEvent(event DomainEvent) *UseCaseResult[T] {
 	useCase.Events = append(useCase.Events, event)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"harmony/internal/couchdb"
+	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 )
@@ -45,10 +46,16 @@ func (r AccountRepository) insertAccountDoc(ctx context.Context, acc authdomain.
 	return err
 }
 
-func (r AccountRepository) insertEmailDoc(ctx context.Context, acc authdomain.Account) error {
-	doc := accountEmailDoc{acc.ID}
+func (r AccountRepository) insertEmailDoc(
+	ctx context.Context,
+	acc auth.AccountUseCaseResult,
+) error {
+	doc := couchdb.DocumentWithEvents[accountEmailDoc]{
+		Document: accountEmailDoc{acc.Entity.ID},
+		Events:   acc.Events,
+	}
 	_, err := r.Connection.Insert(ctx,
-		r.accEmailDocID(acc),
+		r.accEmailDocID(acc.Entity.Account),
 		doc,
 	)
 	return err
@@ -68,14 +75,14 @@ func (r AccountRepository) insertPasswordDoc(
 
 func (r AccountRepository) Insert(
 	ctx context.Context,
-	acc authdomain.PasswordAuthentication,
+	acc auth.AccountUseCaseResult,
 ) error {
-	err := r.insertAccountDoc(ctx, acc.Account)
+	err := r.insertAccountDoc(ctx, acc.Entity.Account)
 	if err == nil {
-		err = r.insertPasswordDoc(ctx, acc)
+		err = r.insertPasswordDoc(ctx, acc.Entity)
 	}
 	if err == nil {
-		err = r.insertEmailDoc(ctx, acc.Account)
+		err = r.insertEmailDoc(ctx, acc)
 	}
 	return err
 }
@@ -88,11 +95,11 @@ func (r AccountRepository) Get(id authdomain.AccountID) (res authdomain.Account,
 func (r AccountRepository) FindByEmail(
 	email string,
 ) (res authdomain.PasswordAuthentication, err error) {
-	var emailDoc accountEmailDoc
+	var emailDoc couchdb.DocumentWithEvents[accountEmailDoc]
 	var pwDoc accountPasswordDoc
 	_, err1 := r.Connection.Get(r.addrDocId(email), &emailDoc)
-	_, err2 := r.Connection.Get(passwordDocId(emailDoc.AccountID), &pwDoc)
-	acc, err3 := r.Get(emailDoc.AccountID)
+	_, err2 := r.Connection.Get(passwordDocId(emailDoc.Document.AccountID), &pwDoc)
+	acc, err3 := r.Get(emailDoc.Document.AccountID)
 	if err = errors.Join(err1, err2, err3); err != nil {
 		return
 	}
