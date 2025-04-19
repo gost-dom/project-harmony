@@ -138,7 +138,7 @@ type ChangeEvent struct {
 	Seq     string            `json:"seq"`
 	ID      string            `json:"id"`
 	Changes []json.RawMessage `json:"changes"`
-	Doc     json.RawMessage   `json:"doc,omitempty"` // Inlcuded if include_docs options is used
+	Doc     json.RawMessage   `json:"doc,omitempty"` // Included if include_docs options is used
 }
 
 type DocumentWithEvents[T any] struct {
@@ -171,6 +171,26 @@ func ChangeOptIncludeDocs() changeOption {
 	return func(v *url.Values) { v.Set("include_docs", "true") }
 }
 
+func getChangeEvents(ctx context.Context, ch <-chan *sse.Event) <-chan ChangeEvent {
+	res := make(chan ChangeEvent)
+	go func() {
+		defer close(res)
+		for e := range ch {
+			// Ignore heartbeat events
+			if e.Data != "" {
+				var cev ChangeEvent
+				err := json.Unmarshal([]byte(e.Data), &cev)
+				if err != nil {
+					slog.ErrorContext(ctx, "couchdb: process event", "err", err, "event", e.Data)
+					continue
+				}
+				res <- cev
+			}
+		}
+	}()
+	return res
+}
+
 // Changes subscribe to change events from CouchDB.
 func (c Connection) Changes(
 	ctx context.Context,
@@ -189,28 +209,48 @@ func (c Connection) Changes(
 		return nil, err
 	}
 
-	ch := make(chan ChangeEvent)
 	go func() {
 		<-ctx.Done()
 		slog.InfoContext(ctx, "couchdb: closing event stream")
 		conn.Close()
 	}()
+	return getChangeEvents(ctx, conn.Events), nil
+}
+
+func getNewEntityEvents(
+	ctx context.Context,
+	ch <-chan ChangeEvent,
+) <-chan DocumentWithEvents[json.RawMessage] {
+	res := make(chan DocumentWithEvents[json.RawMessage])
 	go func() {
-		for e := range conn.Events {
-			// Ignore heartbeat events
-			if e.Data != "" {
-				var cev ChangeEvent
-				err := json.Unmarshal([]byte(e.Data), &cev)
-				if err != nil {
-					slog.ErrorContext(ctx, "couchdb: process event", "err", err, "event", e.Data)
-					continue
-				}
-				ch <- cev
+		defer close(res)
+		for changeEvent := range ch {
+			var doc DocumentWithEvents[json.RawMessage]
+			err := json.Unmarshal(changeEvent.Doc, &doc)
+			if err != nil {
+				slog.ErrorContext(ctx, "couchdb: process event document", "err", err)
+				continue
 			}
+			res <- doc
 		}
-		close(ch)
 	}()
-	return ch, nil
+	return res
+}
+
+func (c Connection) processNewEntity(ctx context.Context, doc DocumentWithEvents[json.RawMessage]) {
+	for _, domainEvent := range doc.Events {
+		_, err := c.Insert(ctx, "domain_event:"+string(domainEvent.ID), domainEvent)
+		if err != nil && !errors.Is(err, ErrConflict) {
+			slog.ErrorContext(ctx, "couchdb: insert domain event", "err", err)
+			return
+		}
+	}
+	doc.Events = nil
+	_, err := c.Update(ctx, doc.ID, doc.Rev, doc)
+	if err != nil {
+		slog.ErrorContext(ctx, "couchdb: process event", "err", err)
+		return
+	}
 }
 
 func (c Connection) processNewDomainEvents(ctx context.Context) (err error) {
@@ -223,29 +263,28 @@ func (c Connection) processNewDomainEvents(ctx context.Context) (err error) {
 		return
 	}
 	go func() {
+		for doc := range getNewEntityEvents(ctx, ch) {
+			c.processNewEntity(ctx, doc)
+		}
+	}()
+	return nil
+}
+
+func getDomainEvents(ctx context.Context, ch <-chan ChangeEvent) <-chan domain.Event {
+	cha := make(chan domain.Event)
+	go func() {
+		defer close(cha)
 		for changeEvent := range ch {
-			var doc DocumentWithEvents[json.RawMessage]
-			err = json.Unmarshal(changeEvent.Doc, &doc)
-			if err != nil {
-				slog.ErrorContext(ctx, "couchdb: process event document", "err", err)
-				continue
-			}
-			for _, domainEvent := range doc.Events {
-				_, err = c.Insert(ctx, "domain_event:"+string(domainEvent.ID), domainEvent)
-				if err != nil {
-					slog.ErrorContext(ctx, "couchdb: insert domain event", "err", err)
-					continue
-				}
-			}
-			doc.Events = nil
-			_, err = c.Update(ctx, doc.ID, doc.Rev, doc)
+			var ev domain.Event
+			err := json.Unmarshal(changeEvent.Doc, &ev)
 			if err != nil {
 				slog.ErrorContext(ctx, "couchdb: process event", "err", err)
 				continue
 			}
+			cha <- ev
 		}
 	}()
-	return nil
+	return cha
 }
 
 func (c Connection) processUnpublishedDomainEvents(
@@ -259,20 +298,20 @@ func (c Connection) processUnpublishedDomainEvents(
 	if err != nil {
 		return nil, err
 	}
-	cha := make(chan domain.Event)
-	go func() {
-		for changeEvent := range ch {
-			var ev domain.Event
-			err = json.Unmarshal(changeEvent.Doc, &ev)
-			if err != nil {
-				slog.ErrorContext(ctx, "couchdb: process event", "err", err)
-				continue
-			}
-			cha <- ev
-		}
-		close(cha)
-	}()
-	return cha, nil
+	// cha := make(chan domain.Event)
+	// go func() {
+	// 	for changeEvent := range ch {
+	// 		var ev domain.Event
+	// 		err = json.Unmarshal(changeEvent.Doc, &ev)
+	// 		if err != nil {
+	// 			slog.ErrorContext(ctx, "couchdb: process event", "err", err)
+	// 			continue
+	// 		}
+	// 		cha <- ev
+	// 	}
+	// 	close(cha)
+	// }()
+	return getDomainEvents(ctx, ch), nil
 }
 
 func (c Connection) StartListener(
