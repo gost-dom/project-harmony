@@ -1,6 +1,8 @@
 package authrepo_test
 
 import (
+	"context"
+	"errors"
 	"reflect"
 	"testing"
 	"time"
@@ -54,10 +56,10 @@ func TestDuplicateEmail(t *testing.T) {
 
 type TimeoutTest struct {
 	t testing.TB
-	f func()
+	f func(context.Context)
 }
 
-func withTimeout(t testing.TB, f func()) TimeoutTest {
+func withTimeout(t testing.TB, f func(ctx context.Context)) TimeoutTest {
 	return TimeoutTest{t, f}
 }
 
@@ -66,24 +68,22 @@ func (t TimeoutTest) Run() {
 }
 
 func (t TimeoutTest) RunWithErrorf(format string, args ...any) {
-	c := make(chan struct{})
-	timeout := time.After(time.Second)
+	ctx, cancel := context.WithTimeout(t.t.Context(), time.Second)
 
 	go func() {
-		t.f()
-		close(c)
+		defer cancel()
+		t.f(ctx)
 	}()
-	select {
-	case <-c:
-	case <-timeout:
+
+	<-ctx.Done()
+	if !errors.Is(ctx.Err(), context.Canceled) {
 		t.t.Errorf(format, args...)
 	}
 }
 
 func TestInsertDomainEvents(t *testing.T) {
 	var actual []domain.Event
-	withTimeout(t, func() {
-		ctx := t.Context()
+	withTimeout(t, func(ctx context.Context) {
 		repo := initRepository()
 		ch, err := couchdb.DefaultConnection.StartListener(ctx)
 		assert.NoError(t, err)
