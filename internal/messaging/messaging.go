@@ -14,7 +14,7 @@ type MessageHandler struct {
 }
 
 func (h MessageHandler) ProcessDomainEvent(ctx context.Context, event domain.Event) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*100)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	return h.Validator.ProcessDomainEvent(ctx, event)
 }
