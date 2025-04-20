@@ -112,7 +112,7 @@ func updateEventsDesignDoc(doc *designDoc) {
 
 func (c Connection) createViews(ctx context.Context) error {
 	var doc designDoc
-	rev, err := c.Get("_design/events", &doc)
+	rev, err := c.Get(ctx, "_design/events", &doc)
 	if errors.Is(err, ErrNotFound) {
 		doc = designDoc{}
 		updateEventsDesignDoc(&doc)
@@ -407,11 +407,15 @@ func (c Connection) RawPost(ctx context.Context, path string, body any) (*http.R
 	return c.req(ctx, "POST", c.docURL(path), header, reader)
 }
 
-func (c Connection) Get(id string, doc any) (rev string, err error) {
+func (c Connection) Get(ctx context.Context, id string, doc any) (rev string, err error) {
 	var resp *http.Response
-	if resp, err = http.Get(c.docURL(id)); err != nil {
+	if resp, err = c.req(ctx, "GET", c.docURL(id), nil, nil); err != nil {
 		return
 	}
+	// var resp *http.Response
+	// if resp, err = http.Get(c.docURL(id)); err != nil {
+	// 	return
+	// }
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case 200:

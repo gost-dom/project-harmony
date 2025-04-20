@@ -27,7 +27,7 @@ func TestDatabaseRoundtrip(t *testing.T) {
 
 	// Read the same doc
 	var actual Doc
-	rev, err = conn.Get(id, &actual)
+	rev, err = conn.Get(ctx, id, &actual)
 	assert.NoError(t, err)
 
 	// Verify they are equal
@@ -39,7 +39,7 @@ func TestDatabaseRoundtrip(t *testing.T) {
 	assert.NoError(t, err, "Update error")
 
 	var actualV2 Doc
-	_, err = conn.Get(id, &actualV2)
+	_, err = conn.Get(ctx, id, &actualV2)
 	assert.NoError(t, err)
 	assert.Equal(t, "Baz", actualV2.Foo)
 
