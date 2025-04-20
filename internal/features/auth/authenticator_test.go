@@ -52,7 +52,7 @@ func (s *AuthenticatorTestSuite) TestAuthenticateUnvalidatedAccount() {
 
 	_, err := s.Authenticate(s.Context(), "jd@example.com", password.Parse("valid_password"))
 	s.Assert().Error(err, "Cannot log in until the email address has been validated")
-	s.Assert().ErrorIs(err, ErrAccountEmailNotValidated)
+	s.Assert().ErrorIs(err, authdomain.ErrAccountNotValidated)
 }
 
 func (s *AuthenticatorTestSuite) validateAccount() {

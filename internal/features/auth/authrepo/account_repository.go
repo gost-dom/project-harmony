@@ -87,19 +87,22 @@ func (r AccountRepository) Insert(
 	return err
 }
 
-func (r AccountRepository) Get(id authdomain.AccountID) (res authdomain.Account, err error) {
-	_, err = r.Connection.Get(r.accDocId(id), &res)
+func (r AccountRepository) Get(
+	ctx context.Context,
+	id authdomain.AccountID,
+) (res authdomain.Account, err error) {
+	_, err = r.Connection.Get(ctx, r.accDocId(id), &res)
 	return
 }
 
-func (r AccountRepository) FindByEmail(
+func (r AccountRepository) FindByEmail(ctx context.Context,
 	email string,
 ) (res authdomain.PasswordAuthentication, err error) {
 	var emailDoc couchdb.DocumentWithEvents[accountEmailDoc]
 	var pwDoc accountPasswordDoc
-	_, err1 := r.Connection.Get(r.addrDocId(email), &emailDoc)
-	_, err2 := r.Connection.Get(passwordDocId(emailDoc.Document.AccountID), &pwDoc)
-	acc, err3 := r.Get(emailDoc.Document.AccountID)
+	_, err1 := r.Connection.Get(ctx, r.addrDocId(email), &emailDoc)
+	_, err2 := r.Connection.Get(ctx, passwordDocId(emailDoc.Document.AccountID), &pwDoc)
+	acc, err3 := r.Get(ctx, emailDoc.Document.AccountID)
 	if err = errors.Join(err1, err2, err3); err != nil {
 		return
 	}

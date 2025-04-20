@@ -11,3 +11,11 @@ services:
     volumes:
       # - "./couchdb/local.ini:/opt/couchdb/etc/local.d/local.ini:ro"
       - "./.cache/db:/opt/couchdb/data"
+
+  mailhog:
+    image: jcalonso/mailhog
+    restart: always
+    ports:
+      - 1025:1025
+      - 8025:8025
+

@@ -102,7 +102,7 @@ const mapUnpublishedEvents = `function(doc) {
 }`
 
 const newEventFilter = `function(doc, req) {
-	return doc._id.startsWith("domain_event:")
+	return doc._id.startsWith("domain_event:") && !doc.published_at
 }`
 
 func updateEventsDesignDoc(doc *designDoc) {
@@ -112,7 +112,7 @@ func updateEventsDesignDoc(doc *designDoc) {
 
 func (c Connection) createViews(ctx context.Context) error {
 	var doc designDoc
-	rev, err := c.Get("_design/events", &doc)
+	rev, err := c.Get(ctx, "_design/events", &doc)
 	if errors.Is(err, ErrNotFound) {
 		doc = designDoc{}
 		updateEventsDesignDoc(&doc)
@@ -198,7 +198,7 @@ func (c Connection) Changes(
 	u := c.dbURL.JoinPath("_changes")
 	q := u.Query()
 	q.Set("feed", "eventsource")
-	q.Set("since", "now")
+	q.Set("since", "0")
 	for _, o := range options {
 		o(&q)
 	}
@@ -306,6 +306,7 @@ func (c Connection) processUnpublishedDomainEvents(
 func (c Connection) StartListener(
 	ctx context.Context,
 ) (ch <-chan domain.Event, err error) {
+	slog.InfoContext(ctx, "couchdb: Connection.StartListener")
 	err1 := c.processNewDomainEvents(ctx)
 	ch, err2 := c.processUnpublishedDomainEvents(ctx)
 	err = errors.Join(err1, err2)
@@ -406,9 +407,9 @@ func (c Connection) RawPost(ctx context.Context, path string, body any) (*http.R
 	return c.req(ctx, "POST", c.docURL(path), header, reader)
 }
 
-func (c Connection) Get(id string, doc any) (rev string, err error) {
+func (c Connection) Get(ctx context.Context, id string, doc any) (rev string, err error) {
 	var resp *http.Response
-	if resp, err = http.Get(c.docURL(id)); err != nil {
+	if resp, err = c.req(ctx, "GET", c.docURL(id), nil, nil); err != nil {
 		return
 	}
 	defer resp.Body.Close()

@@ -1,6 +1,8 @@
 package authrepo_test
 
 import (
+	"context"
+	"errors"
 	"reflect"
 	"testing"
 	"time"
@@ -29,11 +31,11 @@ func TestAccountRoundtrip(t *testing.T) {
 	acc := domaintest.InitPasswordAuthAccount(domaintest.WithPassword("foobar"))
 	uc := auth.AccountUseCaseResult{Entity: acc}
 	assert.NoError(t, repo.Insert(t.Context(), uc))
-	reloaded, err := repo.Get(acc.ID)
+	reloaded, err := repo.Get(t.Context(), acc.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, acc.Account, reloaded)
 
-	foundByEmail, err := repo.FindByEmail(acc.Email.String())
+	foundByEmail, err := repo.FindByEmail(t.Context(), acc.Email.String())
 	assert.NoError(t, err, "Error finding by email")
 	assert.Equal(t, acc, foundByEmail, "Entity found by email")
 	assert.True(t, foundByEmail.Validate(password.Parse("foobar")), "Password validates")
@@ -54,10 +56,10 @@ func TestDuplicateEmail(t *testing.T) {
 
 type TimeoutTest struct {
 	t testing.TB
-	f func()
+	f func(context.Context)
 }
 
-func withTimeout(t testing.TB, f func()) TimeoutTest {
+func withTimeout(t testing.TB, f func(ctx context.Context)) TimeoutTest {
 	return TimeoutTest{t, f}
 }
 
@@ -66,24 +68,22 @@ func (t TimeoutTest) Run() {
 }
 
 func (t TimeoutTest) RunWithErrorf(format string, args ...any) {
-	c := make(chan struct{})
-	timeout := time.After(time.Second)
+	ctx, cancel := context.WithTimeout(t.t.Context(), time.Second)
 
 	go func() {
-		t.f()
-		close(c)
+		defer cancel()
+		t.f(ctx)
 	}()
-	select {
-	case <-c:
-	case <-timeout:
+
+	<-ctx.Done()
+	if !errors.Is(ctx.Err(), context.Canceled) {
 		t.t.Errorf(format, args...)
 	}
 }
 
 func TestInsertDomainEvents(t *testing.T) {
 	var actual []domain.Event
-	withTimeout(t, func() {
-		ctx := t.Context()
+	withTimeout(t, func(ctx context.Context) {
 		repo := initRepository()
 		ch, err := couchdb.DefaultConnection.StartListener(ctx)
 		assert.NoError(t, err)

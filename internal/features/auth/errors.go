@@ -2,12 +2,13 @@ package auth
 
 import (
 	"errors"
+	"harmony/internal/domain"
 	"harmony/internal/features/auth/authdomain"
 )
 
 // Re-export used domain errors
 
-var ErrAccountEmailNotValidated = authdomain.ErrAccountEmailNotValidated
+var ErrAccountNotValidated = authdomain.ErrAccountNotValidated
 
 var ErrBadCredentials = errors.New("authenticate: Bad credentials")
-var ErrNotFound = errors.New("Not found")
+var ErrNotFound = domain.ErrNotFound

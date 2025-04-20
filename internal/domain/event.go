@@ -23,6 +23,14 @@ type Event struct {
 	Body        EventBody
 }
 
+func (e *Event) MarkPublished() {
+	if e.PublishedAt != nil {
+		return
+	}
+	now := time.Now().UTC()
+	e.PublishedAt = &now
+}
+
 func (e Event) MarshalJSON() ([]byte, error) {
 	var js eventJSON
 	typeName := types[reflect.TypeOf(e.Body)]

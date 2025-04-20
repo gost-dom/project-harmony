@@ -62,10 +62,10 @@ func NewCouchHelper(opts ...couchOption) CouchHelper {
 	return res
 }
 
-func (h CouchHelper) DeleteAllDocs() {
+func (h CouchHelper) DeleteAllDocs(ctx context.Context) {
 	conn := h.Connection
 	var docs couchdb.ViewResult[allDocsValue]
-	_, err := conn.Get("_all_docs", &docs)
+	_, err := conn.Get(ctx, "_all_docs", &docs)
 	if err != nil {
 		h.t.Errorf("couchdbtest: cannot initialize: %v", err)
 	}
@@ -85,10 +85,6 @@ func (h CouchHelper) DeleteAllDocs() {
 		h.t.Errorf("couchdbtest: cannot delete: %v", err)
 	}
 	defer resp.Body.Close()
-	// b, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	h.t.Errorf("couchdbtest: DeleteAllDocs: cannot read body: %v", err)
-	// }
 	switch resp.StatusCode {
 	case 200, 201:
 		return
@@ -101,5 +97,5 @@ func (h CouchHelper) DeleteAllDocs() {
 
 func init() {
 	couchdb.AssertInitialized()
-	NewCouchHelper(WithConnection(couchdb.DefaultConnection)).DeleteAllDocs()
+	NewCouchHelper(WithConnection(couchdb.DefaultConnection)).DeleteAllDocs(context.Background())
 }
