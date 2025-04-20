@@ -18,6 +18,7 @@ type EventBody any
 
 type Event struct {
 	ID          EventID    `json:"id"`
+	Rev         string     `json:"-"`
 	CreatedAt   time.Time  `json:"created_at"`
 	PublishedAt *time.Time `json:"published_at"`
 	Body        EventBody

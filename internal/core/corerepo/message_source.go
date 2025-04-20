@@ -10,10 +10,9 @@ import (
 )
 
 type MessageSource struct {
+	DomainEventRepository
 	DB *couchdb.Connection
 }
-
-var DefaultMessageSource MessageSource
 
 type DocumentWithEvents[T any] struct {
 	ID       string         `json:"_id,omitempty"`
@@ -21,8 +20,6 @@ type DocumentWithEvents[T any] struct {
 	Document T              `json:"doc"`
 	Events   []domain.Event `json:"events,omitempty"`
 }
-
-func init() { DefaultMessageSource = MessageSource{&couchdb.DefaultConnection} }
 
 func (c MessageSource) StartListener(
 	ctx context.Context,
@@ -58,7 +55,8 @@ func (c MessageSource) processNewEntity(
 	doc DocumentWithEvents[json.RawMessage],
 ) {
 	for _, domainEvent := range doc.Events {
-		_, err := c.DB.Insert(ctx, "domain_event:"+string(domainEvent.ID), domainEvent)
+		_, err := c.DomainEventRepository.Insert(ctx, domainEvent)
+		// _, err := c.DB.Insert(ctx, "domain_event:"+string(domainEvent.ID), domainEvent)
 		if err != nil && !errors.Is(err, couchdb.ErrConflict) {
 			slog.ErrorContext(ctx, "corerepo: insert domain event", "err", err)
 			return

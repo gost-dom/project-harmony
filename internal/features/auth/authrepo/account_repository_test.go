@@ -86,7 +86,7 @@ func TestInsertDomainEvents(t *testing.T) {
 	var actual []domain.Event
 	withTimeout(t, func(ctx context.Context) {
 		repo := initRepository()
-		coreRepo := corerepo.MessageSource{DB: &couchdb.DefaultConnection}
+		coreRepo := corerepo.DefaultMessageSource
 		ch, err := coreRepo.StartListener(ctx)
 		assert.NoError(t, err)
 
