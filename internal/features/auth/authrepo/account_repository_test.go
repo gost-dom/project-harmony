@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"harmony/internal/core/corerepo"
 	"harmony/internal/couchdb"
 	"harmony/internal/domain"
 	"harmony/internal/features/auth"
@@ -85,7 +86,8 @@ func TestInsertDomainEvents(t *testing.T) {
 	var actual []domain.Event
 	withTimeout(t, func(ctx context.Context) {
 		repo := initRepository()
-		ch, err := couchdb.DefaultConnection.StartListener(ctx)
+		coreRepo := corerepo.MessageSource{DB: &couchdb.DefaultConnection}
+		ch, err := coreRepo.StartListener(ctx)
 		assert.NoError(t, err)
 
 		// Insert an entity with two domain events

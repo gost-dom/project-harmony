@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"harmony/internal/domain"
 	"io"
 	"log/slog"
 	"maps"
@@ -140,13 +139,6 @@ type ChangeEvent struct {
 	Doc     json.RawMessage   `json:"doc,omitempty"` // Included if include_docs options is used
 }
 
-type DocumentWithEvents[T any] struct {
-	ID       string         `json:"_id,omitempty"`
-	Rev      string         `json:"_rev,omitempty"`
-	Document T              `json:"doc"`
-	Events   []domain.Event `json:"events,omitempty"`
-}
-
 type changeOption func(*url.Values)
 
 // ChangeOptViewFilter specifies to filter on documents for which the map function of view in design
@@ -214,103 +206,6 @@ func (c Connection) Changes(
 		conn.Close()
 	}()
 	return getChangeEvents(ctx, conn.Events), nil
-}
-
-func getNewEntityEvents(
-	ctx context.Context,
-	ch <-chan ChangeEvent,
-) <-chan DocumentWithEvents[json.RawMessage] {
-	res := make(chan DocumentWithEvents[json.RawMessage])
-	go func() {
-		defer close(res)
-		for changeEvent := range ch {
-			var doc DocumentWithEvents[json.RawMessage]
-			err := json.Unmarshal(changeEvent.Doc, &doc)
-			if err != nil {
-				slog.ErrorContext(ctx, "couchdb: process event document", "err", err)
-				continue
-			}
-			res <- doc
-		}
-	}()
-	return res
-}
-
-func (c Connection) processNewEntity(ctx context.Context, doc DocumentWithEvents[json.RawMessage]) {
-	for _, domainEvent := range doc.Events {
-		_, err := c.Insert(ctx, "domain_event:"+string(domainEvent.ID), domainEvent)
-		if err != nil && !errors.Is(err, ErrConflict) {
-			slog.ErrorContext(ctx, "couchdb: insert domain event", "err", err)
-			return
-		}
-	}
-	doc.Events = nil
-	_, err := c.Update(ctx, doc.ID, doc.Rev, doc)
-	if err != nil {
-		slog.ErrorContext(ctx, "couchdb: process event", "err", err)
-		return
-	}
-}
-
-func (c Connection) processNewDomainEvents(ctx context.Context) (err error) {
-	ch, err := c.Changes(
-		ctx,
-		ChangeOptViewFilter("events", "unpublished_events"),
-		ChangeOptIncludeDocs(),
-	)
-	if err != nil {
-		return
-	}
-	go func() {
-		for doc := range getNewEntityEvents(ctx, ch) {
-			c.processNewEntity(ctx, doc)
-		}
-	}()
-	return nil
-}
-
-// domainEventsOfChangeEvents takes a channel of CouchDB change events, assumed
-// to contain new domain event documents, and transforms it to a channel of
-// [domain.Event]
-func domainEventsOfChangeEvents(ctx context.Context, ch <-chan ChangeEvent) <-chan domain.Event {
-	cha := make(chan domain.Event)
-	go func() {
-		defer close(cha)
-		for changeEvent := range ch {
-			var ev domain.Event
-			err := json.Unmarshal(changeEvent.Doc, &ev)
-			if err != nil {
-				slog.ErrorContext(ctx, "couchdb: process event", "err", err)
-				continue
-			}
-			cha <- ev
-		}
-	}()
-	return cha
-}
-
-func (c Connection) processUnpublishedDomainEvents(
-	ctx context.Context,
-) (<-chan domain.Event, error) {
-	ch, err := c.Changes(
-		ctx,
-		ChangeOptFilter("events", "domain_events"),
-		ChangeOptIncludeDocs(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return domainEventsOfChangeEvents(ctx, ch), nil
-}
-
-func (c Connection) StartListener(
-	ctx context.Context,
-) (ch <-chan domain.Event, err error) {
-	slog.InfoContext(ctx, "couchdb: Connection.StartListener")
-	err1 := c.processNewDomainEvents(ctx)
-	ch, err2 := c.processUnpublishedDomainEvents(ctx)
-	err = errors.Join(err1, err2)
-	return
 }
 
 // Bootstrap creates the database, as well as updates any design documents, such

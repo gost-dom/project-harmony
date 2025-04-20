@@ -13,9 +13,9 @@ import (
 func main() {
 	fmt.Println("Starting server")
 	pump := messaging.MessagePump{
-		Handler:    mioc.Handler(),
-		Connection: couchdb.DefaultConnection,
+		Handler: mioc.Handler(),
 	}
+	pump.DB = &couchdb.DefaultConnection
 	err := pump.Start(nil)
 	if err != nil {
 		slog.Error("Error starting pump", "err", err)

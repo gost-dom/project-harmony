@@ -2,7 +2,7 @@ package messaging
 
 import (
 	"context"
-	"harmony/internal/couchdb"
+	"harmony/internal/core/corerepo"
 	"harmony/internal/domain"
 	"harmony/internal/features/auth"
 	"log/slog"
@@ -30,7 +30,7 @@ func (h MessageHandler) ProcessDomainEvent(ctx context.Context, event domain.Eve
 }
 
 type MessagePump struct {
-	couchdb.Connection
+	corerepo.MessageSource
 	Handler MessageHandler
 }
 
@@ -39,7 +39,7 @@ func (h MessagePump) Start(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	ch, err := h.Connection.StartListener(ctx)
+	ch, err := h.MessageSource.StartListener(ctx)
 	if err != nil {
 		return err
 	}

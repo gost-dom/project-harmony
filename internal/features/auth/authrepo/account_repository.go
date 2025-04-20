@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"harmony/internal/core/corerepo"
 	"harmony/internal/couchdb"
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
@@ -50,7 +51,7 @@ func (r AccountRepository) insertEmailDoc(
 	ctx context.Context,
 	acc auth.AccountUseCaseResult,
 ) error {
-	doc := couchdb.DocumentWithEvents[accountEmailDoc]{
+	doc := corerepo.DocumentWithEvents[accountEmailDoc]{
 		Document: accountEmailDoc{acc.Entity.ID},
 		Events:   acc.Events,
 	}
@@ -98,7 +99,7 @@ func (r AccountRepository) Get(
 func (r AccountRepository) FindByEmail(ctx context.Context,
 	email string,
 ) (res authdomain.PasswordAuthentication, err error) {
-	var emailDoc couchdb.DocumentWithEvents[accountEmailDoc]
+	var emailDoc corerepo.DocumentWithEvents[accountEmailDoc]
 	var pwDoc accountPasswordDoc
 	_, err1 := r.Connection.Get(ctx, r.addrDocId(email), &emailDoc)
 	_, err2 := r.Connection.Get(ctx, passwordDocId(emailDoc.Document.AccountID), &pwDoc)
