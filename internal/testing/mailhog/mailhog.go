@@ -2,6 +2,7 @@ package mailhog
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -17,6 +18,9 @@ func DeleteAll() error {
 		return err
 	}
 	resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("mailhog: DeleteAll: bad status: %d", resp.StatusCode)
+	}
 	return nil
 }
 
@@ -39,6 +43,10 @@ func GetAll() ([]MailhogMessage, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("mailhog: GetAll: unexpected status: %d", resp.StatusCode)
+	}
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
