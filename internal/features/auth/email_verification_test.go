@@ -6,6 +6,7 @@ import (
 	"harmony/internal/domain"
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
+	"harmony/internal/messaging"
 	"harmony/internal/messaging/ioc"
 	"harmony/internal/testing/domaintest"
 	"harmony/internal/testing/mailhog"
@@ -33,6 +34,13 @@ func (r repo) Get(_ context.Context, id authdomain.AccountID) (authdomain.Accoun
 	return res, btoerr(found)
 }
 
+type domainEvt map[domain.EventID]domain.Event
+
+func (e domainEvt) Update(ctx context.Context, event domain.Event) error {
+	e[event.ID] = event
+	return nil
+}
+
 func TestSendEmailValidationChallenge(t *testing.T) {
 	assert.NoError(t, mailhog.DeleteAll())
 
@@ -43,7 +51,9 @@ func TestSendEmailValidationChallenge(t *testing.T) {
 	event := acc.StartEmailValidationChallenge()
 	assert.False(t, acc.Validated(), "guard: account should be an invalidated account")
 
+	domainEvents := domainEvt{}
 	graph := surgeon.Replace[auth.AccountLoader](ioc.Graph, repo{acc.ID: acc})
+	graph = surgeon.Replace[messaging.DomainEventUpdater](graph, domainEvents)
 	v := graph.Instance()
 
 	assert.NoError(t, v.ProcessDomainEvent(t.Context(), event))
@@ -52,6 +62,8 @@ func TestSendEmailValidationChallenge(t *testing.T) {
 	g.Expect(
 		mailhog.GetAll(),
 	).To(gomega.ContainElement(HaveHeader("To", MatchEmailAddress(acc.Email.Address.Address))))
+
+	assert.NotNil(t, domainEvents[event.ID].PublishedAt, "Domain event marked as published")
 }
 
 func MatchEmailAddress(expected string) types.GomegaMatcher {

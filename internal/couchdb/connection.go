@@ -102,7 +102,7 @@ const mapUnpublishedEvents = `function(doc) {
 }`
 
 const newEventFilter = `function(doc, req) {
-	return doc._id.startsWith("domain_event:")
+	return doc._id.startsWith("domain_event:") && !doc.published_at
 }`
 
 func updateEventsDesignDoc(doc *designDoc) {
@@ -198,7 +198,7 @@ func (c Connection) Changes(
 	u := c.dbURL.JoinPath("_changes")
 	q := u.Query()
 	q.Set("feed", "eventsource")
-	q.Set("since", "0") //"now")
+	q.Set("since", "0")
 	for _, o := range options {
 		o(&q)
 	}

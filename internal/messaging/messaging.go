@@ -9,14 +9,24 @@ import (
 	"time"
 )
 
+type DomainEventUpdater interface {
+	Update(context.Context, domain.Event) error
+}
+
 type MessageHandler struct {
-	Validator auth.EmailValidator
+	EventUpdater DomainEventUpdater
+	Validator    auth.EmailValidator
 }
 
 func (h MessageHandler) ProcessDomainEvent(ctx context.Context, event domain.Event) error {
+	var err error
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	return h.Validator.ProcessDomainEvent(ctx, event)
+	if err = h.Validator.ProcessDomainEvent(ctx, event); err == nil {
+		event.MarkPublished()
+		err = h.EventUpdater.Update(ctx, event)
+	}
+	return err
 }
 
 type MessagePump struct {
@@ -25,6 +35,7 @@ type MessagePump struct {
 }
 
 func (h MessagePump) Start(ctx context.Context) error {
+	slog.InfoContext(ctx, "Starting message pump")
 	if ctx == nil {
 		ctx = context.Background()
 	}
