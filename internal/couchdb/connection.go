@@ -113,7 +113,7 @@ func updateEventsDesignDoc(doc *designDoc) {
 func (c Connection) createViews(ctx context.Context) error {
 	var doc designDoc
 	rev, err := c.Get("_design/events", &doc)
-	if err == ErrNotFound {
+	if errors.Is(err, ErrNotFound) {
 		doc = designDoc{}
 		updateEventsDesignDoc(&doc)
 		_, err = c.Insert(ctx, "_design/events", doc)
@@ -499,7 +499,7 @@ func (c Connection) Update(
 	case 409:
 		err = ErrConflict
 	default:
-		err = fmt.Errorf("couchdb: unexpected http status code: %d", resp.StatusCode)
+		err = fmt.Errorf("couchdb: update %s: unexpected http status code: %d", id, resp.StatusCode)
 	}
 	return
 }
@@ -541,7 +541,7 @@ func init() {
 	couchURL := os.Getenv("COUCHDB_URL")
 	if couchURL == "" {
 		// Default local test DB
-		couchURL = "http://admin:password@localhost:5984/harmony"
+		couchURL = "http://admin:password@localhost:5984/harmony-test"
 	}
 	conn, err := NewCouchConnection(couchURL)
 	if err == nil {

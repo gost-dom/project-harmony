@@ -13,6 +13,7 @@ type Doc struct {
 }
 
 func TestDatabaseRoundtrip(t *testing.T) {
+	couchdb.AssertInitialized()
 	conn := couchdb.DefaultConnection
 	ctx := t.Context()
 

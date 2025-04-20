@@ -11,6 +11,7 @@ live/templ:
 
 # run air to detect any go file changes to re-build and re-run the server.
 live/server:
+	COUCHDB_URL=http://admin:password@localhost:5984/harmony \
 	go run github.com/cosmtrek/air@v1.51.0 \
 	--build.cmd "go build -o tmp/bin/main ./cmd/server" --build.bin "tmp/bin/main" --build.delay "100" \
 	--build.exclude_dir "node_modules" \
