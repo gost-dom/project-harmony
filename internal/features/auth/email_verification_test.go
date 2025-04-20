@@ -28,7 +28,7 @@ func btoerr(found bool) error {
 	return nil
 }
 
-func (r repo) GetAccount(_ context.Context, id authdomain.AccountID) (authdomain.Account, error) {
+func (r repo) Get(_ context.Context, id authdomain.AccountID) (authdomain.Account, error) {
 	res, found := r[id]
 	return res, btoerr(found)
 }

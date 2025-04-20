@@ -12,7 +12,7 @@ import (
 const host = "harmony.example.com"
 
 type AccountLoader interface {
-	GetAccount(context.Context, authdomain.AccountID) (authdomain.Account, error)
+	Get(context.Context, authdomain.AccountID) (authdomain.Account, error)
 }
 
 type EmailValidator struct {
@@ -25,7 +25,7 @@ func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event domain.Eve
 		// Not an event we want to handle
 		return nil
 	}
-	acc, err := v.Repository.GetAccount(ctx, req.AccountID)
+	acc, err := v.Repository.Get(ctx, req.AccountID)
 	if err == nil {
 		err = sendMessage(string(event.ID), acc)
 	}

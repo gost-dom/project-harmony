@@ -31,11 +31,11 @@ func TestAccountRoundtrip(t *testing.T) {
 	acc := domaintest.InitPasswordAuthAccount(domaintest.WithPassword("foobar"))
 	uc := auth.AccountUseCaseResult{Entity: acc}
 	assert.NoError(t, repo.Insert(t.Context(), uc))
-	reloaded, err := repo.Get(acc.ID)
+	reloaded, err := repo.Get(t.Context(), acc.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, acc.Account, reloaded)
 
-	foundByEmail, err := repo.FindByEmail(acc.Email.String())
+	foundByEmail, err := repo.FindByEmail(t.Context(), acc.Email.String())
 	assert.NoError(t, err, "Error finding by email")
 	assert.Equal(t, acc, foundByEmail, "Entity found by email")
 	assert.True(t, foundByEmail.Validate(password.Parse("foobar")), "Password validates")

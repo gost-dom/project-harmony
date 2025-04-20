@@ -198,7 +198,7 @@ func (c Connection) Changes(
 	u := c.dbURL.JoinPath("_changes")
 	q := u.Query()
 	q.Set("feed", "eventsource")
-	q.Set("since", "now")
+	q.Set("since", "0") //"now")
 	for _, o := range options {
 		o(&q)
 	}

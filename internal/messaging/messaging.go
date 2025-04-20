@@ -10,18 +10,18 @@ import (
 )
 
 type MessageHandler struct {
-	auth.EmailValidator
+	Validator auth.EmailValidator
 }
 
 func (h MessageHandler) ProcessDomainEvent(ctx context.Context, event domain.Event) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*100)
 	defer cancel()
-	return h.EmailValidator.ProcessDomainEvent(ctx, event)
+	return h.Validator.ProcessDomainEvent(ctx, event)
 }
 
 type MessagePump struct {
 	couchdb.Connection
-	Handler *MessageHandler
+	Handler MessageHandler
 }
 
 func (h MessagePump) Start(ctx context.Context) error {
