@@ -542,6 +542,7 @@ func AssertInitialized() {
 	}
 }
 
+// init initializes the DefaultConnection using the COUCHDB_URL environment variable or a default local test database. Logs an error if initialization fails.
 func init() {
 	couchURL := os.Getenv("COUCHDB_URL")
 	if couchURL == "" {

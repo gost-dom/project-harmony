@@ -10,6 +10,7 @@ import (
 
 var Graph *surgeon.Graph[messaging.MessageHandler]
 
+// init initializes the dependency injection graph for MessageHandler with required dependencies.
 func init() {
 	Graph = surgeon.BuildGraph(messaging.MessageHandler{})
 
@@ -18,4 +19,5 @@ func init() {
 	})
 }
 
+// Handler returns a fully initialized MessageHandler instance from the dependency injection graph.
 func Handler() messaging.MessageHandler { return Graph.Instance() }

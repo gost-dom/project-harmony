@@ -9,10 +9,12 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
+// NewAddress generates a random email address using a 20-character nanoid and the domain "@example.com".
 func NewAddress() string {
 	return fmt.Sprintf("%s@example.com", gonanoid.MustGenerate("abcdefghjklmnipqrstuvwxyz", 20))
 }
 
+// InitEmail creates an unvalidated email object using a randomly generated address for testing purposes. It panics if the generated address is invalid.
 func InitEmail() authdomain.Email {
 	addr, err := mail.ParseAddress(NewAddress())
 	must("domaintest: InitEmail", err)
@@ -26,6 +28,7 @@ func must(prefix string, err error) {
 	}
 }
 
+// WithEmail returns an InitAccountOption that sets the Account's email to the specified address, without validation. Panics if the email is invalid.
 func WithEmail(email string) InitAccountOption {
 	addr, err := mail.ParseAddress(email)
 	must("domaintest: WithEmail", err)
@@ -35,6 +38,7 @@ func WithEmail(email string) InitAccountOption {
 	}
 }
 
+// WithName returns an InitAccountOption that sets the Name field of an Account to the specified value.
 func WithName(name string) InitAccountOption {
 	return func(acc *authdomain.Account) {
 		acc.Name = name

@@ -54,6 +54,7 @@ type CouchHelper struct {
 	Connection couchdb.Connection
 }
 
+// NewCouchHelper creates a CouchHelper with the default CouchDB connection, applying any provided configuration options.
 func NewCouchHelper(opts ...couchOption) CouchHelper {
 	res := CouchHelper{Connection: couchdb.DefaultConnection}
 	for _, o := range opts {
@@ -95,6 +96,7 @@ func (h CouchHelper) DeleteAllDocs(ctx context.Context) {
 	}
 }
 
+// init initializes the package by asserting CouchDB is ready and clearing all documents from the default database.
 func init() {
 	couchdb.AssertInitialized()
 	NewCouchHelper(WithConnection(couchdb.DefaultConnection)).DeleteAllDocs(context.Background())

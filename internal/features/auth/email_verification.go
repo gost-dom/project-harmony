@@ -35,6 +35,9 @@ func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event domain.Eve
 	return err
 }
 
+// sendMessage sends a verification email to the specified account's email address using the provided event ID.
+// The email includes a personalized greeting, a validation code, and a URL for manual verification.
+// Returns an error if the email could not be sent.
 func sendMessage(eventID string, acc authdomain.Account) error {
 	messageID := fmt.Sprintf("<%s@%s>", eventID, host)
 	receiver := acc.Email.Address // Yeah, net/mail.Address has an Address field

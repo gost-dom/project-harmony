@@ -10,6 +10,7 @@ import (
 
 var Graph *surgeon.Graph[*server.Server]
 
+// init initializes the dependency injection graph for the server, injecting an in-memory store and installing authentication dependencies.
 func init() {
 	Graph = surgeon.BuildGraph(server.New())
 	Graph.Inject(memstore.NewMemStore(
