@@ -44,10 +44,7 @@ func TestSendEmailValidationChallenge(t *testing.T) {
 	assert.False(t, acc.Validated(), "guard: account should be an invalidated account")
 
 	graph := surgeon.Replace[auth.AccountLoader](ioc.Graph, repo{acc.ID: acc})
-	// ioc.Graph.Inject()
 	v := graph.Instance()
-
-	// v := auth.EmailValidator{Repository: repo{acc.ID: acc}}
 
 	assert.NoError(t, v.ProcessDomainEvent(t.Context(), event))
 

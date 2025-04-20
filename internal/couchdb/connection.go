@@ -306,6 +306,7 @@ func (c Connection) processUnpublishedDomainEvents(
 func (c Connection) StartListener(
 	ctx context.Context,
 ) (ch <-chan domain.Event, err error) {
+	slog.InfoContext(ctx, "couchdb: Connection.StartListener")
 	err1 := c.processNewDomainEvents(ctx)
 	ch, err2 := c.processUnpublishedDomainEvents(ctx)
 	err = errors.Join(err1, err2)

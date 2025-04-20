@@ -11,3 +11,5 @@ var Graph *surgeon.Graph[*messaging.MessageHandler]
 func init() {
 	Graph = surgeon.BuildGraph(&messaging.MessageHandler{})
 }
+
+func Handler() *messaging.MessageHandler { return Graph.Instance() }

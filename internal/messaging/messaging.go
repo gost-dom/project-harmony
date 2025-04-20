@@ -21,10 +21,10 @@ func (h MessageHandler) ProcessDomainEvent(ctx context.Context, event domain.Eve
 
 type MessagePump struct {
 	couchdb.Connection
-	Handler MessageHandler
+	Handler *MessageHandler
 }
 
-func (h MessagePump) StartProcessing(ctx context.Context) error {
+func (h MessagePump) Start(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
