@@ -29,6 +29,9 @@ func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event domain.Eve
 	if err == nil {
 		err = sendMessage(string(event.ID), acc)
 	}
+	if err != nil {
+		err = fmt.Errorf("auth: ProcessDomainEvent: %w", err)
+	}
 	return err
 }
 
