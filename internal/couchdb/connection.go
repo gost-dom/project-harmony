@@ -412,10 +412,6 @@ func (c Connection) Get(ctx context.Context, id string, doc any) (rev string, er
 	if resp, err = c.req(ctx, "GET", c.docURL(id), nil, nil); err != nil {
 		return
 	}
-	// var resp *http.Response
-	// if resp, err = http.Get(c.docURL(id)); err != nil {
-	// 	return
-	// }
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case 200:
