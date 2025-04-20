@@ -6,11 +6,13 @@ import (
 	"harmony/internal/domain"
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
+	"harmony/internal/messaging/ioc"
 	"harmony/internal/testing/domaintest"
 	"harmony/internal/testing/mailhog"
 	"net/mail"
 	"testing"
 
+	"github.com/gost-dom/surgeon"
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gcustom"
 	"github.com/onsi/gomega/types"
@@ -41,7 +43,11 @@ func TestSendEmailValidationChallenge(t *testing.T) {
 	event := acc.StartEmailValidationChallenge()
 	assert.False(t, acc.Validated(), "guard: account should be an invalidated account")
 
-	v := auth.EmailValidator{Repository: repo{acc.ID: acc}}
+	graph := surgeon.Replace[auth.AccountLoader](ioc.Graph, repo{acc.ID: acc})
+	// ioc.Graph.Inject()
+	v := graph.Instance()
+
+	// v := auth.EmailValidator{Repository: repo{acc.ID: acc}}
 
 	assert.NoError(t, v.ProcessDomainEvent(t.Context(), event))
 
