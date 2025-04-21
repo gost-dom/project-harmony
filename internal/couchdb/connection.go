@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"reflect"
 
 	"github.com/lampctl/go-sse"
 )
@@ -98,10 +99,8 @@ const aggregateEventsFilter = `function(doc, req) {
 	return doc.events && doc.events.length
 }`
 
-const newEventFilter = `function(doc) {
-	if (doc._id.startsWith("domain_event:") && !doc.published_at) {
-		emit(doc.id, doc.id)
-	}
+const newEventFilter = `function(doc, req) {
+	return doc._id.startsWith("domain_event:") && !doc.published_at
 }`
 
 func updateEventsDesignDoc(doc *designDoc) {
@@ -111,15 +110,19 @@ func updateEventsDesignDoc(doc *designDoc) {
 
 func (c Connection) createViews(ctx context.Context) error {
 	var doc designDoc
-	rev, err := c.Get(ctx, "_design/events", &doc)
+	updateEventsDesignDoc(&doc)
+	return c.SetDesignDoc(ctx, "events", doc)
+}
+
+func (c Connection) SetDesignDoc(ctx context.Context, id string, doc designDoc) error {
+	var existing designDoc
+	path := fmt.Sprintf("_design/%s", id)
+	rev, err := c.Get(ctx, path, &existing)
 	if errors.Is(err, ErrNotFound) {
-		doc = designDoc{}
-		updateEventsDesignDoc(&doc)
-		_, err = c.Insert(ctx, "_design/events", doc)
+		_, err = c.Insert(ctx, path, doc)
 	} else {
-		updateEventsDesignDoc(&doc)
-		if doc.updated {
-			_, err = c.Update(ctx, "_design/events", rev, doc)
+		if !reflect.DeepEqual(doc, existing) {
+			_, err = c.Update(ctx, path, rev, doc)
 		}
 	}
 	return err
