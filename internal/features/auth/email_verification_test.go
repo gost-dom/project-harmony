@@ -88,7 +88,6 @@ func TestIntegrationSendEmailValidationChallenge(t *testing.T) {
 	event2, err = corerepo.DefaultDomainEventRepo.Insert(ctx, event2)
 	assert.NoError(t, err)
 	graph := surgeon.Replace[auth.AccountLoader](ioc.Graph, repo{acc1.ID: acc1})
-	graph = surgeon.Replace[messaging.DomainEventUpdater](graph, corerepo.DefaultDomainEventRepo)
 	v := graph.Instance()
 
 	assert.NoError(t, v.ProcessDomainEvent(t.Context(), event1))
