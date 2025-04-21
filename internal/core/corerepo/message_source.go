@@ -36,7 +36,7 @@ func (c MessageSource) StartListener(
 func (c MessageSource) processNewDomainEvents(ctx context.Context) (err error) {
 	ch, err := c.DB.Changes(
 		ctx,
-		couchdb.ChangeOptViewFilter("events", "unpublished_events"),
+		couchdb.ChangeOptFilter("events", "aggregate_events"),
 		couchdb.ChangeOptIncludeDocs(),
 	)
 	if err != nil {
@@ -75,7 +75,7 @@ func (c MessageSource) processUnpublishedDomainEvents(
 ) (<-chan domain.Event, error) {
 	ch, err := c.DB.Changes(
 		ctx,
-		couchdb.ChangeOptFilter("events", "domain_events"),
+		couchdb.ChangeOptFilter("events", "unpublished_domain_events"),
 		couchdb.ChangeOptIncludeDocs(),
 	)
 	if err != nil {

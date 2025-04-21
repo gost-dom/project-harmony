@@ -61,7 +61,7 @@ type views map[string]view
 type filters map[string]string
 
 type designDoc struct {
-	Views   views   `json:"views"`
+	Views   views   `json:"views,omitempty"`
 	Filters filters `json:"filters"`
 	updated bool    `json:"-"`
 }
@@ -92,21 +92,21 @@ func (d *designDoc) setFilter(name, fn string) {
 	}
 }
 
-const mapUnpublishedEvents = `function(doc) { 
-	if (doc.events) { 
-		for (const e of doc.events) { 
-			emit(e.id, e) 
-		} 
-	} 
+// aggregateEventsFilter retrieves domain events stored with aggregate entities in
+// couchdb.
+const aggregateEventsFilter = `function(doc, req) { 
+	return doc.events && doc.events.length
 }`
 
-const newEventFilter = `function(doc, req) {
-	return doc._id.startsWith("domain_event:") && !doc.published_at
+const newEventFilter = `function(doc) {
+	if (doc._id.startsWith("domain_event:") && !doc.published_at) {
+		emit(doc.id, doc.id)
+	}
 }`
 
 func updateEventsDesignDoc(doc *designDoc) {
-	doc.setView("unpublished_events", mapUnpublishedEvents)
-	doc.setFilter("domain_events", newEventFilter)
+	doc.setFilter("aggregate_events", aggregateEventsFilter)
+	doc.setFilter("unpublished_domain_events", newEventFilter)
 }
 
 func (c Connection) createViews(ctx context.Context) error {
