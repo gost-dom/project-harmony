@@ -45,6 +45,9 @@ func (h MessagePump) Start(ctx context.Context) error {
 		return err
 	}
 	ch, err := h.DomainEventRepository.StreamOfEvents(ctx)
+	if err != nil {
+		return err
+	}
 	go func() {
 		for event := range ch {
 			if err := h.Handler.ProcessDomainEvent(ctx, event); err != nil {
