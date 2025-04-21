@@ -69,6 +69,7 @@ func (t TimeoutTest) Run() {
 }
 
 func (t TimeoutTest) RunWithErrorf(format string, args ...any) {
+	t.t.Helper()
 	ctx, cancel := context.WithTimeout(t.t.Context(), time.Second)
 
 	go func() {
@@ -87,8 +88,7 @@ func TestInsertDomainEvents(t *testing.T) {
 	withTimeout(t, func(ctx context.Context) {
 		repo := initRepository()
 		coreRepo := corerepo.DefaultMessageSource
-		ch, err := coreRepo.StartListener(ctx)
-		assert.NoError(t, err)
+		assert.NoError(t, coreRepo.StartListener(ctx))
 
 		// Insert an entity with two domain events
 		acc := auth.UseCaseOfEntity(domaintest.InitPasswordAuthAccount())
@@ -98,9 +98,13 @@ func TestInsertDomainEvents(t *testing.T) {
 		acc.AddEvent(event2)
 		assert.NoError(t, repo.Insert(ctx, acc))
 
+		ch, err := corerepo.DefaultDomainEventRepo.StreamOfEvents(ctx)
+		assert.NoError(t, err)
+
 		// Wait for the domain events to appear. Ignore other events,
 		expected := []domain.Event{event1, event2}
 		for e := range ch {
+			e.Rev = ""
 			if reflect.DeepEqual(e, event1) || reflect.DeepEqual(e, event2) {
 				actual = append(actual, e)
 			}

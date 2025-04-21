@@ -23,12 +23,9 @@ type DocumentWithEvents[T any] struct {
 
 func (c MessageSource) StartListener(
 	ctx context.Context,
-) (ch <-chan domain.Event, err error) {
+) (err error) {
 	slog.InfoContext(ctx, "corerepo: Connection.StartListener")
-	err1 := c.processNewDomainEvents(ctx)
-	ch, err2 := c.processUnpublishedDomainEvents(ctx)
-	err = errors.Join(err1, err2)
-	return
+	return c.processNewDomainEvents(ctx)
 }
 
 // processNewDomainEvents collects domain events from entity documents, and
@@ -56,7 +53,6 @@ func (c MessageSource) processNewEntity(
 ) {
 	for _, domainEvent := range doc.Events {
 		_, err := c.DomainEventRepository.Insert(ctx, domainEvent)
-		// _, err := c.DB.Insert(ctx, "domain_event:"+string(domainEvent.ID), domainEvent)
 		if err != nil && !errors.Is(err, couchdb.ErrConflict) {
 			slog.ErrorContext(ctx, "corerepo: insert domain event", "err", err)
 			return
@@ -68,20 +64,6 @@ func (c MessageSource) processNewEntity(
 		slog.ErrorContext(ctx, "corerepo: process event", "err", err)
 		return
 	}
-}
-
-func (c MessageSource) processUnpublishedDomainEvents(
-	ctx context.Context,
-) (<-chan domain.Event, error) {
-	ch, err := c.DB.Changes(
-		ctx,
-		couchdb.ChangeOptFilter("events", "unpublished_domain_events"),
-		couchdb.ChangeOptIncludeDocs(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return domainEventsOfChangeEvents(ctx, ch), nil
 }
 
 func getNewEntityEvents(
@@ -102,27 +84,4 @@ func getNewEntityEvents(
 		}
 	}()
 	return res
-}
-
-// domainEventsOfChangeEvents takes a channel of CouchDB change events, assumed
-// to contain new domain event documents, and transforms it to a channel of
-// [domain.Event]
-func domainEventsOfChangeEvents(
-	ctx context.Context,
-	ch <-chan couchdb.ChangeEvent,
-) <-chan domain.Event {
-	cha := make(chan domain.Event)
-	go func() {
-		defer close(cha)
-		for changeEvent := range ch {
-			var ev domain.Event
-			err := json.Unmarshal(changeEvent.Doc, &ev)
-			if err != nil {
-				slog.ErrorContext(ctx, "corerepo: process event", "err", err)
-				continue
-			}
-			cha <- ev
-		}
-	}()
-	return cha
 }

@@ -82,7 +82,6 @@ func (c Connection) createViews(ctx context.Context) error {
 			"unpublished_domain_events": newEventFilter,
 		},
 	}
-	// updateEventsDesignDoc(&doc)
 	return c.SetDesignDoc(ctx, "events", doc)
 }
 
@@ -146,6 +145,7 @@ func getChangeEvents(ctx context.Context, ch <-chan *sse.Event) <-chan ChangeEve
 			if e.Data != "" {
 				var cev ChangeEvent
 				err := json.Unmarshal([]byte(e.Data), &cev)
+				// slog.InfoContext(ctx, "couchdb: process event", "event", e.Data)
 				if err != nil {
 					slog.ErrorContext(ctx, "couchdb: process event", "err", err, "event", e.Data)
 					continue
@@ -245,7 +245,11 @@ func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string,
 
 	switch resp.StatusCode {
 	case 201:
-		rev = resp.Header.Get("Etag")
+		etag := resp.Header.Get("Etag")
+		err = json.Unmarshal([]byte(etag), &rev)
+		if err != nil {
+			err = fmt.Errorf("couchdb: Insert: unable to parse etag \"%s\" : %w", etag, err)
+		}
 	case 409:
 		err = ErrConflict
 	default:

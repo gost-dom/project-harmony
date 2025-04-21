@@ -10,7 +10,7 @@ import (
 )
 
 type DomainEventUpdater interface {
-	Update(context.Context, domain.Event) error
+	Update(context.Context, domain.Event) (domain.Event, error)
 }
 
 type MessageHandler struct {
@@ -24,13 +24,14 @@ func (h MessageHandler) ProcessDomainEvent(ctx context.Context, event domain.Eve
 	defer cancel()
 	if err = h.Validator.ProcessDomainEvent(ctx, event); err == nil {
 		event.MarkPublished()
-		err = h.EventUpdater.Update(ctx, event)
+		_, err = h.EventUpdater.Update(ctx, event)
 	}
 	return err
 }
 
 type MessagePump struct {
 	corerepo.MessageSource
+	corerepo.DomainEventRepository
 	Handler MessageHandler
 }
 
@@ -39,10 +40,11 @@ func (h MessagePump) Start(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	ch, err := h.MessageSource.StartListener(ctx)
+	err := h.MessageSource.StartListener(ctx)
 	if err != nil {
 		return err
 	}
+	ch, err := h.DomainEventRepository.StreamOfEvents(ctx)
 	go func() {
 		for event := range ch {
 			if err := h.Handler.ProcessDomainEvent(ctx, event); err != nil {
