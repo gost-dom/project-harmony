@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"harmony/internal/couchdb"
+	"harmony/internal/core/corerepo"
 	"harmony/internal/messaging"
 	mioc "harmony/internal/messaging/ioc"
 	"harmony/internal/server/ioc"
@@ -13,8 +13,9 @@ import (
 func main() {
 	fmt.Println("Starting server")
 	pump := messaging.MessagePump{
-		Handler:    mioc.Handler(),
-		Connection: couchdb.DefaultConnection,
+		MessageSource:         corerepo.DefaultMessageSource,
+		DomainEventRepository: corerepo.DefaultDomainEventRepo,
+		Handler:               mioc.Handler(),
 	}
 	err := pump.Start(nil)
 	if err != nil {

@@ -18,6 +18,7 @@ type EventBody any
 
 type Event struct {
 	ID          EventID    `json:"id"`
+	Rev         string     `json:"-"`
 	CreatedAt   time.Time  `json:"created_at"`
 	PublishedAt *time.Time `json:"published_at"`
 	Body        EventBody
@@ -56,6 +57,7 @@ func (e Event) MarshalJSON() ([]byte, error) {
 
 type eventJSON struct {
 	ID          EventID    `json:"id"`
+	Rev         string     `json:"_rev,omitempty"`
 	CreatedAt   time.Time  `json:"created_at"`
 	PublishedAt *time.Time `json:"published_at"`
 	Type        string     `json:"type"`
@@ -79,6 +81,7 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	e.ID = rawEvent.ID
+	e.Rev = rawEvent.Rev
 	e.PublishedAt = rawEvent.PublishedAt
 	e.CreatedAt = rawEvent.CreatedAt
 	e.Body = EventBody(body.Elem().Interface())

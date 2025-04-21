@@ -6,16 +6,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"harmony/internal/domain"
 	"io"
 	"log/slog"
 	"maps"
 	"net/http"
 	"net/url"
 	"os"
+	"reflect"
 
 	"github.com/lampctl/go-sse"
 )
+
+const DEFAULT_EVENT_BUFFER_SIZE = 4
 
 // Connection provides basic functionality to use CouchDB. A single instance is
 // safe to use from multiple goroutines.
@@ -52,75 +54,48 @@ func (c Connection) createDB(ctx context.Context) error {
 	}
 }
 
-type view struct {
-	Map      string `json:"map,omitempty"`
-	Reduce   string `json:"reduce,omitempty"`
-	ReReduce string `json:"rereduce,omitempty"`
+type View struct {
+	Map    string `json:"map,omitempty"`
+	Reduce string `json:"reduce,omitempty"`
 }
 
-type views map[string]view
-type filters map[string]string
+type Views map[string]View
+type Filters map[string]string
 
 type designDoc struct {
-	Views   views   `json:"views"`
-	Filters filters `json:"filters"`
-	updated bool    `json:"-"`
+	Views   Views   `json:"views,omitempty"`
+	Filters Filters `json:"filters"`
 }
 
-func (d *designDoc) setView(name, mapFn string) {
-	if d.Views == nil {
-		d.Views = make(views)
-	}
-	view, ok := d.Views[name]
-	if ok {
-		if view.Map == mapFn {
-			return
-		}
-	}
-
-	view.Map = mapFn
-	d.Views[name] = view
-	d.updated = true
-}
-
-func (d *designDoc) setFilter(name, fn string) {
-	if d.Filters == nil {
-		d.Filters = make(filters)
-	}
-	if filter, ok := d.Filters[name]; !ok || filter != fn {
-		d.Filters[name] = fn
-		d.updated = true
-	}
-}
-
-const mapUnpublishedEvents = `function(doc) { 
-	if (doc.events) { 
-		for (const e of doc.events) { 
-			emit(e.id, e) 
-		} 
-	} 
+// aggregateEventsFilter retrieves domain events stored with aggregate entities in
+// couchdb.
+const aggregateEventsFilter = `function(doc, req) { 
+	return doc.events && doc.events.length
 }`
 
 const newEventFilter = `function(doc, req) {
 	return doc._id.startsWith("domain_event:") && !doc.published_at
 }`
 
-func updateEventsDesignDoc(doc *designDoc) {
-	doc.setView("unpublished_events", mapUnpublishedEvents)
-	doc.setFilter("domain_events", newEventFilter)
+func (c Connection) createViews(ctx context.Context) error {
+	var doc designDoc = designDoc{
+		Filters: Filters{
+			"aggregate_events":          aggregateEventsFilter,
+			"unpublished_domain_events": newEventFilter,
+		},
+	}
+	return c.SetDesignDoc(ctx, "events", doc)
 }
 
-func (c Connection) createViews(ctx context.Context) error {
-	var doc designDoc
-	rev, err := c.Get(ctx, "_design/events", &doc)
+func (c Connection) SetDesignDoc(ctx context.Context, id string, doc designDoc) error {
+	var existing designDoc
+	path := fmt.Sprintf("_design/%s", id)
+	rev, err := c.Get(ctx, path, &existing)
 	if errors.Is(err, ErrNotFound) {
-		doc = designDoc{}
-		updateEventsDesignDoc(&doc)
-		_, err = c.Insert(ctx, "_design/events", doc)
+		_, err = c.Insert(ctx, path, doc)
 	} else {
-		updateEventsDesignDoc(&doc)
-		if doc.updated {
-			_, err = c.Update(ctx, "_design/events", rev, doc)
+		if !reflect.DeepEqual(doc, existing) {
+			_, err = c.Update(ctx, path, rev, doc)
 		}
 	}
 	return err
@@ -138,13 +113,6 @@ type ChangeEvent struct {
 	ID      string            `json:"id"`
 	Changes []json.RawMessage `json:"changes"`
 	Doc     json.RawMessage   `json:"doc,omitempty"` // Included if include_docs options is used
-}
-
-type DocumentWithEvents[T any] struct {
-	ID       string         `json:"_id,omitempty"`
-	Rev      string         `json:"_rev,omitempty"`
-	Document T              `json:"doc"`
-	Events   []domain.Event `json:"events,omitempty"`
 }
 
 type changeOption func(*url.Values)
@@ -171,7 +139,7 @@ func ChangeOptIncludeDocs() changeOption {
 }
 
 func getChangeEvents(ctx context.Context, ch <-chan *sse.Event) <-chan ChangeEvent {
-	res := make(chan ChangeEvent)
+	res := make(chan ChangeEvent, 4)
 	go func() {
 		defer close(res)
 		for e := range ch {
@@ -179,11 +147,16 @@ func getChangeEvents(ctx context.Context, ch <-chan *sse.Event) <-chan ChangeEve
 			if e.Data != "" {
 				var cev ChangeEvent
 				err := json.Unmarshal([]byte(e.Data), &cev)
+				// slog.InfoContext(ctx, "couchdb: process event", "event", e.Data)
 				if err != nil {
 					slog.ErrorContext(ctx, "couchdb: process event", "err", err, "event", e.Data)
 					continue
 				}
-				res <- cev
+				select {
+				case res <- cev:
+				case <-ctx.Done():
+					return
+				}
 			}
 		}
 	}()
@@ -214,103 +187,6 @@ func (c Connection) Changes(
 		conn.Close()
 	}()
 	return getChangeEvents(ctx, conn.Events), nil
-}
-
-func getNewEntityEvents(
-	ctx context.Context,
-	ch <-chan ChangeEvent,
-) <-chan DocumentWithEvents[json.RawMessage] {
-	res := make(chan DocumentWithEvents[json.RawMessage])
-	go func() {
-		defer close(res)
-		for changeEvent := range ch {
-			var doc DocumentWithEvents[json.RawMessage]
-			err := json.Unmarshal(changeEvent.Doc, &doc)
-			if err != nil {
-				slog.ErrorContext(ctx, "couchdb: process event document", "err", err)
-				continue
-			}
-			res <- doc
-		}
-	}()
-	return res
-}
-
-func (c Connection) processNewEntity(ctx context.Context, doc DocumentWithEvents[json.RawMessage]) {
-	for _, domainEvent := range doc.Events {
-		_, err := c.Insert(ctx, "domain_event:"+string(domainEvent.ID), domainEvent)
-		if err != nil && !errors.Is(err, ErrConflict) {
-			slog.ErrorContext(ctx, "couchdb: insert domain event", "err", err)
-			return
-		}
-	}
-	doc.Events = nil
-	_, err := c.Update(ctx, doc.ID, doc.Rev, doc)
-	if err != nil {
-		slog.ErrorContext(ctx, "couchdb: process event", "err", err)
-		return
-	}
-}
-
-func (c Connection) processNewDomainEvents(ctx context.Context) (err error) {
-	ch, err := c.Changes(
-		ctx,
-		ChangeOptViewFilter("events", "unpublished_events"),
-		ChangeOptIncludeDocs(),
-	)
-	if err != nil {
-		return
-	}
-	go func() {
-		for doc := range getNewEntityEvents(ctx, ch) {
-			c.processNewEntity(ctx, doc)
-		}
-	}()
-	return nil
-}
-
-// domainEventsOfChangeEvents takes a channel of CouchDB change events, assumed
-// to contain new domain event documents, and transforms it to a channel of
-// [domain.Event]
-func domainEventsOfChangeEvents(ctx context.Context, ch <-chan ChangeEvent) <-chan domain.Event {
-	cha := make(chan domain.Event)
-	go func() {
-		defer close(cha)
-		for changeEvent := range ch {
-			var ev domain.Event
-			err := json.Unmarshal(changeEvent.Doc, &ev)
-			if err != nil {
-				slog.ErrorContext(ctx, "couchdb: process event", "err", err)
-				continue
-			}
-			cha <- ev
-		}
-	}()
-	return cha
-}
-
-func (c Connection) processUnpublishedDomainEvents(
-	ctx context.Context,
-) (<-chan domain.Event, error) {
-	ch, err := c.Changes(
-		ctx,
-		ChangeOptFilter("events", "domain_events"),
-		ChangeOptIncludeDocs(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return domainEventsOfChangeEvents(ctx, ch), nil
-}
-
-func (c Connection) StartListener(
-	ctx context.Context,
-) (ch <-chan domain.Event, err error) {
-	slog.InfoContext(ctx, "couchdb: Connection.StartListener")
-	err1 := c.processNewDomainEvents(ctx)
-	ch, err2 := c.processUnpublishedDomainEvents(ctx)
-	err = errors.Join(err1, err2)
-	return
 }
 
 // Bootstrap creates the database, as well as updates any design documents, such
@@ -375,7 +251,11 @@ func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string,
 
 	switch resp.StatusCode {
 	case 201:
-		rev = resp.Header.Get("Etag")
+		etag := resp.Header.Get("Etag")
+		err = json.Unmarshal([]byte(etag), &rev)
+		if err != nil {
+			err = fmt.Errorf("couchdb: Insert: unable to parse etag \"%s\" : %w", etag, err)
+		}
 	case 409:
 		err = ErrConflict
 	default:

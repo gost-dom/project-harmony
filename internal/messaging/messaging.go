@@ -2,7 +2,7 @@ package messaging
 
 import (
 	"context"
-	"harmony/internal/couchdb"
+	"harmony/internal/core/corerepo"
 	"harmony/internal/domain"
 	"harmony/internal/features/auth"
 	"log/slog"
@@ -10,7 +10,7 @@ import (
 )
 
 type DomainEventUpdater interface {
-	Update(context.Context, domain.Event) error
+	Update(context.Context, domain.Event) (domain.Event, error)
 }
 
 type MessageHandler struct {
@@ -24,13 +24,14 @@ func (h MessageHandler) ProcessDomainEvent(ctx context.Context, event domain.Eve
 	defer cancel()
 	if err = h.Validator.ProcessDomainEvent(ctx, event); err == nil {
 		event.MarkPublished()
-		err = h.EventUpdater.Update(ctx, event)
+		_, err = h.EventUpdater.Update(ctx, event)
 	}
 	return err
 }
 
 type MessagePump struct {
-	couchdb.Connection
+	corerepo.MessageSource
+	corerepo.DomainEventRepository
 	Handler MessageHandler
 }
 
@@ -39,7 +40,11 @@ func (h MessagePump) Start(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	ch, err := h.Connection.StartListener(ctx)
+	err := h.MessageSource.StartListener(ctx)
+	if err != nil {
+		return err
+	}
+	ch, err := h.DomainEventRepository.StreamOfEvents(ctx)
 	if err != nil {
 		return err
 	}
