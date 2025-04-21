@@ -17,6 +17,8 @@ import (
 	"github.com/lampctl/go-sse"
 )
 
+const DEFAULT_EVENT_BUFFER_SIZE = 4
+
 // Connection provides basic functionality to use CouchDB. A single instance is
 // safe to use from multiple goroutines.
 type Connection struct {
@@ -137,7 +139,7 @@ func ChangeOptIncludeDocs() changeOption {
 }
 
 func getChangeEvents(ctx context.Context, ch <-chan *sse.Event) <-chan ChangeEvent {
-	res := make(chan ChangeEvent)
+	res := make(chan ChangeEvent, 4)
 	go func() {
 		defer close(res)
 		for e := range ch {
@@ -150,7 +152,11 @@ func getChangeEvents(ctx context.Context, ch <-chan *sse.Event) <-chan ChangeEve
 					slog.ErrorContext(ctx, "couchdb: process event", "err", err, "event", e.Data)
 					continue
 				}
-				res <- cev
+				select {
+				case res <- cev:
+				case <-ctx.Done():
+					return
+				}
 			}
 		}
 	}()

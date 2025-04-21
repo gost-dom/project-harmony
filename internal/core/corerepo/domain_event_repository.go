@@ -49,7 +49,7 @@ func domainEventsOfChangeEvents(
 	ctx context.Context,
 	ch <-chan couchdb.ChangeEvent,
 ) <-chan domain.Event {
-	cha := make(chan domain.Event)
+	cha := make(chan domain.Event, couchdb.DEFAULT_EVENT_BUFFER_SIZE)
 	go func() {
 		defer close(cha)
 		for changeEvent := range ch {
@@ -59,7 +59,11 @@ func domainEventsOfChangeEvents(
 				slog.ErrorContext(ctx, "corerepo: process event", "err", err)
 				continue
 			}
-			cha <- ev
+			select {
+			case cha <- ev:
+			case <-ctx.Done():
+				return
+			}
 		}
 	}()
 	return cha
