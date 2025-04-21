@@ -52,45 +52,17 @@ func (c Connection) createDB(ctx context.Context) error {
 	}
 }
 
-type view struct {
-	Map      string `json:"map,omitempty"`
-	Reduce   string `json:"reduce,omitempty"`
-	ReReduce string `json:"rereduce,omitempty"`
+type View struct {
+	Map    string `json:"map,omitempty"`
+	Reduce string `json:"reduce,omitempty"`
 }
 
-type views map[string]view
-type filters map[string]string
+type Views map[string]View
+type Filters map[string]string
 
 type designDoc struct {
-	Views   views   `json:"views,omitempty"`
-	Filters filters `json:"filters"`
-	updated bool    `json:"-"`
-}
-
-func (d *designDoc) setView(name, mapFn string) {
-	if d.Views == nil {
-		d.Views = make(views)
-	}
-	view, ok := d.Views[name]
-	if ok {
-		if view.Map == mapFn {
-			return
-		}
-	}
-
-	view.Map = mapFn
-	d.Views[name] = view
-	d.updated = true
-}
-
-func (d *designDoc) setFilter(name, fn string) {
-	if d.Filters == nil {
-		d.Filters = make(filters)
-	}
-	if filter, ok := d.Filters[name]; !ok || filter != fn {
-		d.Filters[name] = fn
-		d.updated = true
-	}
+	Views   Views   `json:"views,omitempty"`
+	Filters Filters `json:"filters"`
 }
 
 // aggregateEventsFilter retrieves domain events stored with aggregate entities in
@@ -103,14 +75,14 @@ const newEventFilter = `function(doc, req) {
 	return doc._id.startsWith("domain_event:") && !doc.published_at
 }`
 
-func updateEventsDesignDoc(doc *designDoc) {
-	doc.setFilter("aggregate_events", aggregateEventsFilter)
-	doc.setFilter("unpublished_domain_events", newEventFilter)
-}
-
 func (c Connection) createViews(ctx context.Context) error {
-	var doc designDoc
-	updateEventsDesignDoc(&doc)
+	var doc designDoc = designDoc{
+		Filters: Filters{
+			"aggregate_events":          aggregateEventsFilter,
+			"unpublished_domain_events": newEventFilter,
+		},
+	}
+	// updateEventsDesignDoc(&doc)
 	return c.SetDesignDoc(ctx, "events", doc)
 }
 
