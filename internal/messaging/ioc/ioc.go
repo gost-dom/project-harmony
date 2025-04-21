@@ -1,6 +1,7 @@
 package ioc
 
 import (
+	"harmony/internal/core/corerepo"
 	"harmony/internal/couchdb"
 	"harmony/internal/features/auth/authrepo"
 	"harmony/internal/messaging"
@@ -11,11 +12,15 @@ import (
 var Graph *surgeon.Graph[messaging.MessageHandler]
 
 func init() {
-	Graph = surgeon.BuildGraph(messaging.MessageHandler{})
+	handler := messaging.NewMessageHandler()
+	// handler := messaging.MessageHandler{
+	// 	corerepo.DefaultDomainEventRepo,
+	// 	auth.EmailValidator{Repository: authrepo.DefaultAccountRepository},
+	// }
+	Graph = surgeon.BuildGraph(*handler) // messaging.MessageHandler{})
 
-	Graph.Inject(authrepo.AccountRepository{
-		Connection: couchdb.DefaultConnection,
-	})
+	Graph.Inject(authrepo.AccountRepository{Connection: couchdb.DefaultConnection})
+	Graph.Inject(corerepo.DefaultDomainEventRepo)
 }
 
 func Handler() messaging.MessageHandler { return Graph.Instance() }

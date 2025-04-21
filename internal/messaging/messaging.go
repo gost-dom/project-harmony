@@ -15,7 +15,14 @@ type DomainEventUpdater interface {
 
 type MessageHandler struct {
 	EventUpdater DomainEventUpdater
-	Validator    auth.EmailValidator
+	Validator    *auth.EmailValidator
+}
+
+func NewMessageHandler() *MessageHandler {
+	return &MessageHandler{
+		nil,
+		auth.NewEmailValidator(),
+	}
 }
 
 func (h MessageHandler) ProcessDomainEvent(ctx context.Context, event domain.Event) error {

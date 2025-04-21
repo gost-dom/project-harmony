@@ -2,6 +2,7 @@ package auth_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"harmony/internal/core/corerepo"
 	"harmony/internal/domain"
@@ -83,10 +84,10 @@ func TestIntegrationSendEmailValidationChallenge(t *testing.T) {
 	event1 := acc1.StartEmailValidationChallenge()
 	event2 := acc2.StartEmailValidationChallenge()
 
-	event1, err := corerepo.DefaultDomainEventRepo.Insert(ctx, event1)
-	assert.NoError(t, err)
-	event2, err = corerepo.DefaultDomainEventRepo.Insert(ctx, event2)
-	assert.NoError(t, err)
+	event1, err1 := corerepo.DefaultDomainEventRepo.Insert(ctx, event1)
+	event2, err2 := corerepo.DefaultDomainEventRepo.Insert(ctx, event2)
+	assert.NoError(t, errors.Join(err1, err2))
+
 	graph := surgeon.Replace[auth.AccountLoader](ioc.Graph, repo{acc1.ID: acc1})
 	v := graph.Instance()
 

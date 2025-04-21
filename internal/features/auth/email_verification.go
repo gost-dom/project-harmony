@@ -19,6 +19,8 @@ type EmailValidator struct {
 	Repository AccountLoader
 }
 
+func NewEmailValidator() *EmailValidator { return &EmailValidator{nil} }
+
 func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event domain.Event) error {
 	req, ok := event.Body.(authdomain.EmailValidationRequest)
 	if !ok {

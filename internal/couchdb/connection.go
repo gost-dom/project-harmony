@@ -73,6 +73,12 @@ const aggregateEventsFilter = `function(doc, req) {
 	return doc.events && doc.events.length
 }`
 
+const unpublished_domain_events = `function(doc) {
+	if (doc._id.startsWith("domain_event:") && !doc.published_at) {
+		emit(doc._id, doc._id)
+	}
+}`
+
 const newEventFilter = `function(doc, req) {
 	return doc._id.startsWith("domain_event:") && !doc.published_at
 }`
@@ -80,8 +86,11 @@ const newEventFilter = `function(doc, req) {
 func (c Connection) createViews(ctx context.Context) error {
 	var doc designDoc = designDoc{
 		Filters: Filters{
-			"aggregate_events":          aggregateEventsFilter,
-			"unpublished_domain_events": newEventFilter,
+			"aggregate_events": aggregateEventsFilter,
+			// "unpublished_domain_events": newEventFilter,
+		},
+		Views: Views{
+			"unpublished_domain_events": View{Map: unpublished_domain_events},
 		},
 	}
 	return c.SetDesignDoc(ctx, "events", doc)
@@ -139,10 +148,11 @@ func ChangeOptIncludeDocs() changeOption {
 }
 
 func getChangeEvents(ctx context.Context, ch <-chan *sse.Event) <-chan ChangeEvent {
-	res := make(chan ChangeEvent, 4)
+	res := make(chan ChangeEvent)
 	go func() {
 		defer close(res)
 		for e := range ch {
+			fmt.Println("Message!", e.Data)
 			// Ignore heartbeat events
 			if e.Data != "" {
 				var cev ChangeEvent
@@ -171,7 +181,7 @@ func (c Connection) Changes(
 	u := c.dbURL.JoinPath("_changes")
 	q := u.Query()
 	q.Set("feed", "eventsource")
-	q.Set("since", "0")
+	q.Set("since", "now")
 	for _, o := range options {
 		o(&q)
 	}
@@ -331,6 +341,9 @@ func (c Connection) GetPath(path string, q url.Values, doc any) (rev string, err
 		cd := couchDoc{}
 		if err = json.Unmarshal(bodyBytes, &cd); err == nil {
 			err = json.Unmarshal(bodyBytes, &doc)
+		}
+		if err != nil {
+			fmt.Println("DOC", string(bodyBytes))
 		}
 		rev = cd.Rev
 	case 404:

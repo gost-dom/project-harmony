@@ -41,6 +41,28 @@ type ViewRow[T any] struct {
 	Value T      `json:"value"`
 }
 
+type DocViewRow[T any] struct {
+	ID  string `json:"id"`
+	Key string `json:"key"`
+	Rev string `json:"rev"`
+	Doc T      `json:"doc"`
+}
+
+type DocsViewResult[T any] struct {
+	Offset    int             `json:"offset"`
+	Rows      []DocViewRow[T] `json:"rows"`
+	TotalRows int             `json:"total_rows"`
+}
+
+// Values return a []T containing the Value fields of each row.
+func (r DocsViewResult[T]) Docs() []T {
+	res := make([]T, len(r.Rows))
+	for i, r := range r.Rows {
+		res[i] = r.Doc
+	}
+	return res
+}
+
 type ViewResult[T any] struct {
 	Offset    int          `json:"offset"`
 	Rows      []ViewRow[T] `json:"rows"`
