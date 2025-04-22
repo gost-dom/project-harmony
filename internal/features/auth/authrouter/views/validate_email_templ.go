@@ -76,7 +76,11 @@ func validateEmailPageBody(form ValidateEmailForm) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-white rounded-lg shadow-md border md:mt-0 w-full sm:max-w-xl xl:p-0 dark:bg-gray-800 dark:border-gray-700\"><main class=\"p-6 space-y-4 md:space-y-6 sm:p-8\"><h1 class=\"text-center text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:text-white\">Validate Email</h1><form class=\"space-y-4 md:space-y-6\" hx-post=\".\" hx-swap=\"innerHTML\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-white rounded-lg shadow-md border md:mt-0 w-full sm:max-w-xl xl:p-0 dark:bg-gray-800 dark:border-gray-700\"><main class=\"p-6 space-y-4 md:space-y-6 sm:p-8\"><h1 class=\"text-center text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:text-white\">Validate Email</h1><form class=\"space-y-4 md:space-y-6\" hx-post=\"\" hx-swap=\"innerHTML\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = CSRFFields().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

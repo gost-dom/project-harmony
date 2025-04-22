@@ -22,9 +22,9 @@ func (_m *MockAccountEmailFinder) EXPECT() *MockAccountEmailFinder_Expecter {
 	return &MockAccountEmailFinder_Expecter{mock: &_m.Mock}
 }
 
-// FindByEmail provides a mock function with given fields: ctx, id
-func (_m *MockAccountEmailFinder) FindByEmail(ctx context.Context, id string) (authdomain.PasswordAuthentication, error) {
-	ret := _m.Called(ctx, id)
+// FindByEmail provides a mock function with given fields: ctx, email
+func (_m *MockAccountEmailFinder) FindByEmail(ctx context.Context, email string) (authdomain.PasswordAuthentication, error) {
+	ret := _m.Called(ctx, email)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindByEmail")
@@ -33,16 +33,16 @@ func (_m *MockAccountEmailFinder) FindByEmail(ctx context.Context, id string) (a
 	var r0 authdomain.PasswordAuthentication
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (authdomain.PasswordAuthentication, error)); ok {
-		return rf(ctx, id)
+		return rf(ctx, email)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) authdomain.PasswordAuthentication); ok {
-		r0 = rf(ctx, id)
+		r0 = rf(ctx, email)
 	} else {
 		r0 = ret.Get(0).(authdomain.PasswordAuthentication)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
+		r1 = rf(ctx, email)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -57,12 +57,12 @@ type MockAccountEmailFinder_FindByEmail_Call struct {
 
 // FindByEmail is a helper method to define mock.On call
 //   - ctx context.Context
-//   - id string
-func (_e *MockAccountEmailFinder_Expecter) FindByEmail(ctx interface{}, id interface{}) *MockAccountEmailFinder_FindByEmail_Call {
-	return &MockAccountEmailFinder_FindByEmail_Call{Call: _e.mock.On("FindByEmail", ctx, id)}
+//   - email string
+func (_e *MockAccountEmailFinder_Expecter) FindByEmail(ctx interface{}, email interface{}) *MockAccountEmailFinder_FindByEmail_Call {
+	return &MockAccountEmailFinder_FindByEmail_Call{Call: _e.mock.On("FindByEmail", ctx, email)}
 }
 
-func (_c *MockAccountEmailFinder_FindByEmail_Call) Run(run func(ctx context.Context, id string)) *MockAccountEmailFinder_FindByEmail_Call {
+func (_c *MockAccountEmailFinder_FindByEmail_Call) Run(run func(ctx context.Context, email string)) *MockAccountEmailFinder_FindByEmail_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})

@@ -16,6 +16,10 @@ type AccountUseCaseResult = UseCaseResult[domain.PasswordAuthentication]
 type AccountRepository interface {
 	Insert(context.Context, AccountUseCaseResult) error
 }
+type ValidateEmailInput struct {
+	Email *mail.Address
+	Code  authdomain.EmailValidationCode
+}
 
 type RegistratorInput struct {
 	Email            *mail.Address
