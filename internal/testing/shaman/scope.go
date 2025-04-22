@@ -61,11 +61,11 @@ func (o predicates) String() string {
 // Scope represents a subset of a page, and can be used to find elements withing
 // that scope.
 type Scope struct {
-	t         *testing.T
+	t         testing.TB
 	Container dom.ElementContainer
 }
 
-func NewScope(t *testing.T, c dom.ElementContainer) Scope {
+func NewScope(t testing.TB, c dom.ElementContainer) Scope {
 	return Scope{t: t, Container: c}
 }
 
@@ -144,6 +144,11 @@ func (s Scope) PasswordText(opts ...ElementPredicate) TextboxRole {
 // A helper to interact with "text boxes"
 type TextboxRole struct {
 	html.HTMLElement
+}
+
+func (tb TextboxRole) Value() string {
+	v, _ := tb.HTMLElement.GetAttribute("value")
+	return v
 }
 
 // Write is intended to simulate the user typing in. Currently it merely sets
