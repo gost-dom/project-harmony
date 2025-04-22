@@ -3,14 +3,14 @@ module harmony
 go 1.24
 
 require (
-	github.com/a-h/templ v0.3.833
+	github.com/a-h/templ v0.3.857
 	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/sessions v1.4.0
-	github.com/gost-dom/browser v0.5.5
+	github.com/gost-dom/browser v0.5.6
 	github.com/gost-dom/surgeon v0.0.0-20250415175503-9b7c0f1a8492
 	github.com/lampctl/go-sse v1.1.4
 	github.com/matoous/go-nanoid/v2 v2.1.0
-	github.com/onsi/gomega v1.36.2
+	github.com/onsi/gomega v1.37.0
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.37.0
