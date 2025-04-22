@@ -3,6 +3,7 @@ package authrouter
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/mail"
@@ -12,7 +13,6 @@ import (
 	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/features/auth/authrouter/views"
 
-	"github.com/a-h/templ"
 	"github.com/gorilla/schema"
 )
 
@@ -34,11 +34,16 @@ type Registrator interface {
 	Register(ctx context.Context, input auth.RegistratorInput) error
 }
 
+type EmailValidator interface {
+	Validate(ctx context.Context, input auth.ValidateEmailInput) error
+}
+
 type AuthRouter struct {
 	*http.ServeMux
 	Authenticator  Authenticator
 	Registrator    Registrator
 	SessionManager SessionManager
+	EmailValidator EmailValidator
 }
 
 func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
@@ -139,10 +144,24 @@ func (r *AuthRouter) Init() {
 		views.Register(views.RegisterFormData{}).Render(r.Context(), w)
 	})
 	r.HandleFunc("POST /register", r.PostRegister)
-	r.Handle(
-		"GET /validate-email",
-		templ.Handler(views.ValidateEmailPage(views.ValidateEmailForm{})),
+	r.HandleFunc("GET /validate-email",
+		func(w http.ResponseWriter, r *http.Request) {
+			views.ValidateEmailPage(views.ValidateEmailForm{
+				EmailAddress: r.URL.Query().Get("email"),
+			}).Render(r.Context(), w)
+		},
 	)
+	r.HandleFunc("POST /validate-email", r.postValidateEmail)
+}
+
+func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	email, _ := mail.ParseAddress(r.FormValue("email"))
+	code := r.FormValue("challenge-response")
+	fmt.Println("*** DATA", email, code)
+	router.EmailValidator.Validate(r.Context(),
+		auth.ValidateEmailInput{email, authdomain.EmailValidationCode(code)})
+	w.WriteHeader(200)
 }
 
 func (*AuthRouter) RenderLogin(w http.ResponseWriter, r *http.Request) {

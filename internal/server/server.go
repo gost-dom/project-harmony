@@ -17,6 +17,29 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
+type StatusRecorder struct {
+	http.ResponseWriter
+	Code int
+}
+
+func (r *StatusRecorder) WriteHeader(code int) {
+	r.ResponseWriter.WriteHeader(code)
+	r.Code = code
+}
+
+func log(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rec := &StatusRecorder{ResponseWriter: w}
+		fmt.Printf("HTTP Request. Method: %s - Path: %s\n", r.Method, r.URL.Path)
+		// slog.Info("HTTP Request",
+		// 	"method", r.Method,
+		// 	"path", r.URL.Path,
+		// )
+		h.ServeHTTP(rec, r)
+		fmt.Printf("HTTP Resp: %d\n", rec.Code)
+	})
+}
+
 func noCache(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("cache-control", "no-cache")
@@ -134,7 +157,7 @@ func (s *Server) Init() {
 		http.StripPrefix("/static", http.FileServer(
 			http.Dir(staticFilesPath()))),
 	)
-	s.Handler = noCache(CSRFProtection(mux))
+	s.Handler = log(noCache(CSRFProtection(mux)))
 }
 
 func NewAuthRouter() *AuthRouter {
