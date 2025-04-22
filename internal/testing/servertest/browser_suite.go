@@ -59,6 +59,13 @@ func (s *BrowserSuite) SetupTest() {
 	s.Ctx, s.CancelCtx = context.WithTimeout(s.T().Context(), time.Millisecond*100)
 }
 
+func (s *BrowserSuite) TearDownTest() {
+	s.CancelCtx()
+	s.Win = nil
+	s.Browser = nil
+	s.CookieJar = nil
+}
+
 func (s *BrowserSuite) OpenWindow(path string) html.Window {
 	if s.Win != nil {
 		panic("BrowserSuite: This suite does not support opening multiple windows pr. test case")
@@ -73,11 +80,4 @@ func (s *BrowserSuite) OpenWindow(path string) html.Window {
 	s.Win = win
 	s.Scope = shaman.NewScope(s.T(), s.Win.Document())
 	return win
-}
-
-func (s *BrowserSuite) TearDownTest() {
-	s.Win = nil
-	s.Browser = nil
-	s.CookieJar = nil
-	s.CancelCtx()
 }
