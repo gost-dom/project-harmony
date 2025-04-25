@@ -3,6 +3,7 @@ package authrouter
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/mail"
@@ -118,6 +119,12 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Header().Add("hx-push-url", redirectUrl)
+		w.Header().Add("hx-retarget", "body")
+		fmt.Println("*** Authenticated")
+		rewriter := r.Context().Value("rewriter").(http.Handler)
+		r.URL.Path = redirectUrl
+		r.Method = "GET"
+		rewriter.ServeHTTP(w, r)
 	} else {
 		authError := errors.Is(err, auth.ErrBadCredentials)
 		data := views.LoginFormData{
@@ -185,6 +192,6 @@ func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (*AuthRouter) RenderLogin(w http.ResponseWriter, r *http.Request) {
+func (*AuthRouter) RenderHost(w http.ResponseWriter, r *http.Request) {
 	views.Login("/host", views.LoginFormData{}).Render(r.Context(), w)
 }

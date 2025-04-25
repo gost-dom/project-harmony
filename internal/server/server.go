@@ -31,6 +31,7 @@ func log(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rec := &StatusRecorder{ResponseWriter: w}
 		fmt.Printf("HTTP Request. Method: %s - Path: %s\n", r.Method, r.URL.Path)
+		fmt.Println("Rewritten", r.Context().Value("rewritten"))
 		h.ServeHTTP(rec, r)
 		fmt.Printf("HTTP Resp: %d\n", rec.Code)
 	})
@@ -61,7 +62,7 @@ func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 	// Not authenticated; show login page
 	fmtNewLocation := fmt.Sprintf("/auth/login?redirectUrl=%s", url.QueryEscape("/host"))
 	w.Header().Add("hx-push-url", fmtNewLocation)
-	s.AuthRouter.RenderLogin(w, r)
+	s.AuthRouter.RenderHost(w, r)
 }
 
 func csrfCookieName(id string) string { return fmt.Sprintf("csrf-%s", id) }
@@ -82,6 +83,18 @@ func deleteCSRFCookie(id string, w http.ResponseWriter) {
 		MaxAge:   -1,
 		HttpOnly: true,
 		Secure:   true,
+	})
+}
+
+func rewriter(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var rewriter http.Handler = http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				r = r.WithContext(context.WithValue(r.Context(), "rewritten", true))
+				fmt.Println("***  Rewrite", r.URL)
+				h.ServeHTTP(w, r)
+			})
+		h.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), "rewriter", rewriter)))
 	})
 }
 
@@ -147,13 +160,15 @@ func (s *Server) Init() {
 	mux := http.NewServeMux()
 	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
 	mux.Handle("GET /{$}", templ.Handler(views.Index()))
-	mux.Handle("GET /host/{$}", http.HandlerFunc(s.GetHost))
+	mux.Handle("GET /host", http.HandlerFunc(s.GetHost))
+	mux.Handle("GET /host/", http.HandlerFunc(s.GetHost))
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(
 			http.Dir(staticFilesPath()))),
 	)
-	s.Handler = log(noCache(CSRFProtection(mux)))
+	s.Handler = rewriter(log(noCache(CSRFProtection(
+		mux))))
 }
 
 func NewAuthRouter() *AuthRouter {
