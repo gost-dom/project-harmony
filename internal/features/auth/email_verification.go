@@ -11,6 +11,14 @@ import (
 
 const host = "harmony.example.com"
 
+func (a *EmailValidator) Validate(
+	ctx context.Context,
+	input ValidateEmailInput,
+) (authdomain.AuthenticatedAccount, error) {
+	return authdomain.AuthenticatedAccount{}, ErrBadChallengeResponse
+
+}
+
 type AccountLoader interface {
 	Get(context.Context, authdomain.AccountID) (authdomain.Account, error)
 }

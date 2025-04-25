@@ -3,7 +3,6 @@ package authrouter
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/mail"
@@ -12,6 +11,7 @@ import (
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/features/auth/authrouter/views"
+	serverviews "harmony/internal/server/views"
 
 	"github.com/gorilla/schema"
 )
@@ -35,7 +35,10 @@ type Registrator interface {
 }
 
 type EmailValidator interface {
-	Validate(ctx context.Context, input auth.ValidateEmailInput) error
+	Validate(
+		ctx context.Context,
+		input auth.ValidateEmailInput,
+	) (authdomain.AuthenticatedAccount, error)
 }
 
 type AuthRouter struct {
@@ -158,10 +161,28 @@ func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Reque
 	r.ParseForm()
 	email, _ := mail.ParseAddress(r.FormValue("email"))
 	code := r.FormValue("challenge-response")
-	fmt.Println("*** DATA", email, code)
-	router.EmailValidator.Validate(r.Context(),
-		auth.ValidateEmailInput{email, authdomain.EmailValidationCode(code)})
-	w.WriteHeader(200)
+	account, err := router.EmailValidator.Validate(r.Context(),
+		auth.ValidateEmailInput{
+			Email: email,
+			Code:  authdomain.EmailValidationCode(code),
+		})
+	if err == nil {
+		if err := router.SessionManager.SetAccount(w, r, account); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Add("hx-push-url", "/host")
+		w.Header().Add("hx-retarget", "body")
+		serverviews.HostsPage().Render(r.Context(), w)
+
+		return
+	}
+	if errors.Is(err, auth.ErrBadChallengeResponse) {
+		views.ValidateEmailFormContent(views.ValidateEmailForm{
+			EmailAddress: r.FormValue("email"),
+			InvalidCode:  true,
+		}).Render(r.Context(), w)
+	}
 }
 
 func (*AuthRouter) RenderLogin(w http.ResponseWriter, r *http.Request) {

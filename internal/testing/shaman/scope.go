@@ -106,10 +106,11 @@ func (h Scope) FindAll(opts ...ElementPredicate) iter.Seq[dom.Element] {
 	}
 }
 
-// Get returns the element that matches the options. Exactly one element is
-// expected to exist in the dom mathing the options. If zero, or more than one
-// are found, a fatal error is generated.
-func (h Scope) Get(opts ...ElementPredicate) html.HTMLElement {
+// Find returns an element that matches the options. At most one element is
+// expected to exist in the dom mathing the options. If more than one
+// is found, a fatal error is generated.
+func (h Scope) Find(opts ...ElementPredicate) html.HTMLElement {
+	h.t.Helper()
 	next, stop := iter.Pull(h.FindAll(opts...))
 	defer stop()
 	if v, ok := next(); ok {
@@ -117,6 +118,17 @@ func (h Scope) Get(opts ...ElementPredicate) html.HTMLElement {
 			h.t.Fatalf("Multiple elements matching options: %s", predicates(opts))
 		}
 		return v.(html.HTMLElement)
+	}
+	return nil
+}
+
+// Get returns the element that matches the options. Exactly one element is
+// expected to exist in the dom mathing the options. If zero, or more than one
+// are found, a fatal error is generated.
+func (h Scope) Get(opts ...ElementPredicate) html.HTMLElement {
+	h.t.Helper()
+	if res := h.Find(opts...); res != nil {
+		return res
 	}
 	h.t.Fatalf("No elements mathing options: %s", predicates(opts))
 	return nil

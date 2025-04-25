@@ -45,6 +45,7 @@ func (s *NavigateToLoginSuite) TestLoginFlow() {
 	loginForm.SubmitBtn().Click()
 
 	s.Equal("/host", s.Win.Location().Pathname())
+	// s.Equal("Host", s.Get(ByH1).TextContent())
 }
 
 func TestNavigateToLogin(t *testing.T) {
