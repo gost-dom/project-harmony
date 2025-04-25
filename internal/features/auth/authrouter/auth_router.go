@@ -3,7 +3,6 @@ package authrouter
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/mail"
@@ -12,6 +11,7 @@ import (
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/features/auth/authrouter/views"
+	"harmony/internal/gosthttp"
 	serverviews "harmony/internal/server/views"
 
 	"github.com/gorilla/schema"
@@ -120,11 +120,7 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Add("hx-push-url", redirectUrl)
 		w.Header().Add("hx-retarget", "body")
-		fmt.Println("*** Authenticated")
-		rewriter := r.Context().Value("rewriter").(http.Handler)
-		r.URL.Path = redirectUrl
-		r.Method = "GET"
-		rewriter.ServeHTTP(w, r)
+		gosthttp.Rewrite(w, r, redirectUrl)
 	} else {
 		authError := errors.Is(err, auth.ErrBadCredentials)
 		data := views.LoginFormData{
