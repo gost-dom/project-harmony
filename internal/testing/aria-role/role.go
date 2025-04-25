@@ -4,7 +4,8 @@ import "github.com/gost-dom/browser/dom"
 
 // The Role represents an [ARIA role]. The contstants equal to their values in
 // the spec, but with the special value [None] that represents an element has no
-// role.
+// role and [PasswordText], which isn't an official role, but helpful in testing
+// as password fields don't have a role.
 //
 // [ARIA role]: https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles
 type Role string
