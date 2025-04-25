@@ -114,8 +114,13 @@ func (h Scope) Find(opts ...ElementPredicate) html.HTMLElement {
 	next, stop := iter.Pull(h.FindAll(opts...))
 	defer stop()
 	if v, ok := next(); ok {
-		if _, ok := next(); ok {
-			h.t.Fatalf("Multiple elements matching options: %s", predicates(opts))
+		if v2, ok := next(); ok {
+			h.t.Fatalf(
+				"At least two elements match options: %s\n1st match: %s\n2nd match: %s",
+				predicates(opts),
+				v.OuterHTML(),
+				v2.OuterHTML(),
+			)
 		}
 		return v.(html.HTMLElement)
 	}

@@ -182,8 +182,15 @@ func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Reque
 	}
 	if errors.Is(err, auth.ErrBadChallengeResponse) {
 		views.ValidateEmailFormContent(views.ValidateEmailForm{
-			EmailAddress: r.FormValue("email"),
-			InvalidCode:  true,
+			EmailAddress:   r.FormValue("email"),
+			ValidationCode: code,
+			InvalidCode:    true,
+		}).Render(r.Context(), w)
+	} else {
+		views.ValidateEmailFormContent(views.ValidateEmailForm{
+			EmailAddress:    r.FormValue("email"),
+			ValidationCode:  code,
+			UnexpectedError: true,
 		}).Render(r.Context(), w)
 	}
 }
