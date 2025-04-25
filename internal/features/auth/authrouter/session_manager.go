@@ -1,6 +1,7 @@
 package authrouter
 
 import (
+	"fmt"
 	"harmony/internal/features/auth/authdomain"
 	"net/http"
 
@@ -18,7 +19,9 @@ type SessionManager struct {
 }
 
 func (m *SessionManager) LoggedInUser(r *http.Request) *authdomain.Account {
-	session, _ := m.SessionStore.Get(r, sessionNameAuth)
+	reg := sessions.GetRegistry(r)
+	session, _ := reg.Get(m.SessionStore, sessionNameAuth)
+	fmt.Println("  **** GET USER", session.Values[sessionCookieName])
 	if id, ok := session.Values[sessionCookieName]; ok {
 		result := new(authdomain.Account)
 		if strId, ok := id.(string); ok {
@@ -34,10 +37,13 @@ func (s SessionManager) SetAccount(
 	req *http.Request,
 	account authdomain.AuthenticatedAccount,
 ) error {
-	session, err := s.SessionStore.Get(req, sessionNameAuth)
+	reg := sessions.GetRegistry(req)
+	session, err := reg.Get(s.SessionStore, sessionNameAuth)
+	// session, err := s.SessionStore.Get(req, sessionNameAuth)
 	if err != nil {
 		return err
 	}
 	session.Values[sessionCookieName] = string(account.ID)
+	fmt.Println("  **** SET ACCOUNT", session.Values[sessionCookieName])
 	return session.Save(req, w)
 }

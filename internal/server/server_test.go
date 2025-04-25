@@ -44,8 +44,8 @@ func (s *NavigateToLoginSuite) TestLoginFlow() {
 	loginForm.Password().SetAttribute("value", "s3cret")
 	loginForm.SubmitBtn().Click()
 
-	s.Equal("/host", s.Win.Location().Pathname())
-	// s.Equal("Host", s.Get(ByH1).TextContent())
+	s.Equal("/host", s.Win.Location().Pathname(), "path after login name")
+	s.Equal("Host", s.Get(ByH1).TextContent(), "page heading after login")
 }
 
 func TestNavigateToLogin(t *testing.T) {
