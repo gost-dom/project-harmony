@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	. "harmony/internal/features/auth/authrouter"
+	"harmony/internal/gosthttp"
 	"harmony/internal/project"
 	"harmony/internal/server/views"
 
@@ -86,18 +87,6 @@ func deleteCSRFCookie(id string, w http.ResponseWriter) {
 	})
 }
 
-func rewriter(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var rewriter http.Handler = http.HandlerFunc(
-			func(w http.ResponseWriter, r *http.Request) {
-				r = r.WithContext(context.WithValue(r.Context(), "rewritten", true))
-				fmt.Println("***  Rewrite", r.URL)
-				h.ServeHTTP(w, r)
-			})
-		h.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), "rewriter", rewriter)))
-	})
-}
-
 func CSRFProtection(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -161,13 +150,12 @@ func (s *Server) Init() {
 	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
 	mux.Handle("GET /{$}", templ.Handler(views.Index()))
 	mux.Handle("GET /host", http.HandlerFunc(s.GetHost))
-	mux.Handle("GET /host/", http.HandlerFunc(s.GetHost))
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(
 			http.Dir(staticFilesPath()))),
 	)
-	s.Handler = rewriter(log(noCache(CSRFProtection(
+	s.Handler = gosthttp.RewriterMiddleware(log(noCache(CSRFProtection(
 		mux))))
 }
 
