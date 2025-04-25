@@ -3,8 +3,10 @@ package views
 import . "harmony/internal/server/views"
 
 type ValidateEmailForm struct {
-	EmailAddress string
-	InvalidCode  bool
+	EmailAddress    string
+	ValidationCode  string
+	InvalidCode     bool
+	UnexpectedError bool
 }
 
 templ ValidateEmailPage(form ValidateEmailForm) {
@@ -30,12 +32,18 @@ templ ValidateEmailFormContent(form ValidateEmailForm) {
 			InputType: "text",
 			Required:  true,
 			Autofocus: true,
+			Value:     form.ValidationCode,
 		},
 		Label: "Validation code",
 	}
 	if form.InvalidCode {
 		<div role="alert" class="text-red-700">
 			Wrong email or validation code
+		</div>
+	}
+	if form.UnexpectedError {
+		<div role="alert" class="text-red-700">
+			Unexpected error. Please try again lager
 		</div>
 	}
 	<button

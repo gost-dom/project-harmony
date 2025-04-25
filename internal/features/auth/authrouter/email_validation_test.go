@@ -1,6 +1,7 @@
 package authrouter_test
 
 import (
+	"errors"
 	"testing"
 
 	"harmony/internal/features/auth"
@@ -78,6 +79,30 @@ func (s *ValidateEmailTestSuite) TestValidCodeRedirects() {
 	s.Expect(win.Location().Pathname()).To(gomega.Equal("/host"))
 	shaman.NewScope(s.T(), win.Document().DocumentElement())
 	s.Expect(s.Get(ByH1)).To(matchers.HaveTextContent("Host"))
+}
+
+func (s *ValidateEmailTestSuite) TestUnexpectedError() {
+	validatorMock := NewMockEmailValidator(s.T())
+	validatorMock.EXPECT().
+		Validate(mock.Anything, mock.Anything).
+		Return(domaintest.InitAuthenticatedAccount(), errors.New("Unexpected error"))
+
+	s.Graph = surgeon.Replace[authrouter.EmailValidator](s.Graph, validatorMock)
+	win := s.OpenWindow("https://example.com/auth/validate-email")
+	form := NewValidateEmailForm(s.T(), win)
+	s.Expect(form.Alert()).To(gomega.BeNil())
+
+	form.Email().Write("j.smith@example.com")
+	form.Code().Write("123456")
+	form.SubmitButton().Click()
+
+	s.Expect(form.Alert()).
+		To(matchers.HaveTextContent(gomega.ContainSubstring("Unexpected error")), "Expected alert")
+	s.Expect(win.Location().Pathname()).To(gomega.Equal("/auth/validate-email"))
+
+	form = NewValidateEmailForm(s.T(), win)
+	s.Expect(form.Email().Value()).To(gomega.Equal("j.smith@example.com"))
+	s.Expect(form.Code().Value()).To(gomega.Equal("123456"))
 }
 
 type ValidateEmailForm struct {
