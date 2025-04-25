@@ -5,7 +5,9 @@ import (
 	"harmony/internal/server"
 	"harmony/internal/testing/htest"
 	"harmony/internal/testing/shaman"
+	"log/slog"
 	"net/http/cookiejar"
+	"testing"
 	"time"
 
 	"github.com/gost-dom/browser"
@@ -66,12 +68,30 @@ func (s *BrowserSuite) TearDownTest() {
 	s.CookieJar = nil
 }
 
+type TestingLogger struct{ testing.TB }
+
+func (l TestingLogger) Enabled(_ context.Context, lvl slog.Level) bool {
+	return lvl >= slog.LevelInfo
+}
+func (l TestingLogger) Handle(_ context.Context, r slog.Record) error {
+	l.TB.Logf("%v: %s", r.Level, r.Message)
+	return nil
+}
+
+func (l TestingLogger) WithAttrs(attrs []slog.Attr) slog.Handler { return l }
+func (l TestingLogger) WithGroup(name string) slog.Handler       { return l }
+
 func (s *BrowserSuite) OpenWindow(path string) html.Window {
 	if s.Win != nil {
 		panic("BrowserSuite: This suite does not support opening multiple windows pr. test case")
 	}
 	serv := s.Graph.Instance()
-	s.Browser = browser.New(browser.WithHandler(serv))
+	s.Browser = browser.New(
+		browser.WithHandler(serv),
+		browser.WithLogger(
+			slog.New(
+				TestingLogger{s.T()})),
+	)
 	s.CookieJar = NewCookieJar()
 	s.Browser.Client.Jar = s.CookieJar
 
