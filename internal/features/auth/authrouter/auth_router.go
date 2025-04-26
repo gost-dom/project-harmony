@@ -169,28 +169,25 @@ func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Reque
 			Email: email,
 			Code:  authdomain.EmailValidationCode(code),
 		})
-	if err == nil {
-		if err := router.SessionManager.SetAccount(w, r, account); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Header().Add("hx-push-url", "/host")
-		w.Header().Add("hx-retarget", "body")
-		serverviews.HostsPage().Render(r.Context(), w)
-
-		return
-	}
-	if errors.Is(err, auth.ErrBadChallengeResponse) {
-		views.ValidateEmailFormContent(views.ValidateEmailForm{
-			EmailAddress:   r.FormValue("email"),
-			ValidationCode: code,
-			InvalidCode:    true,
-		}).Render(r.Context(), w)
-	} else {
+	if err != nil {
 		w.Header().Add("hx-retarget", "#validation-error-container")
 		w.Header().Add("hx-swap", "innerHTML")
-		views.UnexpectedError().Render(r.Context(), w)
+		if errors.Is(err, auth.ErrBadChallengeResponse) {
+			views.InvalidCodeError().Render(r.Context(), w)
+		} else {
+			views.UnexpectedError().Render(r.Context(), w)
+		}
+		return
 	}
+	if err := router.SessionManager.SetAccount(w, r, account); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("hx-push-url", "/host")
+	w.Header().Add("hx-retarget", "body")
+	serverviews.HostsPage().Render(r.Context(), w)
+
+	return
 }
 
 func (*AuthRouter) RenderHost(w http.ResponseWriter, r *http.Request) {

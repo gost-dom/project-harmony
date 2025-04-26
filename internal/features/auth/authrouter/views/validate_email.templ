@@ -38,9 +38,7 @@ templ ValidateEmailFormContent(form ValidateEmailForm) {
 	}
 	<div id="validation-error-container">
 		if form.InvalidCode {
-			<div role="alert" class="text-red-700">
-				Wrong email or validation code
-			</div>
+			@InvalidCodeError()
 		}
 		if form.UnexpectedError {
 			@UnexpectedError()
@@ -68,6 +66,12 @@ templ validateEmailPageBody(form ValidateEmailForm) {
 			</main>
 		</div>
 	}
+}
+
+templ InvalidCodeError() {
+	<div role="alert" class="text-red-700">
+		Wrong email or validation code
+	</div>
 }
 
 templ UnexpectedError() {
