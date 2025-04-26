@@ -187,11 +187,9 @@ func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Reque
 			InvalidCode:    true,
 		}).Render(r.Context(), w)
 	} else {
-		views.ValidateEmailFormContent(views.ValidateEmailForm{
-			EmailAddress:    r.FormValue("email"),
-			ValidationCode:  code,
-			UnexpectedError: true,
-		}).Render(r.Context(), w)
+		w.Header().Add("hx-retarget", "#validation-error-container")
+		w.Header().Add("hx-swap", "innerHTML")
+		views.UnexpectedError().Render(r.Context(), w)
 	}
 }
 
