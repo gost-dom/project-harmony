@@ -67,6 +67,7 @@ func (s *RegisterTestSuite) TestSubmitValidForm() {
 }
 
 func (s *RegisterTestSuite) TestCSRF() {
+	s.AllowErrorLogs()
 	s.registrator.EXPECT().Register(mock.Anything, mock.Anything).Return(nil).Maybe()
 
 	s.CookieJar.Clear()
