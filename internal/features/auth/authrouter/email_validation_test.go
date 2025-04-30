@@ -105,6 +105,8 @@ func (s *ValidateEmailTestSuite) TestUnexpectedError() {
 	s.Expect(form.Code().Value()).To(gomega.Equal("123456"))
 }
 
+/* -------- ValidateEmailForm -------- */
+
 type ValidateEmailForm struct {
 	shaman.Scope
 }
