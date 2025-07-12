@@ -11,7 +11,7 @@ import (
 
 func Install[T any](graph *surgeon.Graph[T]) *surgeon.Graph[T] {
 	graph = surgeon.Replace[authrouter.Registrator](graph, &auth.Registrator{})
-	graph = surgeon.Replace[auth.AccountRepository](graph, &authrepo.AccountRepository{
+	graph = surgeon.Replace[auth.AccountInserter](graph, &authrepo.AccountRepository{
 		Connection: couchdb.DefaultConnection,
 	})
 	graph = surgeon.Replace[authrouter.Authenticator](graph, &auth.Authenticator{})
