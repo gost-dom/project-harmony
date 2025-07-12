@@ -108,7 +108,7 @@ func (s *RegisterTestSuite) TestActivationCodeExpired() {
 		time.Sleep(16 * time.Minute)
 		synctest.Wait()
 
-		s.Assert().ErrorIs(entity.ValidateEmail(code), authdomain.ErrBadEmailChallengeResponse)
+		s.Assert().ErrorIs(entity.ValidateEmail(code), authdomain.ErrEmailChallengeExpired)
 		s.Assert().False(entity.Email.Validated, "Email validated - after validation")
 	})
 }
