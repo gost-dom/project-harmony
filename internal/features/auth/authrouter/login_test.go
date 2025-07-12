@@ -17,8 +17,9 @@ import (
 	"harmony/internal/testing/shaman"
 	. "harmony/internal/testing/shaman/predicates"
 
-	matchers "github.com/gost-dom/browser/testing/gomega-matchers"
+	. "github.com/gost-dom/browser/testing/gomega-matchers"
 	"github.com/gost-dom/surgeon"
+	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -51,8 +52,8 @@ func (s *LoginPageSuite) TestMissingUsername() {
 
 	s.Equal("/auth/login", s.Win.Location().Pathname())
 
-	s.Expect(s.loginForm.Email()).To(matchers.HaveAttribute("aria-invalid", "true"))
-	s.Expect(s.loginForm.Password()).ToNot(matchers.HaveAttribute("aria-invalid", "true"))
+	s.Expect(s.loginForm.Email()).To(HaveAttribute("aria-invalid", "true"))
+	s.Expect(s.loginForm.Password()).ToNot(HaveAttribute("aria-invalid", "true"))
 }
 
 func (s *LoginPageSuite) TestMissingPassword() {
@@ -64,8 +65,8 @@ func (s *LoginPageSuite) TestMissingPassword() {
 
 	s.Equal("/auth/login", s.Win.Location().Pathname())
 
-	s.Expect(s.loginForm.Email()).ToNot(matchers.HaveAttribute("aria-invalid", "true"))
-	s.Expect(s.loginForm.Password()).To(matchers.HaveAttribute("aria-invalid", "true"))
+	s.Expect(s.loginForm.Email()).ToNot(HaveAttribute("aria-invalid", "true"))
+	s.Expect(s.loginForm.Password()).To(HaveAttribute("aria-invalid", "true"))
 	s.Equal("Password is required", shaman.GetDescription(s.loginForm.Password()))
 }
 
@@ -124,7 +125,7 @@ func (s *LoginPageSuite) TestInvalidCredentials() {
 
 	s.Assert().Equal("Email or password did not match", alert.TextContent())
 
-	s.Expect(s.Win.Document().ActiveElement()).To(matchers.HaveAttribute("id", "email"))
+	s.Expect(s.Win.Document().ActiveElement()).To(HaveAttribute("id", "email"))
 }
 
 func (s *LoginPageSuite) TestUnexpectedError() {
@@ -140,9 +141,10 @@ func (s *LoginPageSuite) TestUnexpectedError() {
 
 	alert := s.Get(ByRole(ariarole.Alert))
 
-	s.Assert().NotContains(alert.TextContent(), "Email or password did not match")
-	s.Assert().Contains(alert.TextContent(), "unexpected error")
-	s.Expect(s.Win.Document().ActiveElement()).To(matchers.HaveAttribute("id", "email"))
+	s.Expect(alert).
+		ToNot(HaveTextContent(gomega.ContainSubstring("Email or password did not match")))
+	s.Expect(alert).To(HaveTextContent(gomega.ContainSubstring("unexpected error")))
+	s.Expect(s.Win.Document().ActiveElement()).To(HaveAttribute("id", "email"))
 }
 
 func TestLoginPage(t *testing.T) {
