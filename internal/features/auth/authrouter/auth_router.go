@@ -186,8 +186,6 @@ func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Reque
 	w.Header().Add("hx-push-url", "/host")
 	w.Header().Add("hx-retarget", "body")
 	serverviews.HostsPage().Render(r.Context(), w)
-
-	return
 }
 
 func (*AuthRouter) RenderHost(w http.ResponseWriter, r *http.Request) {
