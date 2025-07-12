@@ -35,7 +35,7 @@ func (s *AuthenticatorTestSuite) SetupTest() {
 	input := CreateValidInput()
 	input.Email = MustParseEmail("jd@example.com")
 	input.Password = password.Parse("valid_password")
-	repo := NewAccountRepoStub(s.T())
+	repo := NewPWAuthRepositoryStub(s.T())
 
 	assert.NoError(s.T(), Registrator{repo}.Register(s.Context(), input))
 

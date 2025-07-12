@@ -50,7 +50,7 @@ func TestEmailValidatorValidate(t *testing.T) {
 	acc.StartEmailValidationChallenge()
 	addr, err := mail.ParseAddress("jd@example.com")
 	assert.NoError(t, err, "error parsing email in test")
-	repo := NewAccountRepoStub(t)
+	repo := NewPWAuthRepositoryStub(t)
 	assert.NoError(t, repo.InsertEntity(t.Context(), acc))
 	validator := auth.EmailValidator{
 		EmailFinder: repo,

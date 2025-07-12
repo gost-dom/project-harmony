@@ -8,23 +8,22 @@ import (
 	"testing"
 )
 
-type InsertAccountTranslator struct{}
+type InsertPWAuthTranslator struct{}
 
-func (t InsertAccountTranslator) ID(e authdomain.PasswordAuthentication) string {
+func (t InsertPWAuthTranslator) ID(e authdomain.PasswordAuthentication) string {
 	return string(e.Account.ID)
 }
 
-type AccountRepositoryStub struct {
+type PWAuthRepositoryStub struct {
 	repotest.RepositoryStub[authdomain.PasswordAuthentication]
 }
 
-func NewAccountRepoStub(t testing.TB) *AccountRepositoryStub {
-	return &AccountRepositoryStub{repotest.NewRepositoryStub(t, InsertAccountTranslator{})}
+func NewPWAuthRepositoryStub(t testing.TB) *PWAuthRepositoryStub {
+	return &PWAuthRepositoryStub{repotest.NewRepositoryStub(t, InsertPWAuthTranslator{})}
 }
 
-func (i AccountRepositoryStub) FindPWAuthByEmail(
-	ctx context.Context,
-	email string,
+func (i PWAuthRepositoryStub) FindPWAuthByEmail(
+	ctx context.Context, email string,
 ) (authdomain.PasswordAuthentication, error) {
 	for _, v := range i.Entities {
 		if v.Email.Equals(email) {
@@ -34,7 +33,7 @@ func (i AccountRepositoryStub) FindPWAuthByEmail(
 	return authdomain.PasswordAuthentication{}, auth.ErrNotFound
 }
 
-func (s AccountRepositoryStub) Update(
+func (s PWAuthRepositoryStub) Update(
 	_ context.Context,
 	acc authdomain.Account,
 ) (authdomain.Account, error) {

@@ -33,12 +33,12 @@ func CreateValidInput() RegistratorInput {
 type RegisterTestSuite struct {
 	htest.GomegaSuite
 	Registrator
-	repo       *AccountRepositoryStub
+	repo       *PWAuthRepositoryStub
 	validInput RegistratorInput
 }
 
 func (s *RegisterTestSuite) SetupTest() {
-	s.repo = NewAccountRepoStub(s.T())
+	s.repo = NewPWAuthRepositoryStub(s.T())
 
 	s.Registrator = Registrator{Repository: s.repo}
 	s.validInput = CreateValidInput()
