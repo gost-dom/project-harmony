@@ -15,6 +15,6 @@ func Install[T any](graph *surgeon.Graph[T]) *surgeon.Graph[T] {
 		Connection: couchdb.DefaultConnection,
 	})
 	graph = surgeon.Replace[authrouter.Authenticator](graph, &auth.Authenticator{})
-	graph = surgeon.Replace[authrouter.EmailValidator](graph, &auth.EmailValidator{})
+	graph = surgeon.Replace[authrouter.EmailValidator](graph, &auth.EmailChallengeValidator{})
 	return graph
 }

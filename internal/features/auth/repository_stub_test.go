@@ -22,6 +22,17 @@ func NewPWAuthRepositoryStub(t testing.TB) *PWAuthRepositoryStub {
 	return &PWAuthRepositoryStub{repotest.NewRepositoryStub(t, InsertPWAuthTranslator{})}
 }
 
+// TODO: Delete
+func (i PWAuthRepositoryStub) FindByEmail(
+	ctx context.Context, email string,
+) (authdomain.Account, error) {
+	for _, v := range i.Entities {
+		if v.Email.Equals(email) {
+			return v.Account, nil
+		}
+	}
+	return authdomain.Account{}, auth.ErrNotFound
+}
 func (i PWAuthRepositoryStub) FindPWAuthByEmail(
 	ctx context.Context, email string,
 ) (authdomain.PasswordAuthentication, error) {

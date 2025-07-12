@@ -11,16 +11,25 @@ import (
 
 const host = "harmony.example.com"
 
-func (a EmailValidator) Validate(
+type EmailChallengeRepository interface {
+	FindByEmail(context.Context, string) (authdomain.Account, error)
+	Update(context.Context, authdomain.Account) (authdomain.Account, error)
+}
+
+type EmailChallengeValidator struct {
+	Repository EmailChallengeRepository
+}
+
+func (a EmailChallengeValidator) Validate(
 	ctx context.Context,
 	input ValidateEmailInput,
 ) (authdomain.AuthenticatedAccount, error) {
-	acc, err := a.EmailFinder.FindPWAuthByEmail(ctx, input.Email.Address)
+	acc, err := a.Repository.FindByEmail(ctx, input.Email.Address)
 	if err == nil {
 		err = acc.ValidateEmail(input.Code)
 		if err == nil {
 			var updated authdomain.Account
-			updated, err = a.Updater.Update(ctx, acc.Account)
+			updated, err = a.Repository.Update(ctx, acc)
 			if err == nil {
 				return updated.Authenticated()
 			}
@@ -33,17 +42,11 @@ type AccountLoader interface {
 	Get(context.Context, authdomain.AccountID) (authdomain.Account, error)
 }
 
-type AccountUpdater interface {
-	Update(context.Context, authdomain.Account) (authdomain.Account, error)
-}
-
 type EmailValidator struct {
-	Repository  AccountLoader
-	EmailFinder AccountEmailFinder
-	Updater     AccountUpdater
+	Repository AccountLoader
 }
 
-func NewEmailValidator() *EmailValidator { return &EmailValidator{nil, nil, nil} }
+func NewEmailValidator() *EmailValidator { return &EmailValidator{nil} }
 
 func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event domain.Event) error {
 	req, ok := event.Body.(authdomain.EmailValidationRequest)
