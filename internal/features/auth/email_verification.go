@@ -50,8 +50,7 @@ func NewEmailValidator() *EmailValidator { return &EmailValidator{nil} }
 
 func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event domain.Event) error {
 	req, ok := event.Body.(authdomain.EmailValidationRequest)
-	if !ok {
-		// Not an event we want to handle
+	if !ok { // Not an event we want to handle
 		return nil
 	}
 	acc, err := v.Repository.Get(ctx, req.AccountID)
