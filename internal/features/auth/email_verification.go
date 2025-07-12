@@ -15,7 +15,7 @@ func (a EmailValidator) Validate(
 	ctx context.Context,
 	input ValidateEmailInput,
 ) (authdomain.AuthenticatedAccount, error) {
-	acc, err := a.EmailFinder.FindByEmail(ctx, input.Email.Address)
+	acc, err := a.EmailFinder.FindPWAuthByEmail(ctx, input.Email.Address)
 	if err == nil {
 		err = acc.ValidateEmail(input.Code)
 		if err == nil {

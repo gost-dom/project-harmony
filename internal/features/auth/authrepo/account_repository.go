@@ -96,7 +96,7 @@ func (r AccountRepository) Get(
 	return
 }
 
-func (r AccountRepository) FindByEmail(ctx context.Context,
+func (r AccountRepository) FindPWAuthByEmail(ctx context.Context,
 	email string,
 ) (res authdomain.PasswordAuthentication, err error) {
 	var emailDoc corerepo.DocumentWithEvents[accountEmailDoc]

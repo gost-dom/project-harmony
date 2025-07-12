@@ -22,12 +22,12 @@ func (_m *MockAccountEmailFinder) EXPECT() *MockAccountEmailFinder_Expecter {
 	return &MockAccountEmailFinder_Expecter{mock: &_m.Mock}
 }
 
-// FindByEmail provides a mock function with given fields: ctx, email
-func (_m *MockAccountEmailFinder) FindByEmail(ctx context.Context, email string) (authdomain.PasswordAuthentication, error) {
+// FindPWAuthByEmail provides a mock function with given fields: ctx, email
+func (_m *MockAccountEmailFinder) FindPWAuthByEmail(ctx context.Context, email string) (authdomain.PasswordAuthentication, error) {
 	ret := _m.Called(ctx, email)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FindByEmail")
+		panic("no return value specified for FindPWAuthByEmail")
 	}
 
 	var r0 authdomain.PasswordAuthentication
@@ -50,31 +50,31 @@ func (_m *MockAccountEmailFinder) FindByEmail(ctx context.Context, email string)
 	return r0, r1
 }
 
-// MockAccountEmailFinder_FindByEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByEmail'
-type MockAccountEmailFinder_FindByEmail_Call struct {
+// MockAccountEmailFinder_FindPWAuthByEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindPWAuthByEmail'
+type MockAccountEmailFinder_FindPWAuthByEmail_Call struct {
 	*mock.Call
 }
 
-// FindByEmail is a helper method to define mock.On call
+// FindPWAuthByEmail is a helper method to define mock.On call
 //   - ctx context.Context
 //   - email string
-func (_e *MockAccountEmailFinder_Expecter) FindByEmail(ctx interface{}, email interface{}) *MockAccountEmailFinder_FindByEmail_Call {
-	return &MockAccountEmailFinder_FindByEmail_Call{Call: _e.mock.On("FindByEmail", ctx, email)}
+func (_e *MockAccountEmailFinder_Expecter) FindPWAuthByEmail(ctx interface{}, email interface{}) *MockAccountEmailFinder_FindPWAuthByEmail_Call {
+	return &MockAccountEmailFinder_FindPWAuthByEmail_Call{Call: _e.mock.On("FindPWAuthByEmail", ctx, email)}
 }
 
-func (_c *MockAccountEmailFinder_FindByEmail_Call) Run(run func(ctx context.Context, email string)) *MockAccountEmailFinder_FindByEmail_Call {
+func (_c *MockAccountEmailFinder_FindPWAuthByEmail_Call) Run(run func(ctx context.Context, email string)) *MockAccountEmailFinder_FindPWAuthByEmail_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *MockAccountEmailFinder_FindByEmail_Call) Return(_a0 authdomain.PasswordAuthentication, _a1 error) *MockAccountEmailFinder_FindByEmail_Call {
+func (_c *MockAccountEmailFinder_FindPWAuthByEmail_Call) Return(_a0 authdomain.PasswordAuthentication, _a1 error) *MockAccountEmailFinder_FindPWAuthByEmail_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockAccountEmailFinder_FindByEmail_Call) RunAndReturn(run func(context.Context, string) (authdomain.PasswordAuthentication, error)) *MockAccountEmailFinder_FindByEmail_Call {
+func (_c *MockAccountEmailFinder_FindPWAuthByEmail_Call) RunAndReturn(run func(context.Context, string) (authdomain.PasswordAuthentication, error)) *MockAccountEmailFinder_FindPWAuthByEmail_Call {
 	_c.Call.Return(run)
 	return _c
 }

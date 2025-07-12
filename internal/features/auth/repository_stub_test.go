@@ -22,7 +22,7 @@ func NewAccountRepoStub(t testing.TB) *AccountRepositoryStub {
 	return &AccountRepositoryStub{repotest.NewRepositoryStub(t, InsertAccountTranslator{})}
 }
 
-func (i AccountRepositoryStub) FindByEmail(
+func (i AccountRepositoryStub) FindPWAuthByEmail(
 	ctx context.Context,
 	email string,
 ) (authdomain.PasswordAuthentication, error) {
