@@ -11,23 +11,39 @@ import (
 
 const host = "harmony.example.com"
 
-func (a *EmailValidator) Validate(
+func (a EmailValidator) Validate(
 	ctx context.Context,
 	input ValidateEmailInput,
 ) (authdomain.AuthenticatedAccount, error) {
+	acc, err := a.EmailFinder.FindByEmail(ctx, input.Email.Address)
+	if err == nil {
+		err = acc.ValidateEmail(input.Code)
+		if err == nil {
+			var updated authdomain.Account
+			updated, err = a.Updater.Update(ctx, acc.Account)
+			if err == nil {
+				return updated.Authenticated()
+			}
+		}
+	}
 	return authdomain.AuthenticatedAccount{}, ErrBadChallengeResponse
-
 }
 
 type AccountLoader interface {
 	Get(context.Context, authdomain.AccountID) (authdomain.Account, error)
 }
 
-type EmailValidator struct {
-	Repository AccountLoader
+type AccountUpdater interface {
+	Update(context.Context, authdomain.Account) (authdomain.Account, error)
 }
 
-func NewEmailValidator() *EmailValidator { return &EmailValidator{nil} }
+type EmailValidator struct {
+	Repository  AccountLoader
+	EmailFinder AccountEmailFinder
+	Updater     AccountUpdater
+}
+
+func NewEmailValidator() *EmailValidator { return &EmailValidator{nil, nil, nil} }
 
 func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event domain.Event) error {
 	req, ok := event.Body.(authdomain.EmailValidationRequest)

@@ -45,6 +45,63 @@ func (e domainEvt) Update(ctx context.Context, event domain.Event) (domain.Event
 	return event, nil
 }
 
+func TestEmailValidatorValidate(t *testing.T) {
+	acc := domaintest.InitPasswordAuthAccount(domaintest.WithEmail("jd@example.com"))
+	acc.StartEmailValidationChallenge()
+	addr, err := mail.ParseAddress("jd@example.com")
+	assert.NoError(t, err, "error parsing email in test")
+	repo := NewAccountRepoStub(t)
+	assert.NoError(t, repo.InsertEntity(t.Context(), acc))
+	validator := auth.EmailValidator{
+		EmailFinder: repo,
+		Updater:     repo,
+	}
+
+	t.Run("Passing an invalid code", func(t *testing.T) {
+		got, err := validator.Validate(t.Context(), auth.ValidateEmailInput{
+			Email: addr,
+			Code:  authdomain.EmailValidationCode("invalid-code"),
+		})
+
+		if assert.ErrorIs(t, err, auth.ErrBadChallengeResponse, "Validate error result") {
+			assert.Zero(t, got, "Failed response should result in zero value")
+		}
+	})
+
+	t.Run("Passing an invalid email", func(t *testing.T) {
+		em := domaintest.InitEmail()
+		em.NewChallenge()
+		got, err := validator.Validate(t.Context(), auth.ValidateEmailInput{
+			Email: &em.Address,
+			Code:  em.Challenge.Code,
+		})
+
+		if assert.ErrorIs(t, err, auth.ErrBadChallengeResponse, "Validate error result") {
+			assert.Zero(t, got, "Failed response should result in zero value")
+		}
+	})
+
+	t.Run("Passing the valid code", func(t *testing.T) {
+		got, err := validator.Validate(t.Context(), auth.ValidateEmailInput{
+			Email: &acc.Email.Address,
+			Code:  acc.Email.Challenge.Code,
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(
+			t,
+			acc.Account.ID,
+			got.Account.ID,
+			"The authenticated account should be returned",
+		)
+		assert.True(
+			t,
+			repo.Entities[string(got.Account.ID)].Email.Validated,
+			"Account is validated",
+		)
+	})
+}
+
 func TestSendEmailValidationChallenge(t *testing.T) {
 	assert.NoError(t, mailhog.DeleteAll())
 

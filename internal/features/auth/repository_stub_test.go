@@ -33,3 +33,15 @@ func (i AccountRepositoryStub) FindByEmail(
 	}
 	return authdomain.PasswordAuthentication{}, auth.ErrNotFound
 }
+
+func (s AccountRepositoryStub) Update(
+	_ context.Context,
+	acc authdomain.Account,
+) (authdomain.Account, error) {
+	existing, ok := s.Entities[string(acc.ID)]
+	if !ok {
+		return authdomain.Account{}, auth.ErrNotFound
+	}
+	existing.Account = acc
+	return acc, nil
+}
