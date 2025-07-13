@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/gob"
 	"errors"
-	"harmony/internal/features/auth/authdomain"
 	domain "harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 )
@@ -22,11 +21,6 @@ func (a *Authenticator) Authenticate(
 	email string,
 	password password.Password,
 ) (domain.AuthenticatedAccount, error) {
-	if email == "secret@example.com" {
-		return domain.AuthenticatedAccount{Account: &authdomain.Account{
-			ID: domain.AccountID(authdomain.NewID()),
-		}}, nil
-	}
 	acc, err := a.Repository.FindPWAuthByEmail(ctx, email)
 	if err == nil {
 		if acc.Validate(password) {
