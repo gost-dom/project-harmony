@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"time"
 
 	. "harmony/internal/features/auth/authrouter"
 	"harmony/internal/gosthttp"
@@ -28,10 +29,30 @@ func (r *StatusRecorder) WriteHeader(code int) {
 	r.Code = code
 }
 
+func statusCodeToLogLevel(code int) slog.Level {
+	if code > 500 {
+		return slog.LevelError
+	}
+	if code > 400 {
+		return slog.LevelWarn
+	}
+	return slog.LevelInfo
+}
+
 func log(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rec := &StatusRecorder{ResponseWriter: w}
+		start := time.Now()
+
 		h.ServeHTTP(rec, r)
+
+		logLvl := statusCodeToLogLevel(rec.Code)
+		slog.Log(r.Context(), logLvl, "HTTP Request",
+			slog.String("method", r.Method),
+			slog.String("path", r.URL.Path),
+			slog.Int("status", rec.Code),
+			slog.Duration("duration", time.Since(start)),
+		)
 	})
 }
 
