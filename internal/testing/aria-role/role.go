@@ -2,8 +2,8 @@ package ariarole
 
 import "github.com/gost-dom/browser/dom"
 
-// The Role represents an [ARIA role]. The contstants equal to their values in
-// the spec, but with the special value [None] that represents an element has no
+// Role represents an [ARIA role]. The contstants equal to their values in the
+// spec, but with the special value [None] that represents an element has no
 // role and [PasswordText], which isn't an official role, but helpful in testing
 // as password fields don't have a role.
 //
