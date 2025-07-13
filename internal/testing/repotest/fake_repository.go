@@ -4,20 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"harmony/internal/domain"
 	"harmony/internal/features/auth"
 	"reflect"
 	"testing"
 )
 
 var ErrDuplicateKey = errors.New("duplicate key")
-
-func btoerr(found bool) error {
-	if !found {
-		return domain.ErrNotFound
-	}
-	return nil
-}
 
 type EntityTranslator[T, ID any] interface {
 	ID(entity T) ID
