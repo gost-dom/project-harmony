@@ -20,5 +20,6 @@ func Install[T any](graph *surgeon.Graph[T]) *surgeon.Graph[T] {
 		graph,
 		&auth.EmailChallengeValidator{Repository: repo},
 	)
+	graph = surgeon.Replace[auth.AccountEmailFinder](graph, repo)
 	return graph
 }
