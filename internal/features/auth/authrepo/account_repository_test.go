@@ -55,6 +55,24 @@ func TestDuplicateEmail(t *testing.T) {
 	assert.ErrorIs(t, repo.Insert(ctx, acc2), ErrConflict)
 }
 
+func TestUpdate(t *testing.T) {
+	ctx := t.Context()
+	repo := initRepository()
+
+	email := domaintest.NewAddress()
+	pwacc := auth.UseCaseOfEntity(domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email)))
+	err := repo.Insert(ctx, pwacc)
+	assert.NoError(t, err, "Error inserting account")
+
+	acc, err := repo.Get(ctx, pwacc.Entity.Account.ID)
+	assert.NoError(t, err, "Error loading account")
+
+	acc.DisplayName = "New name"
+	reloaded, err := repo.Update(ctx, acc)
+	assert.NoError(t, err, "Error updating account")
+	assert.Equal(t, "New name", reloaded.DisplayName)
+}
+
 type TimeoutTest struct {
 	t testing.TB
 	f func(context.Context)

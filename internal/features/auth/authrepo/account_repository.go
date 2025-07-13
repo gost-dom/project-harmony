@@ -111,3 +111,15 @@ func (r AccountRepository) FindByEmail(ctx context.Context,
 	res.PasswordHash = password.HashFromBytes(pwDoc.PasswordHash)
 	return
 }
+
+func (r AccountRepository) Update(
+	ctx context.Context, acc authdomain.Account,
+) (authdomain.Account, error) {
+	var tmp authdomain.Account
+	rev, err := r.Connection.Get(ctx, r.accDocId(acc.ID), &tmp)
+	if err != nil {
+		return authdomain.Account{}, err
+	}
+	_, err = r.Connection.Update(ctx, r.accDocId(acc.ID), rev, acc)
+	return acc, err
+}
