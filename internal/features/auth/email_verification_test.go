@@ -50,8 +50,8 @@ func TestEmailValidatorValidate(t *testing.T) {
 	acc.StartEmailValidationChallenge()
 	addr, err := mail.ParseAddress("jd@example.com")
 	assert.NoError(t, err, "error parsing email in test")
-	repo := NewPWAuthRepositoryStub(t)
-	assert.NoError(t, repo.InsertEntity(t.Context(), acc))
+	repo := NewAccountRepositoryStub(t)
+	assert.NoError(t, repo.InsertEntity(t.Context(), acc.Account))
 	validator := auth.EmailChallengeValidator{Repository: repo}
 
 	t.Run("Passing an invalid code", func(t *testing.T) {

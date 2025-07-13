@@ -63,6 +63,17 @@ func (s RepositoryStub[T, ID]) Get(_ context.Context, id ID) (res T) {
 	return
 }
 
+func (s RepositoryStub[T, ID]) Update(_ context.Context, e T) (T, error) {
+	id := s.Translator.ID(e)
+	existing, ok := s.Entities[id]
+	if !ok {
+		var dummy T
+		return dummy, auth.ErrNotFound
+	}
+	*existing = e
+	return e, nil
+}
+
 func (s RepositoryStub[T, ID]) TestingT() testing.TB          { return s.t }
 func (s RepositoryStub[T, ID]) AllEvents() []auth.DomainEvent { return s.Events }
 func (s RepositoryStub[T, ID]) All() (res []*T) {
