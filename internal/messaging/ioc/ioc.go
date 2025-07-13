@@ -2,8 +2,6 @@ package ioc
 
 import (
 	"harmony/internal/core/corerepo"
-	"harmony/internal/couchdb"
-	"harmony/internal/features/auth/authrepo"
 	"harmony/internal/messaging"
 
 	"github.com/gost-dom/surgeon"
@@ -19,7 +17,7 @@ func init() {
 	// }
 	Graph = surgeon.BuildGraph(*handler) // messaging.MessageHandler{})
 
-	Graph.Inject(authrepo.AccountRepository{Connection: couchdb.DefaultConnection})
+	// Graph.Inject(authrepo.AccountRepository{Connection: couchdb.DefaultConnection})
 	Graph.Inject(corerepo.DefaultDomainEventRepo)
 }
 
