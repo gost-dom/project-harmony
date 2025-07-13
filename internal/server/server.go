@@ -21,12 +21,18 @@ import (
 
 type StatusRecorder struct {
 	http.ResponseWriter
-	Code int
+	code int
 }
 
 func (r *StatusRecorder) WriteHeader(code int) {
 	r.ResponseWriter.WriteHeader(code)
-	r.Code = code
+	r.code = code
+}
+func (r *StatusRecorder) Code() int {
+	if r.code == 0 {
+		return 200
+	}
+	return r.code
 }
 
 func statusCodeToLogLevel(code int) slog.Level {
@@ -46,11 +52,12 @@ func log(h http.Handler) http.Handler {
 
 		h.ServeHTTP(rec, r)
 
-		logLvl := statusCodeToLogLevel(rec.Code)
+		status := rec.Code()
+		logLvl := statusCodeToLogLevel(status)
 		slog.Log(r.Context(), logLvl, "HTTP Request",
 			slog.String("method", r.Method),
 			slog.String("path", r.URL.Path),
-			slog.Int("status", rec.Code),
+			slog.Int("status", status),
 			slog.Duration("duration", time.Since(start)),
 		)
 	})
