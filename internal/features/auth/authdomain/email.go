@@ -13,6 +13,10 @@ import (
 // challenge response was provided when proving ownership of an email address.
 var ErrBadEmailChallengeResponse = errors.New("authdomain: bad email challenge response")
 
+var ErrEmailChallengeExpired = errors.New(
+	"authdomain: email challenge response has expired",
+)
+
 type EmailValidationCode string
 
 func NewValidationCode() EmailValidationCode {
@@ -45,19 +49,25 @@ func (e Email) Equals(address string) bool {
 func (e Email) String() string { return e.Address.Address }
 
 // ChallengeResponse processes a challenge response and returns a validated Email if
-// the response is correct. Returns a zero-value Email and
-// ErrBadEmailValidationCode err value if the challenge response is wrong.
+// the challenge succeeds; otherwise the same email is returned with one of
+// these errors:
+//
+//   - [ErrBadEmailValidationCode] if the validation code was wrong
+//   - [ErrEmailChallengeExpired] if the validation code has expired
 func (e Email) ChallengeResponse(response EmailValidationCode) (Email, error) {
 	if e.Validated {
 		return e, nil
 	}
-	if e.Challenge == nil || e.Challenge.Code != response || e.Challenge.Expired() {
-		return e, ErrBadEmailChallengeResponse
+	if e.Challenge != nil && e.Challenge.Code == response {
+		if e.Challenge.Expired() {
+			return e, ErrEmailChallengeExpired
+		}
+		res := e
+		res.Validated = true
+		res.Challenge = nil
+		return res, nil
 	}
-	res := e
-	res.Validated = true
-	res.Challenge = nil
-	return res, nil
+	return e, ErrBadEmailChallengeResponse
 }
 
 func (e *Email) NewChallenge() EmailChallenge {

@@ -10,5 +10,6 @@ import (
 
 var ErrAccountNotValidated = authdomain.ErrAccountNotValidated
 
-var ErrBadCredentials = errors.New("authenticate: Bad credentials")
+var ErrBadCredentials = errors.New("auth: bad credentials")
 var ErrNotFound = domain.ErrNotFound
+var ErrBadChallengeResponse = errors.New("auth: bad challenge response")

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"harmony/internal/domain"
 	"harmony/internal/features/auth/authdomain"
@@ -10,6 +11,38 @@ import (
 )
 
 const host = "harmony.example.com"
+
+type EmailChallengeRepository interface {
+	FindByEmail(context.Context, string) (authdomain.Account, error)
+	Update(context.Context, authdomain.Account) (authdomain.Account, error)
+}
+
+type EmailChallengeValidator struct {
+	Repository EmailChallengeRepository
+}
+
+func (a EmailChallengeValidator) Validate(
+	ctx context.Context,
+	input ValidateEmailInput,
+) (res authdomain.AuthenticatedAccount, err error) {
+	defer func() {
+		if errors.Is(err, authdomain.ErrBadEmailChallengeResponse) {
+			err = ErrBadChallengeResponse
+		}
+	}()
+
+	acc, err := a.Repository.FindByEmail(ctx, input.Email.Address)
+	if err == nil {
+		err = acc.ValidateEmail(input.Code)
+	}
+	if err == nil {
+		acc, err = a.Repository.Update(ctx, acc)
+	}
+	if err == nil {
+		return acc.Authenticated()
+	}
+	return
+}
 
 type AccountLoader interface {
 	Get(context.Context, authdomain.AccountID) (authdomain.Account, error)
@@ -23,13 +56,12 @@ func NewEmailValidator() *EmailValidator { return &EmailValidator{nil} }
 
 func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event domain.Event) error {
 	req, ok := event.Body.(authdomain.EmailValidationRequest)
-	if !ok {
-		// Not an event we want to handle
+	if !ok { // Not an event we want to handle
 		return nil
 	}
 	acc, err := v.Repository.Get(ctx, req.AccountID)
 	if err == nil {
-		err = sendMessage(string(event.ID), acc)
+		err = sendChallengeEmail(string(event.ID), acc)
 	}
 	if err != nil {
 		err = fmt.Errorf("auth: ProcessDomainEvent: %w", err)
@@ -37,7 +69,7 @@ func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event domain.Eve
 	return err
 }
 
-func sendMessage(eventID string, acc authdomain.Account) error {
+func sendChallengeEmail(eventID string, acc authdomain.Account) error {
 	messageID := fmt.Sprintf("<%s@%s>", eventID, host)
 	receiver := acc.Email.Address // Yeah, net/mail.Address has an Address field
 	receiver.Name = acc.Name

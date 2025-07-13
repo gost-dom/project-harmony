@@ -9,7 +9,7 @@ import (
 )
 
 type AccountEmailFinder interface {
-	FindByEmail(ctx context.Context, email string) (domain.PasswordAuthentication, error)
+	FindPWAuthByEmail(ctx context.Context, email string) (domain.PasswordAuthentication, error)
 }
 
 type Authenticator struct {
@@ -21,7 +21,7 @@ func (a *Authenticator) Authenticate(
 	email string,
 	password password.Password,
 ) (domain.AuthenticatedAccount, error) {
-	acc, err := a.Repository.FindByEmail(ctx, email)
+	acc, err := a.Repository.FindPWAuthByEmail(ctx, email)
 	if err == nil {
 		if acc.Validate(password) {
 			return acc.Authenticated()

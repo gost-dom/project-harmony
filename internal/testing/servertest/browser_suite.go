@@ -5,7 +5,9 @@ import (
 	"harmony/internal/server"
 	"harmony/internal/testing/htest"
 	"harmony/internal/testing/shaman"
+	"log/slog"
 	"net/http/cookiejar"
+	"testing"
 	"time"
 
 	"github.com/gost-dom/browser"
@@ -46,17 +48,53 @@ func NewCookieJar() *CookieJar {
 type BrowserSuite struct {
 	htest.GomegaSuite
 	shaman.Scope
-	CookieJar *CookieJar
-	Graph     *surgeon.Graph[*server.Server]
-	Browser   *browser.Browser
-	Win       html.Window
-	Ctx       context.Context
-	CancelCtx context.CancelFunc
+	CookieJar  *CookieJar
+	Graph      *surgeon.Graph[*server.Server]
+	Browser    *browser.Browser
+	Win        html.Window
+	Ctx        context.Context
+	CancelCtx  context.CancelFunc
+	logHandler *TestingLogHandler
 }
 
 func (s *BrowserSuite) SetupTest() {
 	s.Graph = graph
 	s.Ctx, s.CancelCtx = context.WithTimeout(s.T().Context(), time.Millisecond*100)
+	s.logHandler = &TestingLogHandler{TB: s.T()}
+}
+
+func (s *BrowserSuite) TearDownTest() {
+	s.CancelCtx()
+	s.Win = nil
+	s.Browser = nil
+	s.CookieJar = nil
+}
+
+type TestingLogHandler struct {
+	testing.TB
+	allowErrors bool
+}
+
+func (l TestingLogHandler) Enabled(_ context.Context, lvl slog.Level) bool {
+	return lvl >= slog.LevelInfo
+}
+func (l TestingLogHandler) Handle(_ context.Context, r slog.Record) error {
+	l.TB.Helper()
+	if r.Level < slog.LevelError || l.allowErrors {
+		l.TB.Logf("%v: %s", r.Level, r.Message)
+	} else {
+		l.TB.Errorf("%v: %s", r.Level, r.Message)
+	}
+	return nil
+}
+
+func (l TestingLogHandler) WithAttrs(attrs []slog.Attr) slog.Handler { return l }
+func (l TestingLogHandler) WithGroup(name string) slog.Handler       { return l }
+
+// AllowErrorLogs will allow Error log levels without automatically failing a
+// test.
+func (s *BrowserSuite) AllowErrorLogs() {
+	s.logHandler.allowErrors = true
 }
 
 func (s *BrowserSuite) OpenWindow(path string) html.Window {
@@ -64,7 +102,10 @@ func (s *BrowserSuite) OpenWindow(path string) html.Window {
 		panic("BrowserSuite: This suite does not support opening multiple windows pr. test case")
 	}
 	serv := s.Graph.Instance()
-	s.Browser = browser.New(browser.WithHandler(serv))
+	s.Browser = browser.New(
+		browser.WithHandler(serv),
+		browser.WithLogger(slog.New(s.logHandler)),
+	)
 	s.CookieJar = NewCookieJar()
 	s.Browser.Client.Jar = s.CookieJar
 
@@ -73,11 +114,4 @@ func (s *BrowserSuite) OpenWindow(path string) html.Window {
 	s.Win = win
 	s.Scope = shaman.NewScope(s.T(), s.Win.Document())
 	return win
-}
-
-func (s *BrowserSuite) TearDownTest() {
-	s.Win = nil
-	s.Browser = nil
-	s.CookieJar = nil
-	s.CancelCtx()
 }

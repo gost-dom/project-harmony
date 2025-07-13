@@ -13,8 +13,13 @@ var ErrInvalidInput = errors.New("Invalid input")
 
 type AccountUseCaseResult = UseCaseResult[domain.PasswordAuthentication]
 
-type AccountRepository interface {
+type AccountInserter interface {
 	Insert(context.Context, AccountUseCaseResult) error
+}
+
+type ValidateEmailInput struct {
+	Email *mail.Address
+	Code  authdomain.EmailValidationCode
 }
 
 type RegistratorInput struct {
@@ -26,7 +31,7 @@ type RegistratorInput struct {
 }
 
 type Registrator struct {
-	Repository AccountRepository
+	Repository AccountInserter
 }
 
 // Register attempts to create a new user account with password-based

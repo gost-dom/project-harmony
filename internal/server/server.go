@@ -8,14 +8,68 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"time"
 
 	. "harmony/internal/features/auth/authrouter"
+	"harmony/internal/gosthttp"
 	"harmony/internal/project"
 	"harmony/internal/server/views"
 
 	"github.com/a-h/templ"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
+
+// StatusRecorder embeds an [http.ResponseWriter] which remembers the status
+// code being generated, allowing client to retroactively query the status code.
+type StatusRecorder struct {
+	http.ResponseWriter
+	code int
+}
+
+func (r *StatusRecorder) WriteHeader(code int) {
+	r.ResponseWriter.WriteHeader(code)
+	r.code = code
+}
+
+// Unwrap implements the unexported rwUnwrapper interface. This is necessary for
+// [http.ResponseController] to get the underlying ResponseWriter, e.g. to
+// query for cabilities like [http.Flusher].
+func (r *StatusRecorder) Unwrap() http.ResponseWriter { return r.ResponseWriter }
+
+func (r *StatusRecorder) Code() int {
+	if r.code == 0 {
+		return 200
+	}
+	return r.code
+}
+
+func statusCodeToLogLevel(code int) slog.Level {
+	if code >= 500 {
+		return slog.LevelError
+	}
+	if code >= 400 {
+		return slog.LevelWarn
+	}
+	return slog.LevelInfo
+}
+
+func log(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rec := &StatusRecorder{ResponseWriter: w}
+		start := time.Now()
+
+		h.ServeHTTP(rec, r)
+
+		status := rec.Code()
+		logLvl := statusCodeToLogLevel(status)
+		slog.Log(r.Context(), logLvl, "HTTP Request",
+			slog.String("method", r.Method),
+			slog.String("path", r.URL.Path),
+			slog.Int("status", status),
+			slog.Duration("duration", time.Since(start)),
+		)
+	})
+}
 
 func noCache(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +96,7 @@ func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 	// Not authenticated; show login page
 	fmtNewLocation := fmt.Sprintf("/auth/login?redirectUrl=%s", url.QueryEscape("/host"))
 	w.Header().Add("hx-push-url", fmtNewLocation)
-	s.AuthRouter.RenderLogin(w, r)
+	s.AuthRouter.RenderHost(w, r)
 }
 
 func csrfCookieName(id string) string { return fmt.Sprintf("csrf-%s", id) }
@@ -128,13 +182,14 @@ func (s *Server) Init() {
 	mux := http.NewServeMux()
 	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
 	mux.Handle("GET /{$}", templ.Handler(views.Index()))
-	mux.Handle("GET /host/{$}", http.HandlerFunc(s.GetHost))
+	mux.Handle("GET /host", http.HandlerFunc(s.GetHost))
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(
 			http.Dir(staticFilesPath()))),
 	)
-	s.Handler = noCache(CSRFProtection(mux))
+	s.Handler = gosthttp.RewriterMiddleware(log(noCache(CSRFProtection(
+		mux))))
 }
 
 func NewAuthRouter() *AuthRouter {

@@ -3,6 +3,7 @@ package authrouter
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/mail"
@@ -11,8 +12,9 @@ import (
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/features/auth/authrouter/views"
+	"harmony/internal/gosthttp"
+	serverviews "harmony/internal/server/views"
 
-	"github.com/a-h/templ"
 	"github.com/gorilla/schema"
 )
 
@@ -34,11 +36,19 @@ type Registrator interface {
 	Register(ctx context.Context, input auth.RegistratorInput) error
 }
 
+type EmailValidator interface {
+	Validate(
+		ctx context.Context,
+		input auth.ValidateEmailInput,
+	) (authdomain.AuthenticatedAccount, error)
+}
+
 type AuthRouter struct {
 	*http.ServeMux
 	Authenticator  Authenticator
 	Registrator    Registrator
 	SessionManager SessionManager
+	EmailValidator EmailValidator
 }
 
 func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
@@ -110,6 +120,8 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Header().Add("hx-push-url", redirectUrl)
+		w.Header().Add("hx-retarget", "body")
+		gosthttp.Rewrite(w, r, redirectUrl)
 	} else {
 		authError := errors.Is(err, auth.ErrBadCredentials)
 		data := views.LoginFormData{
@@ -139,12 +151,45 @@ func (r *AuthRouter) Init() {
 		views.Register(views.RegisterFormData{}).Render(r.Context(), w)
 	})
 	r.HandleFunc("POST /register", r.PostRegister)
-	r.Handle(
-		"GET /validate-email",
-		templ.Handler(views.ValidateEmailPage(views.ValidateEmailForm{})),
+	r.HandleFunc("GET /validate-email",
+		func(w http.ResponseWriter, r *http.Request) {
+			views.ValidateEmailPage(views.ValidateEmailForm{
+				EmailAddress: r.URL.Query().Get("email"),
+			}).Render(r.Context(), w)
+		},
 	)
+	r.HandleFunc("POST /validate-email", r.postValidateEmail)
 }
 
-func (*AuthRouter) RenderLogin(w http.ResponseWriter, r *http.Request) {
+func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	email, _ := mail.ParseAddress(r.FormValue("email"))
+	code := r.FormValue("challenge-response")
+	account, err := router.EmailValidator.Validate(r.Context(),
+		auth.ValidateEmailInput{
+			Email: email,
+			Code:  authdomain.EmailValidationCode(code),
+		})
+	if err != nil {
+		fmt.Println("AUTH ERROR: ", err)
+		w.Header().Add("hx-retarget", "#validation-error-container")
+		w.Header().Add("hx-swap", "innerHTML")
+		if errors.Is(err, auth.ErrBadChallengeResponse) {
+			views.InvalidCodeError().Render(r.Context(), w)
+		} else {
+			views.UnexpectedError().Render(r.Context(), w)
+		}
+		return
+	}
+	if err := router.SessionManager.SetAccount(w, r, account); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("hx-push-url", "/host")
+	w.Header().Add("hx-retarget", "body")
+	serverviews.HostsPage().Render(r.Context(), w)
+}
+
+func (*AuthRouter) RenderHost(w http.ResponseWriter, r *http.Request) {
 	views.Login("/host", views.LoginFormData{}).Render(r.Context(), w)
 }

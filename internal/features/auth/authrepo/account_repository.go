@@ -98,6 +98,18 @@ func (r AccountRepository) Get(
 
 func (r AccountRepository) FindByEmail(ctx context.Context,
 	email string,
+) (res authdomain.Account, err error) {
+	var emailDoc corerepo.DocumentWithEvents[accountEmailDoc]
+	_, err1 := r.Connection.Get(ctx, r.addrDocId(email), &emailDoc)
+	acc, err3 := r.Get(ctx, emailDoc.Document.AccountID)
+	if err = errors.Join(err1, err3); err != nil {
+		return
+	}
+	res = acc
+	return
+}
+func (r AccountRepository) FindPWAuthByEmail(ctx context.Context,
+	email string,
 ) (res authdomain.PasswordAuthentication, err error) {
 	var emailDoc corerepo.DocumentWithEvents[accountEmailDoc]
 	var pwDoc accountPasswordDoc

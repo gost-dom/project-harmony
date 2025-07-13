@@ -33,12 +33,12 @@ func CreateValidInput() RegistratorInput {
 type RegisterTestSuite struct {
 	htest.GomegaSuite
 	Registrator
-	repo       *AccountRepositoryStub
+	repo       *PWAuthRepositoryStub
 	validInput RegistratorInput
 }
 
 func (s *RegisterTestSuite) SetupTest() {
-	s.repo = NewAccountRepoStub(s.T())
+	s.repo = NewPWAuthRepositoryStub(s.T())
 
 	s.Registrator = Registrator{Repository: s.repo}
 	s.validInput = CreateValidInput()
@@ -108,7 +108,7 @@ func (s *RegisterTestSuite) TestActivationCodeExpired() {
 		time.Sleep(16 * time.Minute)
 		synctest.Wait()
 
-		s.Assert().ErrorIs(entity.ValidateEmail(code), authdomain.ErrBadEmailChallengeResponse)
+		s.Assert().ErrorIs(entity.ValidateEmail(code), authdomain.ErrEmailChallengeExpired)
 		s.Assert().False(entity.Email.Validated, "Email validated - after validation")
 	})
 }

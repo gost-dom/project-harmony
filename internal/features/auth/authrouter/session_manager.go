@@ -18,7 +18,8 @@ type SessionManager struct {
 }
 
 func (m *SessionManager) LoggedInUser(r *http.Request) *authdomain.Account {
-	session, _ := m.SessionStore.Get(r, sessionNameAuth)
+	reg := sessions.GetRegistry(r)
+	session, _ := reg.Get(m.SessionStore, sessionNameAuth)
 	if id, ok := session.Values[sessionCookieName]; ok {
 		result := new(authdomain.Account)
 		if strId, ok := id.(string); ok {
@@ -34,7 +35,8 @@ func (s SessionManager) SetAccount(
 	req *http.Request,
 	account authdomain.AuthenticatedAccount,
 ) error {
-	session, err := s.SessionStore.Get(req, sessionNameAuth)
+	reg := sessions.GetRegistry(req)
+	session, err := reg.Get(s.SessionStore, sessionNameAuth)
 	if err != nil {
 		return err
 	}

@@ -167,3 +167,9 @@ supplied by the test.
 
 Each test case sets up the specific expectations on the mock, and programmed
 result; in this case an `ErrBadCredentials` error result.
+
+## Test data
+
+- John Doe 
+  - email: jd@example.com
+  - pw: 1234

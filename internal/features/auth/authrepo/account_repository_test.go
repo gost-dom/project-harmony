@@ -36,10 +36,18 @@ func TestAccountRoundtrip(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, acc.Account, reloaded)
 
-	foundByEmail, err := repo.FindByEmail(t.Context(), acc.Email.String())
-	assert.NoError(t, err, "Error finding by email")
-	assert.Equal(t, acc, foundByEmail, "Entity found by email")
-	assert.True(t, foundByEmail.Validate(password.Parse("foobar")), "Password validates")
+	t.Run("FindPWAuthByEmail", func(t *testing.T) {
+		foundByEmail, err := repo.FindPWAuthByEmail(t.Context(), acc.Email.String())
+		assert.NoError(t, err, "Error finding by email")
+		assert.Equal(t, acc, foundByEmail, "Entity found by email")
+		assert.True(t, foundByEmail.Validate(password.Parse("foobar")), "Password validates")
+	})
+
+	t.Run("FindByEmail", func(t *testing.T) {
+		foundByEmail, err := repo.FindByEmail(t.Context(), acc.Email.String())
+		assert.NoError(t, err, "Error finding by email")
+		assert.Equal(t, acc.Account, foundByEmail, "Entity found by email")
+	})
 }
 
 func TestDuplicateEmail(t *testing.T) {

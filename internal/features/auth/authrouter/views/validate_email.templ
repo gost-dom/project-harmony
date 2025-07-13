@@ -3,11 +3,54 @@ package views
 import . "harmony/internal/server/views"
 
 type ValidateEmailForm struct {
-	EmailAddress string
+	EmailAddress    string
+	ValidationCode  string
+	InvalidCode     bool
+	UnexpectedError bool
 }
 
 templ ValidateEmailPage(form ValidateEmailForm) {
 	@Layout(Contents{Body: validateEmailPageBody(form)})
+}
+
+templ ValidateEmailFormContent(form ValidateEmailForm) {
+	@CSRFFields()
+	@FieldOptions{
+		InputOptions: InputOptions{
+			Id:        "email",
+			Name:      "email",
+			InputType: "text",
+			Required:  true,
+			Value:     form.EmailAddress,
+		},
+		Label: "Email",
+	}
+	@FieldOptions{
+		InputOptions: InputOptions{
+			Id:        "challenge-response",
+			Name:      "challenge-response",
+			InputType: "text",
+			Required:  true,
+			Autofocus: true,
+			Value:     form.ValidationCode,
+		},
+		Label: "Validation code",
+	}
+	<div id="validation-error-container">
+		if form.InvalidCode {
+			@InvalidCodeError()
+		}
+		if form.UnexpectedError {
+			@UnexpectedError()
+		}
+	</div>
+	<button
+		type="submit"
+		class="w-full text-white bg-cta hover:bg-ctabase-900 focus:ring-4
+    focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm
+    px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700
+    dark:focus:ring-primary-800"
+	>Validate</button>
 }
 
 templ validateEmailPageBody(form ValidateEmailForm) {
@@ -17,36 +60,22 @@ templ validateEmailPageBody(form ValidateEmailForm) {
 				<h1 class="text-center text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl dark:text-white">
 					Validate Email
 				</h1>
-				<form class="space-y-4 md:space-y-6" hx-post="." hx-swap="innerHTML">
-					@FieldOptions{
-						InputOptions: InputOptions{
-							Id:        "email",
-							Name:      "email",
-							InputType: "text",
-							Required:  true,
-							Value:     form.EmailAddress,
-						},
-						Label: "Email",
-					}
-					@FieldOptions{
-						InputOptions: InputOptions{
-							Id:        "challenge-response",
-							Name:      "challenge-response",
-							InputType: "text",
-							Required:  true,
-							Autofocus: true,
-						},
-						Label: "Validation code",
-					}
-					<button
-						type="submit"
-						class="w-full text-white bg-cta hover:bg-ctabase-900 focus:ring-4
-    focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm
-    px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700
-    dark:focus:ring-primary-800"
-					>Validate</button>
+				<form class="space-y-4 md:space-y-6" hx-post="" hx-swap="innerHTML">
+					@ValidateEmailFormContent(form)
 				</form>
 			</main>
 		</div>
 	}
+}
+
+templ InvalidCodeError() {
+	<div role="alert" class="text-red-700">
+		Wrong email or validation code
+	</div>
+}
+
+templ UnexpectedError() {
+	<div role="alert" class="text-red-700">
+		Unexpected error. Please try again later
+	</div>
 }

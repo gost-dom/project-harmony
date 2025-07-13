@@ -61,11 +61,11 @@ func (o predicates) String() string {
 // Scope represents a subset of a page, and can be used to find elements withing
 // that scope.
 type Scope struct {
-	t         *testing.T
+	t         testing.TB
 	Container dom.ElementContainer
 }
 
-func NewScope(t *testing.T, c dom.ElementContainer) Scope {
+func NewScope(t testing.TB, c dom.ElementContainer) Scope {
 	return Scope{t: t, Container: c}
 }
 
@@ -106,17 +106,34 @@ func (h Scope) FindAll(opts ...ElementPredicate) iter.Seq[dom.Element] {
 	}
 }
 
+// Find returns an element that matches the options. At most one element is
+// expected to exist in the dom mathing the options. If more than one
+// is found, a fatal error is generated.
+func (h Scope) Find(opts ...ElementPredicate) html.HTMLElement {
+	h.t.Helper()
+	next, stop := iter.Pull(h.FindAll(opts...))
+	defer stop()
+	if v, ok := next(); ok {
+		if v2, ok := next(); ok {
+			h.t.Fatalf(
+				"At least two elements match options: %s\n1st match: %s\n2nd match: %s",
+				predicates(opts),
+				v.OuterHTML(),
+				v2.OuterHTML(),
+			)
+		}
+		return v.(html.HTMLElement)
+	}
+	return nil
+}
+
 // Get returns the element that matches the options. Exactly one element is
 // expected to exist in the dom mathing the options. If zero, or more than one
 // are found, a fatal error is generated.
 func (h Scope) Get(opts ...ElementPredicate) html.HTMLElement {
-	next, stop := iter.Pull(h.FindAll(opts...))
-	defer stop()
-	if v, ok := next(); ok {
-		if _, ok := next(); ok {
-			h.t.Fatalf("Multiple elements matching options: %s", predicates(opts))
-		}
-		return v.(html.HTMLElement)
+	h.t.Helper()
+	if res := h.Find(opts...); res != nil {
+		return res
 	}
 	h.t.Fatalf("No elements mathing options: %s", predicates(opts))
 	return nil
@@ -144,6 +161,11 @@ func (s Scope) PasswordText(opts ...ElementPredicate) TextboxRole {
 // A helper to interact with "text boxes"
 type TextboxRole struct {
 	html.HTMLElement
+}
+
+func (tb TextboxRole) Value() string {
+	v, _ := tb.HTMLElement.GetAttribute("value")
+	return v
 }
 
 // Write is intended to simulate the user typing in. Currently it merely sets

@@ -24,25 +24,71 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type repo map[authdomain.AccountID]authdomain.Account
-
-func btoerr(found bool) error {
-	if !found {
-		return domain.ErrNotFound
-	}
-	return nil
-}
-
-func (r repo) Get(_ context.Context, id authdomain.AccountID) (authdomain.Account, error) {
-	res, found := r[id]
-	return res, btoerr(found)
-}
-
 type domainEvt map[domain.EventID]domain.Event
 
 func (e domainEvt) Update(ctx context.Context, event domain.Event) (domain.Event, error) {
 	e[event.ID] = event
 	return event, nil
+}
+
+func TestEmailValidatorValidate(t *testing.T) {
+	addr, err := mail.ParseAddress("jd@example.com")
+	assert.NoError(t, err, "error parsing email in test")
+
+	t.Run("Passing an invalid code", func(t *testing.T) {
+		acc := domaintest.InitAccount(domaintest.WithEmailAddress(addr))
+		acc.StartEmailValidationChallenge()
+		repo := NewAccountRepositoryStub(t, &acc)
+		validator := auth.EmailChallengeValidator{Repository: repo}
+
+		got, err := validator.Validate(t.Context(), auth.ValidateEmailInput{
+			Email: addr,
+			Code:  authdomain.EmailValidationCode("invalid-code"),
+		})
+
+		if assert.ErrorIs(t, err, auth.ErrBadChallengeResponse, "Validate error result") {
+			assert.Zero(t, got, "Failed response should result in zero value")
+		}
+	})
+
+	t.Run("Passing an invalid email", func(t *testing.T) {
+		acc := domaintest.InitAccount(domaintest.WithEmailAddress(addr))
+		acc.StartEmailValidationChallenge()
+		repo := NewAccountRepositoryStub(t, &acc)
+		validator := auth.EmailChallengeValidator{Repository: repo}
+
+		em := domaintest.InitEmail()
+		em.NewChallenge()
+		got, err := validator.Validate(t.Context(), auth.ValidateEmailInput{
+			Email: &em.Address,
+			Code:  em.Challenge.Code,
+		})
+
+		if assert.ErrorIs(t, err, auth.ErrNotFound, "Validate error result") {
+			assert.Zero(t, got, "Failed response should result in zero value")
+		}
+	})
+
+	t.Run("Passing the valid code", func(t *testing.T) {
+		acc := domaintest.InitAccount(domaintest.WithEmailAddress(addr))
+		acc.StartEmailValidationChallenge()
+		repo := NewAccountRepositoryStub(t, &acc)
+		validator := auth.EmailChallengeValidator{Repository: repo}
+
+		got, err := validator.Validate(t.Context(), auth.ValidateEmailInput{
+			Email: &acc.Email.Address,
+			Code:  acc.Email.Challenge.Code,
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(
+			t, acc.ID, got.ID,
+			"The authenticated account should be returned",
+		)
+		assert.True(t, acc.Email.Validated, "Account is validated")
+
+		assert.Equal(t, *got.Account, acc, "Account was updated in repository")
+	})
 }
 
 func TestSendEmailValidationChallenge(t *testing.T) {
@@ -56,7 +102,7 @@ func TestSendEmailValidationChallenge(t *testing.T) {
 	assert.False(t, acc.Validated(), "guard: account should be an invalidated account")
 
 	domainEvents := domainEvt{}
-	graph := surgeon.Replace[auth.AccountLoader](ioc.Graph, repo{acc.ID: acc})
+	graph := surgeon.Replace[auth.AccountLoader](ioc.Graph, NewAccountRepositoryStub(t, &acc))
 	graph = surgeon.Replace[messaging.DomainEventUpdater](graph, domainEvents)
 	v := graph.Instance()
 
@@ -88,7 +134,7 @@ func TestIntegrationSendEmailValidationChallenge(t *testing.T) {
 	event2, err2 := corerepo.DefaultDomainEventRepo.Insert(ctx, event2)
 	assert.NoError(t, errors.Join(err1, err2))
 
-	graph := surgeon.Replace[auth.AccountLoader](ioc.Graph, repo{acc1.ID: acc1})
+	graph := surgeon.Replace[auth.AccountLoader](ioc.Graph, NewAccountRepositoryStub(t, &acc1))
 	v := graph.Instance()
 
 	assert.NoError(t, v.ProcessDomainEvent(t.Context(), event1))
