@@ -73,9 +73,9 @@ func (a *Account) StartEmailValidationChallenge() domain.Event {
 // the same user account).
 //
 // This also reduces the risk of security related issues in code, as passwords
-// are only processed during login, authentication, and changing passwords. Once
-// the user is logged in, the types being used don't contain password
-// information anymore.
+// are only processed during registration, authentication, and changing
+// passwords. Once the user is logged in, the types being used have no use for
+// password information anymore.
 type PasswordAuthentication struct {
 	Account
 	password.PasswordHash
