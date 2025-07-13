@@ -10,11 +10,15 @@ import (
 )
 
 func Install[T any](graph *surgeon.Graph[T]) *surgeon.Graph[T] {
-	graph = surgeon.Replace[authrouter.Registrator](graph, &auth.Registrator{})
-	graph = surgeon.Replace[auth.AccountInserter](graph, &authrepo.AccountRepository{
+	repo := &authrepo.AccountRepository{
 		Connection: couchdb.DefaultConnection,
-	})
+	}
+	graph = surgeon.Replace[authrouter.Registrator](graph, &auth.Registrator{})
+	graph = surgeon.Replace[auth.AccountInserter](graph, repo)
 	graph = surgeon.Replace[authrouter.Authenticator](graph, &auth.Authenticator{})
-	graph = surgeon.Replace[authrouter.EmailValidator](graph, &auth.EmailChallengeValidator{})
+	graph = surgeon.Replace[authrouter.EmailValidator](
+		graph,
+		&auth.EmailChallengeValidator{Repository: repo},
+	)
 	return graph
 }
