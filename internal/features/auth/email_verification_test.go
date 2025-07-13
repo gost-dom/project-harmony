@@ -86,6 +86,8 @@ func TestEmailValidatorValidate(t *testing.T) {
 			"The authenticated account should be returned",
 		)
 		assert.True(t, acc.Email.Validated, "Account is validated")
+
+		assert.Equal(t, *got.Account, acc, "Account was updated in repository")
 	})
 }
 
