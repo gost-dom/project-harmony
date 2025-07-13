@@ -31,10 +31,7 @@ func (r *StatusRecorder) WriteHeader(code int) {
 func log(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rec := &StatusRecorder{ResponseWriter: w}
-		fmt.Printf("HTTP Request. Method: %s - Path: %s\n", r.Method, r.URL.Path)
-		fmt.Println("Rewritten", r.Context().Value("rewritten"))
 		h.ServeHTTP(rec, r)
-		fmt.Printf("HTTP Resp: %d\n", rec.Code)
 	})
 }
 
