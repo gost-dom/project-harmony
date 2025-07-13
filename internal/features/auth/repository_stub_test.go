@@ -43,8 +43,8 @@ type AccountRepositoryStub struct {
 	repotest.RepositoryStub[domain.Account, domain.AccountID]
 }
 
-func NewAccountRepositoryStub(t testing.TB) *AccountRepositoryStub {
-	return &AccountRepositoryStub{repotest.NewRepositoryStub(t, AccountTranslator{})}
+func NewAccountRepositoryStub(t testing.TB, acc ...*domain.Account) *AccountRepositoryStub {
+	return &AccountRepositoryStub{repotest.NewRepositoryStub(t, AccountTranslator{}, acc...)}
 }
 
 func (i AccountRepositoryStub) FindByEmail(

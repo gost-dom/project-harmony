@@ -4,12 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"harmony/internal/domain"
 	"harmony/internal/features/auth"
 	"reflect"
 	"testing"
 )
 
 var ErrDuplicateKey = errors.New("duplicate key")
+
+func btoerr(found bool) error {
+	if !found {
+		return domain.ErrNotFound
+	}
+	return nil
+}
 
 type EntityTranslator[T, ID any] interface {
 	ID(entity T) ID
@@ -26,22 +34,35 @@ type RepositoryStub[T any, ID comparable] struct {
 func NewRepositoryStub[T any, ID comparable](
 	t testing.TB,
 	trans EntityTranslator[T, ID],
+	entities ...*T,
 ) RepositoryStub[T, ID] {
-	return RepositoryStub[T, ID]{
+	res := RepositoryStub[T, ID]{
 		t:          t,
 		Translator: trans,
 		Entities:   make(map[ID]*T),
 	}
+	for _, e := range entities {
+		res.Inject(e)
+	}
+	return res
 }
 
-func (s *RepositoryStub[T, ID]) InsertEntity(_ context.Context, e T) error {
-	id := s.Translator.ID(e)
+// Inject is a test helper, allowing the test case to create an entity and
+// inject a pointer, to the entity in the test case is updated; simplifying
+// verification of state updates.
+func (s *RepositoryStub[T, ID]) Inject(e *T) error {
+	id := s.Translator.ID(*e)
 	if _, exists := s.Entities[id]; exists {
 		return ErrDuplicateKey
 	}
-	s.Entities[id] = new(T)
-	*s.Entities[id] = e
+	s.Entities[id] = e
 	return nil
+}
+
+func (s *RepositoryStub[T, ID]) InsertEntity(_ context.Context, e T) error {
+	ptr := new(T)
+	*ptr = e
+	return s.Inject(ptr)
 }
 
 func (s *RepositoryStub[T, ID]) Insert(ctx context.Context, e auth.UseCaseResult[T]) error {
@@ -51,14 +72,11 @@ func (s *RepositoryStub[T, ID]) Insert(ctx context.Context, e auth.UseCaseResult
 	return err
 }
 
-func (s RepositoryStub[T, ID]) Get(_ context.Context, id ID) (res T) {
-	tmp, found := s.Entities[id]
-	if found {
+func (s RepositoryStub[T, ID]) Get(_ context.Context, id ID) (res T, err error) {
+	if tmp, found := s.Entities[id]; found {
 		res = *tmp
 	} else {
-		s.t.Helper()
-		s.t.Errorf("repo.get: id not found: %v", id)
-		tmp = new(T)
+		err = domain.ErrNotFound
 	}
 	return
 }

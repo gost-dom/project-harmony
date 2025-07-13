@@ -29,6 +29,10 @@ func must(prefix string, err error) {
 func WithEmail(email string) InitAccountOption {
 	addr, err := mail.ParseAddress(email)
 	must("domaintest: WithEmail", err)
+	return WithEmailAddress(addr)
+}
+
+func WithEmailAddress(addr *mail.Address) InitAccountOption {
 	return func(acc *authdomain.Account) {
 		em := authdomain.NewUnvalidatedEmail(*addr)
 		acc.Email = em
