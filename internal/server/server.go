@@ -30,10 +30,10 @@ func (r *StatusRecorder) WriteHeader(code int) {
 }
 
 func statusCodeToLogLevel(code int) slog.Level {
-	if code > 500 {
+	if code >= 500 {
 		return slog.LevelError
 	}
-	if code > 400 {
+	if code >= 400 {
 		return slog.LevelWarn
 	}
 	return slog.LevelInfo
