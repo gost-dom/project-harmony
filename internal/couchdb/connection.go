@@ -238,6 +238,11 @@ func (c Connection) docURL(id string) string {
 // succeeds, the revision of the new document is returned in the rev return
 // value.
 func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string, err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("couchdb: Insert: %w", err)
+		}
+	}()
 	if id == "" {
 		err = errors.New("couchdb: missing id")
 		return
@@ -256,16 +261,12 @@ func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string,
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		slog.ErrorContext(ctx, "couchdb: insert: reading response body", "err", err)
+		slog.ErrorContext(ctx, "reading response body", "err", err)
 	}
 
 	switch resp.StatusCode {
 	case 201:
-		etag := resp.Header.Get("Etag")
-		err = json.Unmarshal([]byte(etag), &rev)
-		if err != nil {
-			err = fmt.Errorf("couchdb: Insert: unable to parse etag \"%s\" : %w", etag, err)
-		}
+		rev, err = getRevision(resp)
 	case 409:
 		err = ErrConflict
 	default:
@@ -274,7 +275,7 @@ func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string,
 			"status", resp.StatusCode,
 			"resp", string(respBody),
 		)
-		err = fmt.Errorf("couchdb: insert id(%s): %w", id, errUnexpectedStatusCode(resp))
+		err = fmt.Errorf("id(%s): %w", id, errUnexpectedStatusCode(resp))
 		return
 	}
 	return
@@ -354,6 +355,18 @@ func (c Connection) GetPath(path string, q url.Values, doc any) (rev string, err
 	return
 }
 
+func getRevision(r *http.Response) (rev string, err error) {
+	etag := r.Header.Get("Etag")
+	// Use JSON unmarshaller to decode the quoted string (A value in quotes in
+	// JSON is a string). This provides errors out of the box, if unexpected
+	// value is returned - it cannot be unmarshalled as a string.
+	err = json.Unmarshal([]byte(etag), &rev)
+	if err != nil {
+		err = fmt.Errorf("unable to parse etag \"%s\" : %w", etag, err)
+	}
+	return
+}
+
 // Update updates the document in the database. If successful, it will return
 // the updated revision of the document. If there is a conflict, it will return
 // ErrConflict
@@ -362,6 +375,11 @@ func (c Connection) Update(
 	id, oldRev string,
 	doc any,
 ) (newRev string, err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("couchdb: Update: %w", err)
+		}
+	}()
 	var (
 		b bytes.Buffer
 		// req  *http.Request
@@ -380,15 +398,11 @@ func (c Connection) Update(
 
 	switch resp.StatusCode {
 	case 201:
-		etag := resp.Header.Get("Etag")
-		err = json.Unmarshal([]byte(etag), &newRev)
-		if err != nil {
-			err = fmt.Errorf("couchdb: Insert: unable to parse etag \"%s\" : %w", etag, err)
-		}
+		newRev, err = getRevision(resp)
 	case 409:
 		err = ErrConflict
 	default:
-		err = fmt.Errorf("couchdb: update %s: unexpected http status code: %d", id, resp.StatusCode)
+		err = fmt.Errorf("id(%s): unexpected http status code: %d", id, resp.StatusCode)
 	}
 	return
 }
