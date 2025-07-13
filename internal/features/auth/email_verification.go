@@ -31,17 +31,56 @@ func (a EmailChallengeValidator) Validate(
 		}
 	}()
 
-	acc, err := a.Repository.FindByEmail(ctx, input.Email.Address)
-	if err == nil {
-		err = acc.ValidateEmail(input.Code)
-	}
-	if err == nil {
-		acc, err = a.Repository.Update(ctx, acc)
-	}
+	/*
+		acc, err := a.Repository.FindByEmail(ctx, input.Email.Address)
+		if err == nil {
+			err = acc.ValidateEmail(input.Code)
+		}
+		if err == nil {
+			acc, err = a.Repository.Update(ctx, acc)
+		}
+		if err == nil {
+			return acc.Authenticated()
+		}
+	*/
+	// Alternate solution, less _if_ statements, but the monadic-inspired syntax
+	// is not very Go-like - will probably abandon
+	acc, err := run(ctx, input.Email.Address,
+		a.Repository.FindByEmail,
+		bind((*authdomain.Account).ValidateEmail, input.Code),
+		a.Repository.Update,
+	)
 	if err == nil {
 		return acc.Authenticated()
 	}
 	return
+}
+
+func bind[T, A any](f func(T, A) error, a A) func(T) error {
+	return func(t T) error {
+		return f(t, a)
+	}
+}
+
+type find[T, ID any] func(context.Context, ID) (T, error)
+type domainErrorFn[T any] func(*T) error
+type updater[T any] func(context.Context, T) (T, error)
+
+// run is an experiment, but will probably be removed. It reduces if-statements
+// in application logic; but ... makes code less go-ish;
+func run[T, ID any](
+	ctx context.Context, id ID,
+	finder find[T, ID], op domainErrorFn[T], upd updater[T],
+) (res T, err error) {
+
+	e, err := finder(ctx, id)
+	if err != nil {
+		return
+	}
+	if err = op(&e); err != nil {
+		return
+	}
+	return upd(ctx, e)
 }
 
 type AccountLoader interface {
