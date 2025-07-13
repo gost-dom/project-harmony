@@ -14,7 +14,7 @@ var ErrInvalidInput = errors.New("Invalid input")
 type AccountUseCaseResult = UseCaseResult[domain.PasswordAuthentication]
 
 type AccountInserter interface {
-	Insert(context.Context, AccountUseCaseResult) error
+	Insert(context.Context, AccountUseCaseResult) (domain.PasswordAuthentication, error)
 }
 
 type ValidateEmailInput struct {
@@ -57,5 +57,6 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 	res := UseCaseOfEntity(account)
 	res.AddEvent(domain.CreateAccountRegisteredEvent(account.Account))
 	res.AddEvent(res.Entity.StartEmailValidationChallenge())
-	return r.Repository.Insert(ctx, res)
+	_, err = r.Repository.Insert(ctx, res)
+	return err
 }

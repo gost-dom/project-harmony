@@ -26,27 +26,36 @@ func initRepository() AccountRepository {
 	return AccountRepository{conn}
 }
 
+func insertAccount(c context.Context, repo AccountRepository, acc auth.AccountUseCaseResult) error {
+	_, err := repo.Insert(c, acc)
+	return err
+}
+
 func TestAccountRoundtrip(t *testing.T) {
+	ctx := t.Context()
 	repo := initRepository()
 
 	acc := domaintest.InitPasswordAuthAccount(domaintest.WithPassword("foobar"))
 	uc := auth.AccountUseCaseResult{Entity: acc}
-	assert.NoError(t, repo.Insert(t.Context(), uc))
+	inserted, err := repo.Insert(ctx, uc)
+	assert.NoError(t, err, "Error inserting account")
 	reloaded, err := repo.Get(t.Context(), acc.ID)
 	assert.NoError(t, err)
-	assert.Equal(t, acc.Account, reloaded)
+	assert.Equal(t,
+		inserted.Account, reloaded,
+		"The account retrieved by a GET should be identical to its state right after insert")
 
 	t.Run("FindPWAuthByEmail", func(t *testing.T) {
 		foundByEmail, err := repo.FindPWAuthByEmail(t.Context(), acc.Email.String())
 		assert.NoError(t, err, "Error finding by email")
-		assert.Equal(t, acc, foundByEmail, "Entity found by email")
+		assert.Equal(t, inserted, foundByEmail, "Entity found by email")
 		assert.True(t, foundByEmail.Validate(password.Parse("foobar")), "Password validates")
 	})
 
 	t.Run("FindByEmail", func(t *testing.T) {
 		foundByEmail, err := repo.FindByEmail(t.Context(), acc.Email.String())
 		assert.NoError(t, err, "Error finding by email")
-		assert.Equal(t, acc.Account, foundByEmail, "Entity found by email")
+		assert.Equal(t, inserted.Account, foundByEmail, "Entity found by email")
 	})
 }
 
@@ -59,26 +68,57 @@ func TestDuplicateEmail(t *testing.T) {
 		domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email)))
 	acc2 := auth.UseCaseOfEntity(
 		domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email)))
-	assert.NoError(t, repo.Insert(ctx, acc1))
-	assert.ErrorIs(t, repo.Insert(ctx, acc2), ErrConflict)
+	assert.NoError(t, insertAccount(ctx, repo, acc1))
+	assert.ErrorIs(t, insertAccount(ctx, repo, acc2), ErrConflict)
 }
 
-func TestUpdate(t *testing.T) {
+func TestAccountRepositoryUpdate(t *testing.T) {
 	ctx := t.Context()
 	repo := initRepository()
 
 	email := domaintest.NewAddress()
 	pwacc := auth.UseCaseOfEntity(domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email)))
-	err := repo.Insert(ctx, pwacc)
-	assert.NoError(t, err, "Error inserting account")
+	tmp, err := repo.Insert(ctx, pwacc)
+	inserted := tmp.Account
+	if !assert.NoError(t, err, "Error inserting account") {
+		return
+	}
 
-	acc, err := repo.Get(ctx, pwacc.Entity.Account.ID)
-	assert.NoError(t, err, "Error loading account")
+	if !t.Run("Modify the returned value and update", func(t *testing.T) {
+		inserted.DisplayName = "New name"
+		reloaded, err := repo.Update(ctx, inserted)
+		assert.NoError(t, err, "Error updating account")
+		assert.Equal(t, "New name", reloaded.DisplayName)
+		assert.NotEqual(
+			t,
+			reloaded.Rev,
+			inserted.Rev,
+			"After update, the revision should have changed",
+		)
+		assert.NotEmpty(t, reloaded.Rev, "Update returns a revision")
 
-	acc.DisplayName = "New name"
-	reloaded, err := repo.Update(ctx, acc)
-	assert.NoError(t, err, "Error updating account")
-	assert.Equal(t, "New name", reloaded.DisplayName)
+		reloaded.DisplayName = "2nd update"
+		_, err = repo.Update(ctx, reloaded)
+		assert.NoError(t, err, "Error updating the value returned from Update")
+	}) {
+		return
+	}
+
+	if !t.Run("Modify the original returned value, which is now stale", func(t *testing.T) {
+		inserted.DisplayName = "2nd name"
+		_, err = repo.Update(ctx, inserted)
+		assert.ErrorIs(t, err, ErrConflict, "Update should fail with a conflict error")
+	}) {
+		return
+	}
+
+	t.Run("Update document returned from Get", func(t *testing.T) {
+		reloaded, err := repo.Get(ctx, inserted.ID)
+		assert.NoError(t, err, "Error loading account")
+		reloaded.DisplayName = "Update after Get"
+		_, err = repo.Update(ctx, reloaded)
+		assert.NoError(t, err, "Error updating after Get")
+	})
 }
 
 type TimeoutTest struct {
@@ -122,7 +162,7 @@ func TestInsertDomainEvents(t *testing.T) {
 		event2 := authdomain.CreateAccountRegisteredEvent(acc.Entity.Account)
 		acc.AddEvent(event1)
 		acc.AddEvent(event2)
-		assert.NoError(t, repo.Insert(ctx, acc))
+		assert.NoError(t, insertAccount(ctx, repo, acc))
 
 		ch, err := corerepo.DefaultDomainEventRepo.StreamOfEvents(ctx)
 		assert.NoError(t, err)

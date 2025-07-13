@@ -42,9 +42,13 @@ func passwordDocId(id authdomain.AccountID) string {
 	return fmt.Sprintf("auth:accunt:%s:password", id)
 }
 
-func (r AccountRepository) insertAccountDoc(ctx context.Context, acc authdomain.Account) error {
-	_, err := r.Connection.Insert(ctx, r.accDocId(acc.ID), acc)
-	return err
+func (r AccountRepository) insertAccountDoc(
+	ctx context.Context,
+	acc authdomain.Account,
+) (authdomain.Account, error) {
+	rev, err := r.Connection.Insert(ctx, r.accDocId(acc.ID), acc)
+	acc.Rev = rev
+	return acc, err
 }
 
 func (r AccountRepository) insertEmailDoc(
@@ -77,22 +81,24 @@ func (r AccountRepository) insertPasswordDoc(
 func (r AccountRepository) Insert(
 	ctx context.Context,
 	acc auth.AccountUseCaseResult,
-) error {
-	err := r.insertAccountDoc(ctx, acc.Entity.Account)
+) (authdomain.PasswordAuthentication, error) {
+	res, err := r.insertAccountDoc(ctx, acc.Entity.Account)
 	if err == nil {
 		err = r.insertPasswordDoc(ctx, acc.Entity)
 	}
 	if err == nil {
 		err = r.insertEmailDoc(ctx, acc)
 	}
-	return err
+	acc.Entity.Account = res
+	return acc.Entity, err
 }
 
 func (r AccountRepository) Get(
 	ctx context.Context,
 	id authdomain.AccountID,
 ) (res authdomain.Account, err error) {
-	_, err = r.Connection.Get(ctx, r.accDocId(id), &res)
+	rev, err := r.Connection.Get(ctx, r.accDocId(id), &res)
+	res.Rev = rev
 	return
 }
 
@@ -127,11 +133,12 @@ func (r AccountRepository) FindPWAuthByEmail(ctx context.Context,
 func (r AccountRepository) Update(
 	ctx context.Context, acc authdomain.Account,
 ) (authdomain.Account, error) {
-	var tmp authdomain.Account
-	rev, err := r.Connection.Get(ctx, r.accDocId(acc.ID), &tmp)
-	if err != nil {
-		return authdomain.Account{}, err
-	}
-	_, err = r.Connection.Update(ctx, r.accDocId(acc.ID), rev, acc)
+	// var tmp authdomain.Account
+	// rev, err := r.Connection.Get(ctx, r.accDocId(acc.ID), &tmp)
+	// if err != nil {
+	// 	return authdomain.Account{}, err
+	// }
+	newRev, err := r.Connection.Update(ctx, r.accDocId(acc.ID), acc.Rev, acc)
+	acc.Rev = newRev
 	return acc, err
 }

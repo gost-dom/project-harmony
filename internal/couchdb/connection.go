@@ -380,16 +380,11 @@ func (c Connection) Update(
 
 	switch resp.StatusCode {
 	case 201:
-		var bodyBytes []byte
-		bodyBytes, err = io.ReadAll(resp.Body)
+		etag := resp.Header.Get("Etag")
+		err = json.Unmarshal([]byte(etag), &newRev)
 		if err != nil {
-			return
+			err = fmt.Errorf("couchdb: Insert: unable to parse etag \"%s\" : %w", etag, err)
 		}
-		cd := couchDoc{}
-		if err = json.Unmarshal(bodyBytes, &cd); err == nil {
-			err = json.Unmarshal(bodyBytes, &doc)
-		}
-		newRev = cd.Rev
 	case 409:
 		err = ErrConflict
 	default:

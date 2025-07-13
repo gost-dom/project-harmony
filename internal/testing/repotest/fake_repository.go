@@ -57,11 +57,11 @@ func (s *RepositoryStub[T, ID]) InsertEntity(_ context.Context, e T) error {
 	return s.Inject(ptr)
 }
 
-func (s *RepositoryStub[T, ID]) Insert(ctx context.Context, e auth.UseCaseResult[T]) error {
+func (s *RepositoryStub[T, ID]) Insert(ctx context.Context, e auth.UseCaseResult[T]) (T, error) {
 	entity := e.Entity
 	err := s.InsertEntity(ctx, entity)
 	s.Events = append(s.Events, e.Events...)
-	return err
+	return entity, err
 }
 
 func (s RepositoryStub[T, ID]) Get(_ context.Context, id ID) (res T, err error) {

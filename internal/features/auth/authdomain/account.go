@@ -17,6 +17,7 @@ var NewID = domain.NewID
 
 type Account struct {
 	ID          AccountID
+	Rev         string
 	Email       Email
 	Name        string
 	DisplayName string
