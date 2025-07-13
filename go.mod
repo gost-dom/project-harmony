@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/sessions v1.4.0
 	github.com/gost-dom/browser v0.9.0
-	github.com/gost-dom/surgeon v0.0.0-20250713141440-b0bceed9c669
+	github.com/gost-dom/surgeon v0.0.0-20250713144605-6ef100a36361
 	github.com/lampctl/go-sse v1.1.4
 	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/onsi/gomega v1.37.0

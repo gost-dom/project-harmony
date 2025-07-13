@@ -13,8 +13,8 @@ var Graph *surgeon.Graph[*server.Server]
 func init() {
 	Graph = surgeon.BuildGraph(
 		server.New(),
-		surgeon.PackagePrefixScope("harmony"),
-		surgeon.PackagePrefixScope("github.com/gorilla/sessions"),
+		// surgeon.PackagePrefixScope("harmony"),
+		// surgeon.PackagePrefixScope("github.com/gorilla/sessions"),
 	)
 	Graph.Inject(memstore.NewMemStore(
 		[]byte("authkey123"),
