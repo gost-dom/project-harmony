@@ -24,22 +24,24 @@ type EmailChallengeValidator struct {
 func (a EmailChallengeValidator) Validate(
 	ctx context.Context,
 	input ValidateEmailInput,
-) (authdomain.AuthenticatedAccount, error) {
+) (res authdomain.AuthenticatedAccount, err error) {
+	defer func() {
+		if errors.Is(err, authdomain.ErrBadEmailChallengeResponse) {
+			err = ErrBadChallengeResponse
+		}
+	}()
+
 	acc, err := a.Repository.FindByEmail(ctx, input.Email.Address)
 	if err == nil {
 		err = acc.ValidateEmail(input.Code)
-		if err == nil {
-			var updated authdomain.Account
-			updated, err = a.Repository.Update(ctx, acc)
-			if err == nil {
-				return updated.Authenticated()
-			}
-		}
 	}
-	if errors.Is(err, authdomain.ErrBadEmailChallengeResponse) {
-		err = ErrBadChallengeResponse
+	if err == nil {
+		acc, err = a.Repository.Update(ctx, acc)
 	}
-	return authdomain.AuthenticatedAccount{}, err
+	if err == nil {
+		return acc.Authenticated()
+	}
+	return
 }
 
 type AccountLoader interface {
