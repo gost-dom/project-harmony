@@ -76,7 +76,7 @@ func (s RepositoryStub[T, ID]) Get(_ context.Context, id ID) (res T, err error) 
 	if tmp, found := s.Entities[id]; found {
 		res = *tmp
 	} else {
-		err = domain.ErrNotFound
+		err = auth.ErrNotFound
 	}
 	return
 }
