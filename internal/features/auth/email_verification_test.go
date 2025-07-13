@@ -93,7 +93,7 @@ func TestEmailValidatorValidate(t *testing.T) {
 		)
 		assert.True(
 			t,
-			repo.Entities[string(got.Account.ID)].Email.Validated,
+			repo.Entities[got.Account.ID].Email.Validated,
 			"Account is validated",
 		)
 	})

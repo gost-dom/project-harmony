@@ -3,6 +3,7 @@ package repotest
 import (
 	"context"
 	"errors"
+	"fmt"
 	"harmony/internal/features/auth"
 	"reflect"
 	"testing"
@@ -10,27 +11,30 @@ import (
 
 var ErrDuplicateKey = errors.New("duplicate key")
 
-type EntityTranslator[T any] interface {
-	ID(entity T) string
+type EntityTranslator[T, ID any] interface {
+	ID(entity T) ID
 }
 
-type RepositoryStub[T any] struct {
-	Translator EntityTranslator[T]
-	Entities   map[string]*T
+type RepositoryStub[T any, ID comparable] struct {
+	Translator EntityTranslator[T, ID]
+	Entities   map[ID]*T
 	Events     []auth.DomainEvent
 
 	t testing.TB
 }
 
-func NewRepositoryStub[T any](t testing.TB, trans EntityTranslator[T]) RepositoryStub[T] {
-	return RepositoryStub[T]{
+func NewRepositoryStub[T any, ID comparable](
+	t testing.TB,
+	trans EntityTranslator[T, ID],
+) RepositoryStub[T, ID] {
+	return RepositoryStub[T, ID]{
 		t:          t,
 		Translator: trans,
-		Entities:   make(map[string]*T),
+		Entities:   make(map[ID]*T),
 	}
 }
 
-func (s *RepositoryStub[T]) InsertEntity(_ context.Context, e T) error {
+func (s *RepositoryStub[T, ID]) InsertEntity(_ context.Context, e T) error {
 	id := s.Translator.ID(e)
 	if _, exists := s.Entities[id]; exists {
 		return ErrDuplicateKey
@@ -40,14 +44,14 @@ func (s *RepositoryStub[T]) InsertEntity(_ context.Context, e T) error {
 	return nil
 }
 
-func (s *RepositoryStub[T]) Insert(ctx context.Context, e auth.UseCaseResult[T]) error {
+func (s *RepositoryStub[T, ID]) Insert(ctx context.Context, e auth.UseCaseResult[T]) error {
 	entity := e.Entity
 	err := s.InsertEntity(ctx, entity)
 	s.Events = append(s.Events, e.Events...)
 	return err
 }
 
-func (s RepositoryStub[T]) Get(_ context.Context, id string) (res T) {
+func (s RepositoryStub[T, ID]) Get(_ context.Context, id ID) (res T) {
 	tmp, found := s.Entities[id]
 	if found {
 		res = *tmp
@@ -59,9 +63,9 @@ func (s RepositoryStub[T]) Get(_ context.Context, id string) (res T) {
 	return
 }
 
-func (s RepositoryStub[T]) TestingT() testing.TB          { return s.t }
-func (s RepositoryStub[T]) AllEvents() []auth.DomainEvent { return s.Events }
-func (s RepositoryStub[T]) All() (res []*T) {
+func (s RepositoryStub[T, ID]) TestingT() testing.TB          { return s.t }
+func (s RepositoryStub[T, ID]) AllEvents() []auth.DomainEvent { return s.Events }
+func (s RepositoryStub[T, ID]) All() (res []*T) {
 	res = make([]*T, len(s.Entities))
 	i := 0
 	for _, v := range s.Entities {
@@ -71,7 +75,7 @@ func (s RepositoryStub[T]) All() (res []*T) {
 	return res
 }
 
-func (repo RepositoryStub[T]) Single() *T {
+func (repo RepositoryStub[T, ID]) Single() *T {
 	ee := repo.All()
 	if len(ee) != 1 {
 		repo.t.Helper()
@@ -81,11 +85,11 @@ func (repo RepositoryStub[T]) Single() *T {
 	return ee[0]
 }
 
-func (repo RepositoryStub[T]) Empty() bool { return len(repo.Entities) == 0 }
+func (repo RepositoryStub[T, ID]) Empty() bool { return len(repo.Entities) == 0 }
 
-func (repo RepositoryStub[T]) GetTestInstance(id string) *T {
+func (repo RepositoryStub[T, ID]) GetTestInstance(id ID) *T {
 	if _, found := repo.Entities[id]; !found {
-		panic("ID not found: " + id)
+		panic(fmt.Sprintf("ID not found: %v", id))
 	}
 	return repo.Entities[id]
 }

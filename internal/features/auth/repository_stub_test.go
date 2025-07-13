@@ -10,12 +10,12 @@ import (
 
 type InsertPWAuthTranslator struct{}
 
-func (t InsertPWAuthTranslator) ID(e authdomain.PasswordAuthentication) string {
-	return string(e.Account.ID)
+func (t InsertPWAuthTranslator) ID(e authdomain.PasswordAuthentication) authdomain.AccountID {
+	return e.Account.ID
 }
 
 type PWAuthRepositoryStub struct {
-	repotest.RepositoryStub[authdomain.PasswordAuthentication]
+	repotest.RepositoryStub[authdomain.PasswordAuthentication, authdomain.AccountID]
 }
 
 func NewPWAuthRepositoryStub(t testing.TB) *PWAuthRepositoryStub {
@@ -48,7 +48,7 @@ func (s PWAuthRepositoryStub) Update(
 	_ context.Context,
 	acc authdomain.Account,
 ) (authdomain.Account, error) {
-	existing, ok := s.Entities[string(acc.ID)]
+	existing, ok := s.Entities[acc.ID]
 	if !ok {
 		return authdomain.Account{}, auth.ErrNotFound
 	}
