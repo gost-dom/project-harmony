@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"harmony/internal/domain"
 	"harmony/internal/features/auth/authdomain"
@@ -35,7 +36,10 @@ func (a EmailChallengeValidator) Validate(
 			}
 		}
 	}
-	return authdomain.AuthenticatedAccount{}, ErrBadChallengeResponse
+	if errors.Is(err, authdomain.ErrBadEmailChallengeResponse) {
+		err = ErrBadChallengeResponse
+	}
+	return authdomain.AuthenticatedAccount{}, err
 }
 
 type AccountLoader interface {

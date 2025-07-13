@@ -56,6 +56,7 @@ func TestEmailValidatorValidate(t *testing.T) {
 		acc.StartEmailValidationChallenge()
 		repo := NewAccountRepositoryStub(t, &acc)
 		validator := auth.EmailChallengeValidator{Repository: repo}
+
 		em := domaintest.InitEmail()
 		em.NewChallenge()
 		got, err := validator.Validate(t.Context(), auth.ValidateEmailInput{
@@ -63,7 +64,7 @@ func TestEmailValidatorValidate(t *testing.T) {
 			Code:  em.Challenge.Code,
 		})
 
-		if assert.ErrorIs(t, err, auth.ErrBadChallengeResponse, "Validate error result") {
+		if assert.ErrorIs(t, err, auth.ErrNotFound, "Validate error result") {
 			assert.Zero(t, got, "Failed response should result in zero value")
 		}
 	})
@@ -73,6 +74,7 @@ func TestEmailValidatorValidate(t *testing.T) {
 		acc.StartEmailValidationChallenge()
 		repo := NewAccountRepositoryStub(t, &acc)
 		validator := auth.EmailChallengeValidator{Repository: repo}
+
 		got, err := validator.Validate(t.Context(), auth.ValidateEmailInput{
 			Email: &acc.Email.Address,
 			Code:  acc.Email.Challenge.Code,
