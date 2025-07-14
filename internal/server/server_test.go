@@ -48,6 +48,11 @@ func (s *NavigateToLoginSuite) TestLoginFlow() {
 	s.Equal("Host", s.Get(ByH1).TextContent(), "page heading after login")
 }
 
+func (s *NavigateToLoginSuite) TestOpeningHostDirectlyRedirects() {
+	s.Win.Navigate("https://example.com/host")
+	s.Equal("/auth/login", s.Win.Location().Pathname(), "Location after host")
+}
+
 func TestNavigateToLogin(t *testing.T) {
 	suite.Run(t, new(NavigateToLoginSuite))
 }

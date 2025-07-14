@@ -93,10 +93,13 @@ func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 		views.HostsPage().Render(r.Context(), w)
 		return
 	}
-	// Not authenticated; show login page
 	fmtNewLocation := fmt.Sprintf("/auth/login?redirectUrl=%s", url.QueryEscape("/host"))
-	w.Header().Add("hx-push-url", fmtNewLocation)
-	s.AuthRouter.RenderHost(w, r)
+	if r.Header.Get("HX-Request") == "" {
+		http.Redirect(w, r, fmtNewLocation, 303)
+	} else {
+		w.Header().Add("hx-replace-url", fmtNewLocation)
+		s.AuthRouter.RenderHost(w, r)
+	}
 }
 
 func csrfCookieName(id string) string { return fmt.Sprintf("csrf-%s", id) }
