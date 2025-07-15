@@ -2,7 +2,7 @@ package shaman
 
 import (
 	"fmt"
-	ariarole "harmony/internal/testing/aria-role"
+	"harmony/internal/testing/shaman/ariarole"
 
 	"github.com/gost-dom/browser/dom"
 )

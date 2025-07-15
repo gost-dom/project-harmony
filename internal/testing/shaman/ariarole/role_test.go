@@ -2,8 +2,9 @@ package ariarole_test
 
 import (
 	"fmt"
-	ariarole "harmony/internal/testing/aria-role"
 	"testing"
+
+	"harmony/internal/testing/shaman/ariarole"
 
 	"github.com/gost-dom/browser/html"
 )

@@ -3,10 +3,10 @@ package server_test
 import (
 	"harmony/internal/features/auth/authrouter"
 	. "harmony/internal/server/testing"
-	ariarole "harmony/internal/testing/aria-role"
 	. "harmony/internal/testing/domaintest"
 	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
 	"harmony/internal/testing/servertest"
+	"harmony/internal/testing/shaman/ariarole"
 	. "harmony/internal/testing/shaman/predicates"
 	"testing"
 

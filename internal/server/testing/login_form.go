@@ -1,8 +1,8 @@
 package testing
 
 import (
-	ariarole "harmony/internal/testing/aria-role"
 	"harmony/internal/testing/shaman"
+	"harmony/internal/testing/shaman/ariarole"
 	. "harmony/internal/testing/shaman/predicates"
 
 	"github.com/gost-dom/browser/dom"
