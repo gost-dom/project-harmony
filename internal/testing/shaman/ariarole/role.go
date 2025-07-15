@@ -24,6 +24,7 @@ const (
 	Form   Role = "form"
 	Link   Role = "link"
 	Main   Role = "main"
+	Banner Role = "banner"
 
 	// PasswordText represents the "password text" role, which isn't an official
 	// ARIA role. It is reported by Firefox's accessibility tools, and helpful
@@ -60,6 +61,8 @@ func GetElementRole(e dom.Element) Role {
 		return Link
 	case "FORM":
 		return Form
+	case "HEADER":
+		return Banner
 	}
 	return None
 }
