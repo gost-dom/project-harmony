@@ -35,6 +35,14 @@ const (
 	Checkbox     Role = "checkbox"
 )
 
+var elementRoles map[string]Role = map[string]Role{
+	"MAIN":   Main,
+	"BUTTON": Button,
+	"A":      Link,
+	"FORM":   Form,
+	"HEADER": Banner,
+}
+
 func GetElementRole(e dom.Element) Role {
 	if r, ok := e.GetAttribute("role"); ok {
 		// TODO: check validity of r
@@ -53,16 +61,6 @@ func GetElementRole(e dom.Element) Role {
 			}
 			return Textbox
 		}
-	case "MAIN":
-		return Main
-	case "BUTTON":
-		return Button
-	case "A":
-		return Link
-	case "FORM":
-		return Form
-	case "HEADER":
-		return Banner
 	}
-	return None
+	return elementRoles[e.TagName()]
 }
