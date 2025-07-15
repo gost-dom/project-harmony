@@ -6,53 +6,79 @@ import (
 	. "harmony/internal/testing/domaintest"
 	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
 	"harmony/internal/testing/servertest"
+	"harmony/internal/testing/shaman"
 	"harmony/internal/testing/shaman/ariarole"
 	. "harmony/internal/testing/shaman/predicates"
 	"testing"
 
+	"github.com/gost-dom/browser"
+	"github.com/gost-dom/browser/html"
 	"github.com/gost-dom/surgeon"
+	"github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
 )
 
-type NavigateToLoginSuite struct{ servertest.BrowserSuite }
+type harmonySuite struct {
+	t *testing.T
+	gomega.Gomega
+	shaman.Scope
+	Win html.Window
+}
 
-func (s *NavigateToLoginSuite) SetupTest() {
-	s.BrowserSuite.SetupTest()
-	// In this scenario, authentication always succeed. Specific tests for the
-	// login page exercise different aspects
-	authMock := NewMockAuthenticator(s.T())
+func newHarmonySuite(t *testing.T) harmonySuite {
+	authMock := NewMockAuthenticator(t)
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
 		Return(InitAuthenticatedAccount(), nil).Maybe()
-	s.Graph = surgeon.Replace[authrouter.Authenticator](s.Graph, authMock)
+	g := surgeon.Replace[authrouter.Authenticator](servertest.Graph, authMock)
 
-	s.OpenWindow("https://example.com/")
-	s.Win.Clock().RunAll()
+	serv := g.Instance()
+	dummy := servertest.InitBrowser(t, serv)
+	Browser := dummy.Browser
+
+	win, err := Browser.Open("https://example.com/")
+	assert.NoError(t, err)
+
+	return harmonySuite{t: t,
+		Gomega: gomega.NewWithT(t),
+		Scope:  shaman.NewScope(t, win.Document()),
+		Win:    win,
+	}
 }
 
-func (s *NavigateToLoginSuite) TestLoginFlow() {
+func TestLoginFlow(t *testing.T) {
+	s := newHarmonySuite(t)
+
 	s.Get(ByRole(ariarole.Link), ByName("Go to hosting")).Click()
 	s.Win.Clock().RunAll()
 
-	s.Equal("/auth/login", s.Win.Location().Pathname(), "Location after host")
+	assert.Equal(t, "/auth/login", s.Win.Location().Pathname(), "Location after host")
 	mainHeading := s.Get(ByH1)
-	s.Equal("Login", mainHeading.TextContent())
+	assert.Equal(t, "Login", mainHeading.TextContent())
 
 	loginForm := NewLoginForm(s.Scope)
 	loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	loginForm.Password().SetAttribute("value", "s3cret")
 	loginForm.SubmitBtn().Click()
 
-	s.Equal("/host", s.Win.Location().Pathname(), "path after login name")
-	s.Equal("Host", s.Get(ByH1).TextContent(), "page heading after login")
+	assert.Equal(t, "/host", s.Win.Location().Pathname(), "path after login name")
+	assert.Equal(t, "Host", s.Get(ByH1).TextContent(), "page heading after login")
 }
 
-func (s *NavigateToLoginSuite) TestOpeningHostDirectlyRedirects() {
+type NavigateToLoginSuite struct {
+	Browser *browser.Browser
+	Win     html.Window
+}
+
+func (s *NavigateToLoginSuite) SetupTest(t testing.TB, g servertest.ServerGraph) {
+	if s.Win != nil {
+		panic("BrowserSuite: This suite does not support opening multiple windows pr. test case")
+	}
+}
+
+func TestOpeningHostDirectlyRedirects(t *testing.T) {
+	s := newHarmonySuite(t)
 	s.Win.Navigate("https://example.com/host")
-	s.Equal("/auth/login", s.Win.Location().Pathname(), "Location after host")
-}
-
-func TestNavigateToLogin(t *testing.T) {
-	suite.Run(t, new(NavigateToLoginSuite))
+	assert.Equal(t, "/auth/login", s.Win.Location().Pathname(), "Location after host")
 }

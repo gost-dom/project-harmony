@@ -6,12 +6,14 @@ import (
 	"harmony/internal/testing/htest"
 	"harmony/internal/testing/shaman"
 	"log/slog"
+	"net/http"
 	"net/http/cookiejar"
 	"testing"
 	"time"
 
 	"github.com/gost-dom/browser"
 	"github.com/gost-dom/browser/html"
+	"github.com/gost-dom/browser/testing/gosttest"
 	"github.com/gost-dom/surgeon"
 )
 
@@ -58,7 +60,7 @@ type BrowserSuite struct {
 }
 
 func (s *BrowserSuite) SetupTest() {
-	s.Graph = graph
+	s.Graph = Graph
 	s.Ctx, s.CancelCtx = context.WithTimeout(s.T().Context(), time.Millisecond*100)
 	s.logHandler = &TestingLogHandler{TB: s.T()}
 }
@@ -97,17 +99,30 @@ func (s *BrowserSuite) AllowErrorLogs() {
 	s.logHandler.allowErrors = true
 }
 
+type initialisedBrowser struct {
+	*browser.Browser
+	CookieJar *CookieJar
+}
+
+func InitBrowser(t testing.TB, server http.Handler) initialisedBrowser {
+	l := gosttest.NewTestingLogger(t, gosttest.AllowErrors())
+	b := browser.New(
+		browser.WithHandler(server),
+		browser.WithLogger(l),
+	)
+	jar := NewCookieJar()
+	b.Client.Jar = jar
+	return initialisedBrowser{b, jar}
+}
+
 func (s *BrowserSuite) OpenWindow(path string) html.Window {
 	if s.Win != nil {
 		panic("BrowserSuite: This suite does not support opening multiple windows pr. test case")
 	}
 	serv := s.Graph.Instance()
-	s.Browser = browser.New(
-		browser.WithHandler(serv),
-		browser.WithLogger(slog.New(s.logHandler)),
-	)
-	s.CookieJar = NewCookieJar()
-	s.Browser.Client.Jar = s.CookieJar
+	dummy := InitBrowser(s.T(), serv)
+	s.Browser = dummy.Browser
+	s.CookieJar = dummy.CookieJar
 
 	win, err := s.Browser.Open(path)
 	s.Assert().NoError(err)
