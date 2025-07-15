@@ -1,25 +1,55 @@
 package ariarole_test
 
 import (
+	"fmt"
 	ariarole "harmony/internal/testing/aria-role"
 	"testing"
 
 	"github.com/gost-dom/browser/html"
 )
 
-func TestAriaRoleButton(t *testing.T) {
-	btn := createElement("button")
-	assertRole(t, ariarole.Button, btn)
+func TestARIARoles(t *testing.T) {
+	createElement := newRoleHelper().createElement
 
-	d := createElement("div")
-	d.SetAttribute("role", "button")
-	assertRole(t, ariarole.Button, d)
+	specs := []struct {
+		TagName  string
+		RoleAttr string
+		Want     ariarole.Role
+	}{
+		{TagName: "button", RoleAttr: "button", Want: ariarole.Button},
+		{TagName: "", RoleAttr: "alert", Want: ariarole.Alert},
+	}
+
+	for _, spec := range specs {
+		name := fmt.Sprintf("Test aria role: %s", spec.RoleAttr)
+		t.Run(name, func(t *testing.T) {
+			d := createElement("div")
+			d.SetAttribute("role", spec.RoleAttr)
+			assertRole(t, spec.Want, d)
+		})
+		if spec.TagName != "" {
+			t.Run(
+				fmt.Sprintf("Test aria role for <%s>", spec.TagName),
+				func(t *testing.T) {
+					d := createElement(spec.TagName)
+					assertRole(t, spec.Want, d)
+				})
+		}
+	}
 }
 
-func createElement(tagname string) html.HTMLElement {
+type roleHelper struct {
+	doc html.HTMLDocument
+}
+
+func newRoleHelper() roleHelper {
 	win := html.NewWindow()
 	doc := html.NewHTMLDocument(win)
-	return doc.CreateElement(tagname).(html.HTMLElement)
+	return roleHelper{doc}
+}
+
+func (h roleHelper) createElement(tagname string) html.HTMLElement {
+	return h.doc.CreateElement(tagname).(html.HTMLElement)
 }
 
 func assertRole(t testing.TB, want ariarole.Role, e html.HTMLElement) {
