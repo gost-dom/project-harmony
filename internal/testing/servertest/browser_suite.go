@@ -104,15 +104,13 @@ type initialisedBrowser struct {
 	CookieJar *CookieJar
 }
 
-func InitBrowser(t testing.TB, server http.Handler) initialisedBrowser {
+func InitBrowser(t testing.TB, server http.Handler) *browser.Browser {
 	l := gosttest.NewTestingLogger(t, gosttest.AllowErrors())
 	b := browser.New(
 		browser.WithHandler(server),
 		browser.WithLogger(l),
 	)
-	jar := NewCookieJar()
-	b.Client.Jar = jar
-	return initialisedBrowser{b, jar}
+	return b
 }
 
 func (s *BrowserSuite) OpenWindow(path string) html.Window {
@@ -120,9 +118,9 @@ func (s *BrowserSuite) OpenWindow(path string) html.Window {
 		panic("BrowserSuite: This suite does not support opening multiple windows pr. test case")
 	}
 	serv := s.Graph.Instance()
-	dummy := InitBrowser(s.T(), serv)
-	s.Browser = dummy.Browser
-	s.CookieJar = dummy.CookieJar
+	s.Browser = InitBrowser(s.T(), serv)
+	s.CookieJar = NewCookieJar()
+	s.Browser.Client.Jar = s.CookieJar
 
 	win, err := s.Browser.Open(path)
 	s.Assert().NoError(err)

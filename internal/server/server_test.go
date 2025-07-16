@@ -34,10 +34,9 @@ func newHarmonySuite(t *testing.T) harmonySuite {
 	g := surgeon.Replace[authrouter.Authenticator](servertest.Graph, authMock)
 
 	serv := g.Instance()
-	dummy := servertest.InitBrowser(t, serv)
-	Browser := dummy.Browser
+	b := servertest.InitBrowser(t, serv)
 
-	win, err := Browser.Open("https://example.com/")
+	win, err := b.Open("https://example.com/")
 	assert.NoError(t, err)
 
 	return harmonySuite{t: t,
