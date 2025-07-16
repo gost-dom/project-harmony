@@ -25,15 +25,14 @@ type serverSuite struct {
 	Win html.Window
 }
 
-func newHarmonySuite(t *testing.T) serverSuite {
+func initServerSuite(t *testing.T) serverSuite {
 	authMock := NewMockAuthenticator(t)
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
 		Return(InitAuthenticatedAccount(), nil).Maybe()
 	g := surgeon.Replace[authrouter.Authenticator](servertest.Graph, authMock)
 
-	serv := g.Instance()
-	b := servertest.InitBrowser(t, serv)
+	b := servertest.InitBrowser(t, g)
 
 	win, err := b.Open("https://example.com/")
 	assert.NoError(t, err)
@@ -46,26 +45,40 @@ func newHarmonySuite(t *testing.T) serverSuite {
 }
 
 func TestLoginFlow(t *testing.T) {
-	s := newHarmonySuite(t)
+	s := initServerSuite(t)
+	header := s.Subscope(ByRole(ariarole.Banner))
+	t.Run("Login button exists before login", func(t *testing.T) {
+		_, hasLoginButton := header.Query(ByRole(ariarole.Link), ByName("Login"))
+		assert.True(t, hasLoginButton)
+	})
 
-	s.Get(ByRole(ariarole.Link), ByName("Go to hosting")).Click()
-	s.Win.Clock().RunAll()
+	t.Run("/host redirects to /auth/login", func(t *testing.T) {
+		s.Get(ByRole(ariarole.Link), ByName("Go to hosting")).Click()
+		s.Win.Clock().RunAll()
 
-	assert.Equal(t, "/auth/login", s.Win.Location().Pathname(), "Location after host")
-	mainHeading := s.Get(ByH1)
-	assert.Equal(t, "Login", mainHeading.TextContent())
+		assert.Equal(t, "/auth/login", s.Win.Location().Pathname(), "Location after host")
+		mainHeading := s.Get(ByH1)
+		assert.Equal(t, "Login", mainHeading.TextContent())
+	})
 
-	loginForm := NewLoginForm(s.Scope)
-	loginForm.Email().SetAttribute("value", "valid-user@example.com")
-	loginForm.Password().SetAttribute("value", "s3cret")
-	loginForm.SubmitBtn().Click()
+	t.Run("Performing a logn redirects back to /host", func(t *testing.T) {
+		loginForm := NewLoginForm(s.Scope)
+		loginForm.Email().SetAttribute("value", "valid-user@example.com")
+		loginForm.Password().SetAttribute("value", "s3cret")
+		loginForm.SubmitBtn().Click()
 
-	assert.Equal(t, "/host", s.Win.Location().Pathname(), "path after login name")
-	assert.Equal(t, "Host", s.Get(ByH1).TextContent(), "page heading after login")
+		assert.Equal(t, "/host", s.Win.Location().Pathname(), "path after login name")
+		assert.Equal(t, "Host", s.Get(ByH1).TextContent(), "page heading after login")
+	})
+
+	// t.Run("Login button disappears after login", func(t *testing.T) {
+	// 	_, hasLoginButton := header.Query(ByRole(ariarole.Link), ByName("Login"))
+	// 	assert.False(t, hasLoginButton)
+	// })
 }
 
 func TestOpeningHostDirectlyRedirects(t *testing.T) {
-	s := newHarmonySuite(t)
+	s := initServerSuite(t)
 	s.Win.Navigate("https://example.com/host")
 	assert.Equal(t, "/auth/login", s.Win.Location().Pathname(), "Location after host")
 }

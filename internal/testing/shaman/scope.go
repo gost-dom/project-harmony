@@ -139,6 +139,16 @@ func (h Scope) Get(opts ...ElementPredicate) html.HTMLElement {
 	return nil
 }
 
+// Query looks for one element that matches the options, and return it in return
+// value e. Return ok tells whether an element was found. At most one element is
+// expected to exist in the dom mathing the options. Of more than one are found,
+// a fatal error is generated.
+func (h Scope) Query(opts ...ElementPredicate) (e html.HTMLElement, ok bool) {
+	h.t.Helper()
+	res := h.Find(opts...)
+	return res, res != nil
+}
+
 func (h Scope) Subscope(opts ...ElementPredicate) Scope {
 	return NewScope(h.t, h.Get(opts...))
 }

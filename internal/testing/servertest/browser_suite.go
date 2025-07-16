@@ -6,7 +6,6 @@ import (
 	"harmony/internal/testing/htest"
 	"harmony/internal/testing/shaman"
 	"log/slog"
-	"net/http"
 	"net/http/cookiejar"
 	"testing"
 	"time"
@@ -104,10 +103,12 @@ type initialisedBrowser struct {
 	CookieJar *CookieJar
 }
 
-func InitBrowser(t testing.TB, server http.Handler) *browser.Browser {
+// InitBrowser creates a new Gost-DOM browser connected to the HTTP server
+// obtained from a [surgeon.Graph].
+func InitBrowser(t testing.TB, g ServerGraph) *browser.Browser {
 	l := gosttest.NewTestingLogger(t, gosttest.AllowErrors())
 	b := browser.New(
-		browser.WithHandler(server),
+		browser.WithHandler(g.Instance()),
 		browser.WithLogger(l),
 	)
 	return b
@@ -117,8 +118,7 @@ func (s *BrowserSuite) OpenWindow(path string) html.Window {
 	if s.Win != nil {
 		panic("BrowserSuite: This suite does not support opening multiple windows pr. test case")
 	}
-	serv := s.Graph.Instance()
-	s.Browser = InitBrowser(s.T(), serv)
+	s.Browser = InitBrowser(s.T(), s.Graph)
 	s.CookieJar = NewCookieJar()
 	s.Browser.Client.Jar = s.CookieJar
 

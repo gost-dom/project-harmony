@@ -1,7 +1,26 @@
 package views
 
+import serverctx "harmony/internal/server/ctx"
+
 type Contents struct {
 	Body templ.Component
+}
+
+const contextKey = "auth:loggedIn"
+
+templ HeaderAuthSection() {
+  if !serverctx.IsLoggedIn(ctx) {
+    <a
+      hx-boost="true"
+      href="/auth/login"
+      class="bg-ctabase-300/20 hover:bg-ctabase-300 focus:ring-4
+      focus:ring-blue-300 font-medium text-sm rounded-2xl px-8 py-[0.375rem]
+      dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none
+      border-cta border
+      dark:focus:ring-blue-800 ml-auto"
+      >Login</a>
+  } else {
+  }
 }
 
 templ Layout(c Contents) {
@@ -34,15 +53,7 @@ templ Layout(c Contents) {
 							<rect x="10" y="10" width="180" height="180" rx="20" ry="20" fill="#e6e6e6" stroke="#999999" stroke-width="4"></rect>
 						</svg>
 					</a>
-					<a
-						hx-boost="true"
-						href="/auth/login"
-						class="bg-ctabase-300/20 hover:bg-ctabase-300 focus:ring-4
-focus:ring-blue-300 font-medium text-sm rounded-2xl px-8 py-[0.375rem]
-dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none
-border-cta border
-dark:focus:ring-blue-800 ml-auto"
-					>Login</a>
+                    @HeaderAuthSection()
 				</header>
 				<div
 					id="body-root"

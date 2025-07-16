@@ -13,6 +13,7 @@ import (
 	. "harmony/internal/features/auth/authrouter"
 	"harmony/internal/gosthttp"
 	"harmony/internal/project"
+	"harmony/internal/server/ctx"
 	"harmony/internal/server/views"
 
 	"github.com/a-h/templ"
@@ -90,7 +91,8 @@ type sessionName string
 
 func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 	if account := s.SessionManager.LoggedInUser(r); account != nil {
-		views.HostsPage().Render(r.Context(), w)
+		ctx := ctx.SetIsLoggedIn(r.Context(), true)
+		views.HostsPage().Render(ctx, w)
 		return
 	}
 	fmtNewLocation := fmt.Sprintf("/auth/login?redirectUrl=%s", url.QueryEscape("/host"))
