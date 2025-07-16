@@ -3,7 +3,6 @@ package authrouter
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/mail"
@@ -119,6 +118,7 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		r = r.WithContext(setAuth(r.Context(), account))
 		w.Header().Add("hx-push-url", redirectUrl)
 		w.Header().Add("hx-retarget", "body")
 		gosthttp.Rewrite(w, r, redirectUrl)
@@ -171,7 +171,6 @@ func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Reque
 			Code:  authdomain.EmailValidationCode(code),
 		})
 	if err != nil {
-		fmt.Println("AUTH ERROR: ", err)
 		w.Header().Add("hx-retarget", "#validation-error-container")
 		w.Header().Add("hx-swap", "innerHTML")
 		if errors.Is(err, auth.ErrBadChallengeResponse) {

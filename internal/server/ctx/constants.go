@@ -1,18 +1,19 @@
-package ctx
+package serverctx
 
-import "context"
+import (
+	"context"
+	"harmony/internal/features/auth/authdomain"
+)
 
 const (
-	AuthLoggedIn = "auth:loggedIn"
+	AuthAccount = "auth:account"
 )
 
 func IsLoggedIn(c context.Context) bool {
-	if val, ok := c.Value(AuthLoggedIn).(bool); ok {
-		return val
-	}
-	return false
+	acc := c.Value(AuthAccount)
+	return acc != nil
 }
 
-func SetIsLoggedIn(c context.Context, v bool) context.Context {
-	return context.WithValue(c, AuthLoggedIn, v)
+func SetUser(c context.Context, acc *authdomain.Account) context.Context {
+	return context.WithValue(c, AuthAccount, acc)
 }

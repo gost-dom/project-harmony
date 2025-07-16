@@ -46,8 +46,8 @@ func initServerSuite(t *testing.T) serverSuite {
 
 func TestLoginFlow(t *testing.T) {
 	s := initServerSuite(t)
-	header := s.Subscope(ByRole(ariarole.Banner))
 	t.Run("Login button exists before login", func(t *testing.T) {
+		header := s.Subscope(ByRole(ariarole.Banner))
 		_, hasLoginButton := header.Query(ByRole(ariarole.Link), ByName("Login"))
 		assert.True(t, hasLoginButton)
 	})
@@ -71,10 +71,14 @@ func TestLoginFlow(t *testing.T) {
 		assert.Equal(t, "Host", s.Get(ByH1).TextContent(), "page heading after login")
 	})
 
-	// t.Run("Login button disappears after login", func(t *testing.T) {
-	// 	_, hasLoginButton := header.Query(ByRole(ariarole.Link), ByName("Login"))
-	// 	assert.False(t, hasLoginButton)
-	// })
+	t.Run("Login button disappears after login", func(t *testing.T) {
+		header := s.Subscope(ByRole(ariarole.Banner))
+		_, hasLoginButton := header.Query(ByRole(ariarole.Link), ByName("Login"))
+		assert.False(t, hasLoginButton, "A login link exists in the header")
+
+		_, hasLogoutButton := header.Query(ByRole(ariarole.Link), ByName("Logout"))
+		assert.False(t, hasLogoutButton, "A logout button exists in the header")
+	})
 }
 
 func TestOpeningHostDirectlyRedirects(t *testing.T) {

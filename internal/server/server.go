@@ -13,7 +13,7 @@ import (
 	. "harmony/internal/features/auth/authrouter"
 	"harmony/internal/gosthttp"
 	"harmony/internal/project"
-	"harmony/internal/server/ctx"
+	serverctx "harmony/internal/server/ctx"
 	"harmony/internal/server/views"
 
 	"github.com/a-h/templ"
@@ -91,7 +91,7 @@ type sessionName string
 
 func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 	if account := s.SessionManager.LoggedInUser(r); account != nil {
-		ctx := ctx.SetIsLoggedIn(r.Context(), true)
+		ctx := serverctx.SetUser(r.Context(), account)
 		views.HostsPage().Render(ctx, w)
 		return
 	}

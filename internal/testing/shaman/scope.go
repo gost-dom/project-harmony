@@ -132,6 +132,9 @@ func (h Scope) Find(opts ...ElementPredicate) html.HTMLElement {
 // are found, a fatal error is generated.
 func (h Scope) Get(opts ...ElementPredicate) html.HTMLElement {
 	h.t.Helper()
+	if !h.Container.IsConnected() {
+		h.t.Logf("WARN (shaman): Scope root element not connected to document")
+	}
 	if res := h.Find(opts...); res != nil {
 		return res
 	}
