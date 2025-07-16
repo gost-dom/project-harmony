@@ -14,6 +14,12 @@ type Contents struct {
 	Body templ.Component
 }
 
+const buttonClassName = `bg-ctabase-300/20 hover:bg-ctabase-300 focus:ring-4
+      focus:ring-blue-300 font-medium text-sm rounded-2xl px-8 py-[0.375rem]
+      dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none
+      border-cta border
+      dark:focus:ring-blue-800`
+
 func HeaderAuthSection() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -36,12 +42,48 @@ func HeaderAuthSection() templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if !serverctx.IsLoggedIn(ctx) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<a hx-boost=\"true\" href=\"/auth/login\" class=\"bg-ctabase-300/20 hover:bg-ctabase-300 focus:ring-4\n      focus:ring-blue-300 font-medium text-sm rounded-2xl px-8 py-[0.375rem]\n      dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none\n      border-cta border\n      dark:focus:ring-blue-800 ml-auto\">Login</a>")
+			var templ_7745c5c3_Var2 = []any{buttonClassName}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<a hx-boost=\"true\" href=\"/auth/login\" class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var3 string
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var2).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\">Login</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button class=\"bg-ctabase-300/20 hover:bg-ctabase-300 focus:ring-4\n      focus:ring-blue-300 font-medium text-sm rounded-2xl px-8 py-[0.375rem]\n      dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none\n      border-cta border\n      dark:focus:ring-blue-800 ml-auto\">Logout</button>")
+			var templ_7745c5c3_Var4 = []any{buttonClassName}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var4...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<button class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var4).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\">Logout</button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -66,12 +108,12 @@ func Layout(c Contents) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var2 == nil {
-			templ_7745c5c3_Var2 = templ.NopComponent
+		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var6 == nil {
+			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<!doctype html><html><head><link rel=\"stylesheet\" href=\"/static/css/tailwind.css\"><script src=\"/static/js/htmx.js\"></script><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Project Harmony</title></head><body class=\"bg-secondary-50 dark:bg-stone-800\"><div class=\"min-h-screen flex flex-col\"><!--\n\t\t\t\t<header class=\"bg-primary-600 text-zinc-50 p-4 font-bold flex\">\n        --><header class=\"p-4 flex items-center\"><a href=\"/\" aria-title=\"Go to home\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\" width=\"2rem\" height=\"2rem\"><!-- Background Square with Rounded Corners --><rect x=\"10\" y=\"10\" width=\"180\" height=\"180\" rx=\"20\" ry=\"20\" fill=\"#e6e6e6\" stroke=\"#999999\" stroke-width=\"4\"></rect></svg></a>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<!doctype html><html><head><link rel=\"stylesheet\" href=\"/static/css/tailwind.css\"><script src=\"/static/js/htmx.js\"></script><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Project Harmony</title></head><body class=\"bg-secondary-50 dark:bg-stone-800\"><div class=\"min-h-screen flex flex-col\"><!--\n\t\t\t\t<header class=\"bg-primary-600 text-zinc-50 p-4 font-bold flex\">\n        --><header class=\"p-4 flex items-center\"><a href=\"/\" aria-title=\"Go to home\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\" width=\"2rem\" height=\"2rem\"><!-- Background Square with Rounded Corners --><rect x=\"10\" y=\"10\" width=\"180\" height=\"180\" rx=\"20\" ry=\"20\" fill=\"#e6e6e6\" stroke=\"#999999\" stroke-width=\"4\"></rect></svg></a><div class=\"ml-auto\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -79,7 +121,7 @@ func Layout(c Contents) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</header><div id=\"body-root\" class=\"flex-grow flex items-stretch flex-col\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div></header><div id=\"body-root\" class=\"flex-grow flex items-stretch flex-col\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -87,7 +129,7 @@ func Layout(c Contents) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div><!--\n\t\t\t\t<footer\n\t\t\t\t\tclass=\"bg-primary-600 text-white p-4 border-t\n      border-primary-800\"\n\t\t\t\t>Footer content</footer>\n        --></div><script>\n        // htmx.logAll();\n        window.addEventListener(\"error\",(err) => {\n          console.error(\"SCRIPT ERROR!\", err)\n        })\n      </script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div><!--\n\t\t\t\t<footer\n\t\t\t\t\tclass=\"bg-primary-600 text-white p-4 border-t\n      border-primary-800\"\n\t\t\t\t>Footer content</footer>\n        --></div><script>\n        // htmx.logAll();\n        window.addEventListener(\"error\",(err) => {\n          console.error(\"SCRIPT ERROR!\", err)\n        })\n      </script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
