@@ -11,7 +11,6 @@ import (
 	. "harmony/internal/testing/shaman/predicates"
 	"testing"
 
-	"github.com/gost-dom/browser"
 	"github.com/gost-dom/browser/html"
 	"github.com/gost-dom/surgeon"
 	"github.com/onsi/gomega"
@@ -19,14 +18,14 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type harmonySuite struct {
+type serverSuite struct {
 	t *testing.T
 	gomega.Gomega
 	shaman.Scope
 	Win html.Window
 }
 
-func newHarmonySuite(t *testing.T) harmonySuite {
+func newHarmonySuite(t *testing.T) serverSuite {
 	authMock := NewMockAuthenticator(t)
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
@@ -39,7 +38,7 @@ func newHarmonySuite(t *testing.T) harmonySuite {
 	win, err := b.Open("https://example.com/")
 	assert.NoError(t, err)
 
-	return harmonySuite{t: t,
+	return serverSuite{t: t,
 		Gomega: gomega.NewWithT(t),
 		Scope:  shaman.NewScope(t, win.Document()),
 		Win:    win,
@@ -63,17 +62,6 @@ func TestLoginFlow(t *testing.T) {
 
 	assert.Equal(t, "/host", s.Win.Location().Pathname(), "path after login name")
 	assert.Equal(t, "Host", s.Get(ByH1).TextContent(), "page heading after login")
-}
-
-type NavigateToLoginSuite struct {
-	Browser *browser.Browser
-	Win     html.Window
-}
-
-func (s *NavigateToLoginSuite) SetupTest(t testing.TB, g servertest.ServerGraph) {
-	if s.Win != nil {
-		panic("BrowserSuite: This suite does not support opening multiple windows pr. test case")
-	}
 }
 
 func TestOpeningHostDirectlyRedirects(t *testing.T) {
