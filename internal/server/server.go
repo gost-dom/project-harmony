@@ -54,6 +54,22 @@ func statusCodeToLogLevel(code int) slog.Level {
 	return slog.LevelInfo
 }
 
+func logHeader(h http.Header) slog.Attr {
+	attrs := make([]any, len(h))
+	i := 0
+	for k, v := range h {
+		switch k {
+		// Don't log request/response cookies
+		case "Cookie", "Set-Cookie":
+			attrs[i] = slog.Any(k, "...")
+		default:
+			attrs[i] = slog.Any(k, v)
+		}
+		i++
+	}
+	return slog.Group("header", attrs...)
+}
+
 func log(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rec := &StatusRecorder{ResponseWriter: w}
@@ -64,9 +80,15 @@ func log(h http.Handler) http.Handler {
 		status := rec.Code()
 		logLvl := statusCodeToLogLevel(status)
 		slog.Log(r.Context(), logLvl, "HTTP Request",
-			slog.String("method", r.Method),
-			slog.String("path", r.URL.Path),
-			slog.Int("status", status),
+			slog.Group("req",
+				slog.String("method", r.Method),
+				slog.String("path", r.URL.Path),
+				logHeader(r.Header),
+			),
+			slog.Group("res",
+				slog.Int("status", status),
+				logHeader(w.Header()),
+			),
 			slog.Duration("duration", time.Since(start)),
 		)
 	})
