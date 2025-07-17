@@ -19,7 +19,7 @@ func Authenticated(t testing.TB, win html.Window) bool {
 		!assert.False(t, bothVisible, "Both login and logout button is visible") {
 		t.Fatal("Browser is in a bad state")
 	}
-	return logoutVisible && !loginVisible // Testing both is unnecessary, but communicates intent
+	return logoutVisible && !loginVisible // Testing both is unnecessary, but communicates intent.
 }
 
 // AssertAuthenticated asserts that the user has been authenticated.

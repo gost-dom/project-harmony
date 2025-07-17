@@ -2,8 +2,12 @@ package servertest
 
 import (
 	"context"
+	"harmony/internal/features/auth/authrouter"
 	"harmony/internal/server"
+	"harmony/internal/testing/browsertest"
+	"harmony/internal/testing/domaintest"
 	"harmony/internal/testing/htest"
+	"harmony/internal/testing/mocks/features/auth/authrouter_mock"
 	"harmony/internal/testing/shaman"
 	"log/slog"
 	"net/http/cookiejar"
@@ -14,6 +18,8 @@ import (
 	"github.com/gost-dom/browser/html"
 	"github.com/gost-dom/browser/testing/gosttest"
 	"github.com/gost-dom/surgeon"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 // CookieJar wraps cookiejar.Jar to provide additional functionality
@@ -96,6 +102,25 @@ func (l TestingLogHandler) WithGroup(name string) slog.Handler       { return l 
 // test.
 func (s *BrowserSuite) AllowErrorLogs() {
 	s.logHandler.allowErrors = true
+}
+
+func InitAuthenticatedWindow(t testing.TB, g ServerGraph) html.Window {
+	authMock := authrouter_mock.NewMockAuthenticator(t)
+	g = surgeon.Replace[authrouter.Authenticator](Graph, authMock)
+	acc := domaintest.InitAuthenticatedAccount()
+	authMock.EXPECT().
+		Authenticate(mock.Anything, mock.Anything, mock.Anything).
+		Return(acc, nil)
+	b := InitBrowser(t, g)
+	win, err := b.Open("https://example.com/auth/login")
+	assert.NoError(t, err, "error opening login page")
+
+	lp := browsertest.NewPage(t, win).AssertLoginPage()
+	form := lp.LoginForm()
+	form.Email().Write("valid@example.com")
+	form.Password().Write("validpassword")
+	form.SubmitBtn().Click()
+	return win
 }
 
 // InitBrowser creates a new Gost-DOM browser connected to the HTTP server
