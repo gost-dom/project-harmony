@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	router "harmony/internal/features/auth/authrouter"
-	. "harmony/internal/server/testing"
 	"harmony/internal/testing/browsertest"
 	"harmony/internal/testing/domaintest"
 	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
@@ -43,8 +42,9 @@ func TestPOSTLogout(t *testing.T) {
 	b := servertest.InitBrowser(t, g)
 	win, err := b.Open("https://example.com/auth/login")
 	assert.NoError(t, err, "error opening login page")
-	mainScope := shaman.WindowScope(t, win)
-	form := NewLoginForm(mainScope)
+
+	lp := browsertest.NewPage(t, win).AssertLoginPage()
+	form := lp.LoginForm()
 	form.Email().SetAttribute("value", "valid@example.com")
 	form.Password().SetAttribute("value", "validpassword")
 	form.SubmitBtn().Click()

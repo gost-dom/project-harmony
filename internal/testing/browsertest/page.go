@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gost-dom/browser/html"
+	"github.com/stretchr/testify/assert"
 )
 
 // Page represents the standard page layout
@@ -24,14 +25,15 @@ func (p Page) Header() Header {
 	return Header{scope}
 }
 
-type Header struct{ shaman.Scope }
-
-// LoginBtn returns the login "button" if found, otherwise it returns nil.
-func (h Header) LoginBtn() html.HTMLElement {
-	return h.Find(ByRole(ariarole.Link), ByName("Login"))
+func (p Page) Scope() shaman.Scope {
+	return shaman.WindowScope(p.t, p.win)
 }
 
-// LogoutBtn returns the logout button if found, otherwise it returns nil.
-func (h Header) LogoutBtn() html.HTMLElement {
-	return h.Find(ByRole(ariarole.Button), ByName("Logout"))
+func (p Page) AssertLoginPage() LoginPage {
+	main := p.Scope().Subscope(ByRole(ariarole.Main))
+	h1 := main.Get(ByH1)
+	if !assert.Equal(p.t, "Login", h1.TextContent()) {
+		p.t.Fatal("Not a login page")
+	}
+	return LoginPage{p}
 }

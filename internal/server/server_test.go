@@ -2,8 +2,8 @@ package server_test
 
 import (
 	"harmony/internal/features/auth/authrouter"
-	. "harmony/internal/server/testing"
 	"harmony/internal/testing/browsertest"
+	. "harmony/internal/testing/browsertest"
 	. "harmony/internal/testing/domaintest"
 	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
 	"harmony/internal/testing/servertest"
