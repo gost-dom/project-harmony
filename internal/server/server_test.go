@@ -3,6 +3,7 @@ package server_test
 import (
 	"harmony/internal/features/auth/authrouter"
 	. "harmony/internal/server/testing"
+	"harmony/internal/testing/browsertest"
 	. "harmony/internal/testing/domaintest"
 	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
 	"harmony/internal/testing/servertest"
@@ -72,12 +73,9 @@ func TestLoginFlow(t *testing.T) {
 	})
 
 	t.Run("Login button disappears after login", func(t *testing.T) {
-		header := s.Subscope(ByRole(ariarole.Banner))
-		_, hasLoginButton := header.Query(ByRole(ariarole.Link), ByName("Login"))
-		assert.False(t, hasLoginButton, "A login link exists in the header")
-
-		_, hasLogoutButton := header.Query(ByRole(ariarole.Link), ByName("Logout"))
-		assert.False(t, hasLogoutButton, "A logout button exists in the header")
+		hdr := browsertest.NewPage(t, s.Win).Header()
+		assert.Nil(t, hdr.LoginBtn(), "A login link exists in the header")
+		assert.NotNil(t, hdr.LogoutBtn(), "A logout button exists in the header")
 	})
 }
 

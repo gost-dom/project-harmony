@@ -1,9 +1,6 @@
 package browsertest
 
 import (
-	"harmony/internal/testing/shaman"
-	"harmony/internal/testing/shaman/ariarole"
-	. "harmony/internal/testing/shaman/predicates"
 	"testing"
 
 	"github.com/gost-dom/browser/html"
@@ -13,23 +10,16 @@ import (
 // Authenticated returns whether the current use has been authenticated.
 // Marks the test as Fatal if the state couldn't be determined.
 func Authenticated(t testing.TB, win html.Window) bool {
-	win.History().PushState(html.EMPTY_STATE, "/")
-	header := shaman.WindowScope(t, win).Subscope(shaman.ByRole(ariarole.Banner))
-	loginBtn := header.Find(ByRole(ariarole.Link), ByName("Login"))
-	logoutBtn := header.Find(ByRole(ariarole.Button), ByName("Logout"))
-	if !assert.False(t,
-		loginBtn == nil && logoutBtn == nil,
-		"Neither login, nor logout button is visible",
-	) {
+	hdr := NewPage(t, win).Header()
+	loginVisible := hdr.LoginBtn() != nil
+	logoutVisible := hdr.LogoutBtn() != nil
+	bothVisible := loginVisible && logoutVisible
+	noneVisible := !loginVisible && !logoutVisible
+	if !assert.False(t, noneVisible, "Neither login, nor logout button is visible") ||
+		!assert.False(t, bothVisible, "Both login and logout button is visible") {
 		t.Fatal("Browser is in a bad state")
 	}
-	if !assert.False(t,
-		loginBtn != nil && logoutBtn != nil,
-		"Both login and logout button is visible",
-	) {
-		t.Fatal("Browser is in a bad state")
-	}
-	return logoutBtn != nil && loginBtn == nil
+	return logoutVisible && !loginVisible // Testing both is unnecessary, but communicates intent
 }
 
 // AssertAuthenticated asserts that the user has been authenticated.
