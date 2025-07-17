@@ -147,6 +147,7 @@ func (r *AuthRouter) Init() {
 		views.Login(redirectUrl, views.LoginFormData{}).Render(r.Context(), w)
 	})
 	r.HandleFunc("POST /login", r.PostAuthLogin)
+	r.HandleFunc("POST /logout", r.postLogout)
 	r.HandleFunc("GET /register", func(w http.ResponseWriter, r *http.Request) {
 		views.Register(views.RegisterFormData{}).Render(r.Context(), w)
 	})
@@ -159,6 +160,14 @@ func (r *AuthRouter) Init() {
 		},
 	)
 	r.HandleFunc("POST /validate-email", r.postValidateEmail)
+}
+
+func (router *AuthRouter) postLogout(w http.ResponseWriter, r *http.Request) {
+	if err := router.SessionManager.Logout(w, r); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/", 303)
 }
 
 func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Request) {

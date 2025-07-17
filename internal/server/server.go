@@ -111,6 +111,20 @@ type Server struct {
 
 type sessionName string
 
+// SessionAuthMiddleware retrieves the logged in user from the session and
+// writes it to the request context.
+func (s *Server) SessionAuthMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("Check logged in user")
+		if account := s.SessionManager.LoggedInUser(r); account != nil {
+			slog.Info("User is logged in")
+			ctx := serverctx.SetUser(r.Context(), account)
+			r = r.WithContext(ctx)
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
 func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
 	if account := s.SessionManager.LoggedInUser(r); account != nil {
 		ctx := serverctx.SetUser(r.Context(), account)
@@ -216,7 +230,7 @@ func (s *Server) Init() {
 			http.Dir(staticFilesPath()))),
 	)
 	s.Handler = gosthttp.RewriterMiddleware(log(noCache(CSRFProtection(
-		mux))))
+		s.SessionAuthMiddleware(mux)))))
 }
 
 func NewAuthRouter() *AuthRouter {
