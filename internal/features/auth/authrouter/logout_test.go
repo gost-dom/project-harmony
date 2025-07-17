@@ -6,6 +6,7 @@ import (
 
 	router "harmony/internal/features/auth/authrouter"
 	. "harmony/internal/server/testing"
+	"harmony/internal/testing/browsertest"
 	"harmony/internal/testing/domaintest"
 	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
 	"harmony/internal/testing/servertest"
@@ -49,14 +50,8 @@ func TestPOSTLogout(t *testing.T) {
 	form.SubmitBtn().Click()
 
 	header := shaman.WindowScope(t, win).Subscope(ByRole(ariarole.Banner))
-	logoutBtn := header.Get(shaman.ByRole(ariarole.Button), shaman.ByName("Logout"))
+	logoutBtn := header.Get(ByRole(ariarole.Button), ByName("Logout"))
 	logoutBtn.Click()
 
-	assert.NoError(t, win.Navigate("https://example.com/host"))
-	header = shaman.WindowScope(t, win).Subscope(shaman.ByRole(ariarole.Banner))
-	loginBtn := header.Find(ByRole(ariarole.Link), ByName("Login"))
-	logoutBtn = header.Find(ByRole(ariarole.Button), ByName("Logout"))
-	userLoggedIn := logoutBtn != nil && loginBtn == nil
-
-	assert.False(t, userLoggedIn, "user logged in after clicking logout")
+	browsertest.AssertUnauthenticated(t, win)
 }
