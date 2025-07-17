@@ -77,7 +77,6 @@ func (s *ValidateEmailTestSuite) TestValidCodeRedirects() {
 	form.SubmitButton().Click()
 
 	s.Expect(win.Location().Pathname()).To(gomega.Equal("/host"))
-	shaman.NewScope(s.T(), win.Document().DocumentElement())
 	s.Expect(s.Get(ByH1)).To(matchers.HaveTextContent("Host"))
 }
 
@@ -112,7 +111,7 @@ type ValidateEmailForm struct {
 }
 
 func NewValidateEmailForm(t testing.TB, win html.Window) ValidateEmailForm {
-	scope := shaman.NewScope(t, win.Document().DocumentElement()).
+	scope := shaman.WindowScope(t, win).
 		Subscope(ByRole(ariarole.Main)).
 		Subscope(ByRole(ariarole.Form))
 

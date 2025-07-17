@@ -39,7 +39,7 @@ func initServerSuite(t *testing.T) serverSuite {
 
 	return serverSuite{t: t,
 		Gomega: gomega.NewWithT(t),
-		Scope:  shaman.NewScope(t, win.Document()),
+		Scope:  shaman.WindowScope(t, win),
 		Win:    win,
 	}
 }

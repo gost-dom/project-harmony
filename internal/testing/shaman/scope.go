@@ -65,6 +65,10 @@ type Scope struct {
 	Container dom.ElementContainer
 }
 
+func WindowScope(t testing.TB, win html.Window) Scope {
+	return NewScope(t, win.Document())
+}
+
 func NewScope(t testing.TB, c dom.ElementContainer) Scope {
 	return Scope{t: t, Container: c}
 }

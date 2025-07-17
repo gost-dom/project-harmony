@@ -120,6 +120,6 @@ func (s *BrowserSuite) OpenWindow(path string) html.Window {
 	win, err := s.Browser.Open(path)
 	s.Assert().NoError(err)
 	s.Win = win
-	s.Scope = shaman.NewScope(s.T(), s.Win.Document())
+	s.Scope = shaman.WindowScope(s.T(), s.Win)
 	return win
 }
