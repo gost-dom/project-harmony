@@ -98,11 +98,6 @@ func (s *BrowserSuite) AllowErrorLogs() {
 	s.logHandler.allowErrors = true
 }
 
-type initialisedBrowser struct {
-	*browser.Browser
-	CookieJar *CookieJar
-}
-
 // InitBrowser creates a new Gost-DOM browser connected to the HTTP server
 // obtained from a [surgeon.Graph].
 func InitBrowser(t testing.TB, g ServerGraph) *browser.Browser {
