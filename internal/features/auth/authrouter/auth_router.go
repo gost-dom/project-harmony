@@ -121,7 +121,7 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 		r = r.WithContext(setAuth(r.Context(), account))
 		w.Header().Add("hx-push-url", redirectUrl)
 		w.Header().Add("hx-retarget", "body")
-		gosthttp.Rewrite(w, r, redirectUrl)
+		gosthttp.Rewrite(w, r, redirectUrl, "")
 	} else {
 		authError := errors.Is(err, auth.ErrBadCredentials)
 		data := views.LoginFormData{

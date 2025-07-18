@@ -27,7 +27,7 @@ func RewriterMiddleware(h http.Handler) http.Handler {
 //
 // This is not recommended for normal POST requests; but useful for HTMX handled
 // forms where the response body should be included with the response.
-func Rewrite(w http.ResponseWriter, r *http.Request, path string) {
+func Rewrite(w http.ResponseWriter, r *http.Request, path string, query string) {
 	rewriter, ok := r.Context().Value("rewriter").(http.Handler)
 	if !ok {
 		w.WriteHeader(500)
@@ -35,6 +35,6 @@ func Rewrite(w http.ResponseWriter, r *http.Request, path string) {
 	}
 	r.Method = "GET"
 	r.URL.Path = path
-	r.URL.RawQuery = ""
+	r.URL.RawQuery = query
 	rewriter.ServeHTTP(w, r)
 }

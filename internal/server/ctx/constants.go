@@ -17,3 +17,8 @@ func IsLoggedIn(c context.Context) bool {
 func SetUser(c context.Context, acc *authdomain.Account) context.Context {
 	return context.WithValue(c, AuthAccount, acc)
 }
+
+func GetUser(c context.Context) *authdomain.Account {
+	acc, _ := c.Value(AuthAccount).(*authdomain.Account)
+	return acc
+}
