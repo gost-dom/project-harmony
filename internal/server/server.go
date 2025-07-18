@@ -123,10 +123,6 @@ func (s *Server) SessionAuthMiddleware(h http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
-	views.HostsPage().Render(r.Context(), w)
-}
-
 func csrfCookieName(id string) string { return fmt.Sprintf("csrf-%s", id) }
 
 func getCSRFCookie(id string, r *http.Request) string {
@@ -232,7 +228,7 @@ func (s *Server) Init() {
 	mux := http.NewServeMux()
 	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
 	mux.Handle("GET /{$}", templ.Handler(views.Index()))
-	mux.Handle("GET /host", s.RequireAuth(http.HandlerFunc(s.GetHost)))
+	mux.Handle("GET /host", s.RequireAuth(templ.Handler(views.HostsPage())))
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(
