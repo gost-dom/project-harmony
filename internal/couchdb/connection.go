@@ -343,9 +343,6 @@ func (c Connection) GetPath(path string, q url.Values, doc any) (rev string, err
 		if err = json.Unmarshal(bodyBytes, &cd); err == nil {
 			err = json.Unmarshal(bodyBytes, &doc)
 		}
-		if err != nil {
-			fmt.Println("DOC", string(bodyBytes))
-		}
 		rev = cd.Rev
 	case 404:
 		err = fmt.Errorf("%w: %s", ErrNotFound, path)
