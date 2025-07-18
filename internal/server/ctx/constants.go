@@ -5,8 +5,10 @@ import (
 	"harmony/internal/features/auth/authdomain"
 )
 
+type ContextKey string
+
 const (
-	AuthAccount = "auth:account"
+	AuthAccount ContextKey = "auth:account"
 )
 
 func IsLoggedIn(c context.Context) bool {
