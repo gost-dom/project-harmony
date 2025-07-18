@@ -3,7 +3,6 @@ package server_test
 import (
 	"harmony/internal/features/auth/authrouter"
 	"harmony/internal/testing/browsertest"
-	. "harmony/internal/testing/browsertest"
 	. "harmony/internal/testing/domaintest"
 	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
 	"harmony/internal/testing/servertest"
@@ -62,8 +61,8 @@ func TestLoginFlow(t *testing.T) {
 		assert.Equal(t, "Login", mainHeading.TextContent())
 	})
 
-	t.Run("Performing a logn redirects back to /host", func(t *testing.T) {
-		loginForm := NewLoginForm(s.Scope)
+	t.Run("Performing a login redirects back to /host", func(t *testing.T) {
+		loginForm := browsertest.NewLoginForm(s.Scope)
 		loginForm.Email().SetAttribute("value", "valid-user@example.com")
 		loginForm.Password().SetAttribute("value", "s3cret")
 		loginForm.SubmitBtn().Click()
