@@ -1,7 +1,7 @@
 package gosthttp
 
 import (
-	"context"
+	serverctx "harmony/internal/server/ctx"
 	"net/http"
 )
 
@@ -15,10 +15,11 @@ func RewriterMiddleware(h http.Handler) http.Handler {
 					w.WriteHeader(500)
 					return
 				}
-				r = r.WithContext(context.WithValue(r.Context(), "rewritten", true))
+				serverctx.SetReqValue(&r, serverctx.ServerRewritten, true)
 				h.ServeHTTP(w, r)
 			})
-		h.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), "rewriter", rewriter)))
+		serverctx.SetReqValue(&r, serverctx.ServerRewriter, rewriter)
+		h.ServeHTTP(w, r)
 	})
 }
 
@@ -28,7 +29,7 @@ func RewriterMiddleware(h http.Handler) http.Handler {
 // This is not recommended for normal POST requests; but useful for HTMX handled
 // forms where the response body should be included with the response.
 func Rewrite(w http.ResponseWriter, r *http.Request, path string, query string) {
-	rewriter, ok := r.Context().Value("rewriter").(http.Handler)
+	rewriter, ok := serverctx.ReqValue[http.Handler](r, serverctx.ServerRewriter)
 	if !ok {
 		w.WriteHeader(500)
 		return

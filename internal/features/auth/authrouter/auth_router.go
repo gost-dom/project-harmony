@@ -12,6 +12,7 @@ import (
 	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/features/auth/authrouter/views"
 	"harmony/internal/gosthttp"
+	serverctx "harmony/internal/server/ctx"
 	serverviews "harmony/internal/server/views"
 
 	"github.com/gorilla/schema"
@@ -118,7 +119,8 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		r = r.WithContext(setAuth(r.Context(), account))
+
+		serverctx.SetUser(&r, account.Account)
 		w.Header().Add("hx-push-url", redirectUrl)
 		w.Header().Add("hx-retarget", "body")
 		gosthttp.Rewrite(w, r, redirectUrl, "")

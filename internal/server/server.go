@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -116,8 +115,7 @@ type sessionName string
 func (s *Server) SessionAuthMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if account := s.SessionManager.LoggedInUser(r); account != nil {
-			ctx := serverctx.SetUser(r.Context(), account)
-			r = r.WithContext(ctx)
+			serverctx.SetUser(&r, account)
 		}
 		h.ServeHTTP(w, r)
 	})
@@ -194,9 +192,9 @@ func CSRFProtection(h http.Handler) http.Handler {
 			)
 			return id, token
 		}
-		newCtx := context.WithValue(r.Context(), "tokenSource", fn)
-		newReq := r.WithContext(newCtx)
-		h.ServeHTTP(w, newReq)
+
+		serverctx.SetReqValue(&r, serverctx.ServerCSRFTokenSrc, fn)
+		h.ServeHTTP(w, r)
 	})
 }
 

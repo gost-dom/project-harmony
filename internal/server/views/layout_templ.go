@@ -71,7 +71,7 @@ func CSRFFields() templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 
-		source := ctx.Value("tokenSource")
+		source := ctx.Value(serverctx.ServerCSRFTokenSrc)
 		g, ok := source.(func() (string, string))
 		if ok {
 			id, token := g()
