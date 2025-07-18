@@ -10,7 +10,9 @@ import (
 func init() {
 	// slog.SetLogLoggerLevel(slog.LevelWarn)
 	// logger.SetDefault(slog.Default())
-	graph = ioc.Graph
+	Graph = ioc.Graph
 }
 
-var graph *surgeon.Graph[*server.Server]
+type ServerGraph = *surgeon.Graph[*server.Server]
+
+var Graph *surgeon.Graph[*server.Server]

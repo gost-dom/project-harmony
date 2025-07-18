@@ -2,7 +2,7 @@ package shaman
 
 import (
 	"fmt"
-	ariarole "harmony/internal/testing/aria-role"
+	"harmony/internal/testing/shaman/ariarole"
 	"iter"
 	"strings"
 	"testing"
@@ -63,6 +63,10 @@ func (o predicates) String() string {
 type Scope struct {
 	t         testing.TB
 	Container dom.ElementContainer
+}
+
+func WindowScope(t testing.TB, win html.Window) Scope {
+	return NewScope(t, win.Document())
 }
 
 func NewScope(t testing.TB, c dom.ElementContainer) Scope {
@@ -132,11 +136,24 @@ func (h Scope) Find(opts ...ElementPredicate) html.HTMLElement {
 // are found, a fatal error is generated.
 func (h Scope) Get(opts ...ElementPredicate) html.HTMLElement {
 	h.t.Helper()
+	if !h.Container.IsConnected() {
+		h.t.Logf("WARN (shaman): Scope root element not connected to document")
+	}
 	if res := h.Find(opts...); res != nil {
 		return res
 	}
 	h.t.Fatalf("No elements mathing options: %s", predicates(opts))
 	return nil
+}
+
+// Query looks for one element that matches the options, and return it in return
+// value e. Return ok tells whether an element was found. At most one element is
+// expected to exist in the dom mathing the options. Of more than one are found,
+// a fatal error is generated.
+func (h Scope) Query(opts ...ElementPredicate) (e html.HTMLElement, ok bool) {
+	h.t.Helper()
+	res := h.Find(opts...)
+	return res, res != nil
 }
 
 func (h Scope) Subscope(opts ...ElementPredicate) Scope {

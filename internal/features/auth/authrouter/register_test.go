@@ -4,11 +4,11 @@ import (
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/features/auth/authrouter"
-	ariarole "harmony/internal/testing/aria-role"
 	. "harmony/internal/testing/gomegamatchers"
 	"harmony/internal/testing/mocks/features/auth/authrouter_mock"
 	"harmony/internal/testing/servertest"
 	"harmony/internal/testing/shaman"
+	"harmony/internal/testing/shaman/ariarole"
 	. "harmony/internal/testing/shaman/predicates"
 	"testing"
 

@@ -3,7 +3,6 @@ package authrouter
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/mail"
@@ -13,6 +12,7 @@ import (
 	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/features/auth/authrouter/views"
 	"harmony/internal/gosthttp"
+	serverctx "harmony/internal/server/ctx"
 	serverviews "harmony/internal/server/views"
 
 	"github.com/gorilla/schema"
@@ -119,9 +119,11 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		serverctx.SetUser(&r, account.Account)
 		w.Header().Add("hx-push-url", redirectUrl)
 		w.Header().Add("hx-retarget", "body")
-		gosthttp.Rewrite(w, r, redirectUrl)
+		gosthttp.Rewrite(w, r, redirectUrl, "")
 	} else {
 		authError := errors.Is(err, auth.ErrBadCredentials)
 		data := views.LoginFormData{
@@ -147,6 +149,7 @@ func (r *AuthRouter) Init() {
 		views.Login(redirectUrl, views.LoginFormData{}).Render(r.Context(), w)
 	})
 	r.HandleFunc("POST /login", r.PostAuthLogin)
+	r.HandleFunc("POST /logout", r.postLogout)
 	r.HandleFunc("GET /register", func(w http.ResponseWriter, r *http.Request) {
 		views.Register(views.RegisterFormData{}).Render(r.Context(), w)
 	})
@@ -161,6 +164,14 @@ func (r *AuthRouter) Init() {
 	r.HandleFunc("POST /validate-email", r.postValidateEmail)
 }
 
+func (router *AuthRouter) postLogout(w http.ResponseWriter, r *http.Request) {
+	if err := router.SessionManager.Logout(w, r); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/", 303)
+}
+
 func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	email, _ := mail.ParseAddress(r.FormValue("email"))
@@ -171,7 +182,6 @@ func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Reque
 			Code:  authdomain.EmailValidationCode(code),
 		})
 	if err != nil {
-		fmt.Println("AUTH ERROR: ", err)
 		w.Header().Add("hx-retarget", "#validation-error-container")
 		w.Header().Add("hx-swap", "innerHTML")
 		if errors.Is(err, auth.ErrBadChallengeResponse) {

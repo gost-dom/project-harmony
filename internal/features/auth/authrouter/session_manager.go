@@ -8,21 +8,21 @@ import (
 )
 
 const (
-	sessionNameAuth = "auth"
+	sessionNameAuth   = "auth"
+	sessionCookieName = "accountId"
 )
-
-const sessionCookieName = "accountId"
 
 type SessionManager struct {
 	SessionStore sessions.Store
 }
 
-func (m *SessionManager) LoggedInUser(r *http.Request) *authdomain.Account {
+// TODO: Check account id is valid
+func (m *SessionManager) LoggedInUser(r *http.Request) (acc *authdomain.Account) {
 	reg := sessions.GetRegistry(r)
 	session, _ := reg.Get(m.SessionStore, sessionNameAuth)
 	if id, ok := session.Values[sessionCookieName]; ok {
 		result := new(authdomain.Account)
-		if strId, ok := id.(string); ok {
+		if strId, ok := id.(string); ok && strId != "" {
 			result.ID = authdomain.AccountID(strId)
 			return result
 		}
@@ -41,5 +41,15 @@ func (s SessionManager) SetAccount(
 		return err
 	}
 	session.Values[sessionCookieName] = string(account.ID)
+	return session.Save(req, w)
+}
+
+func (s SessionManager) Logout(w http.ResponseWriter, req *http.Request) error {
+	reg := sessions.GetRegistry(req)
+	session, err := reg.Get(s.SessionStore, sessionNameAuth)
+	if err != nil {
+		return err
+	}
+	delete(session.Values, sessionCookieName)
 	return session.Save(req, w)
 }

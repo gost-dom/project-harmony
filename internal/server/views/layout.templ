@@ -1,7 +1,47 @@
 package views
 
+import serverctx "harmony/internal/server/ctx"
+
 type Contents struct {
 	Body templ.Component
+}
+
+const buttonClassName = `bg-ctabase-300/20 hover:bg-ctabase-300 focus:ring-4
+      focus:ring-blue-300 font-medium text-sm rounded-2xl px-8 py-[0.375rem]
+      dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none
+      border-cta border
+      dark:focus:ring-blue-800`
+
+templ Logo() {
+  <svg xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 200 200"
+    width="2rem" height="2rem" >
+    <!-- Background Square with Rounded Corners -->
+    <rect x="10" y="10" width="180" height="180" rx="20" ry="20" fill="#e6e6e6" stroke="#999999" stroke-width="4"></rect>
+    </svg>
+}
+
+templ CSRFFields() {
+	{{
+	source := ctx.Value(serverctx.ServerCSRFTokenSrc)
+	g, ok := source.(func() (string, string))
+	}}
+	if ok {
+		{{ id, token := g() }}
+		<input type="hidden" name="csrf-id" value={ id }/>
+		<input type="hidden" name="csrf-token" value={ token }/>
+	}
+}
+
+templ HeaderAuthSection() {
+  if !serverctx.IsLoggedIn(ctx) {
+    <a hx-boost="true" href="/auth/login" class={buttonClassName}>Login</a>
+  } else {
+  <form method="post" action="/auth/logout">
+    @CSRFFields()
+    <button class={buttonClassName}>Logout</button>
+    </form>
+  }
 }
 
 templ Layout(c Contents) {
@@ -19,30 +59,11 @@ templ Layout(c Contents) {
 		</head>
 		<body class="bg-secondary-50 dark:bg-stone-800">
 			<div class="min-h-screen flex flex-col">
-				<!--
-				<header class="bg-primary-600 text-zinc-50 p-4 font-bold flex">
-        -->
 				<header class="p-4 flex items-center">
-					<a href="/" aria-title="Go to home">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 200 200"
-							width="2rem"
-							height="2rem"
-						>
-							<!-- Background Square with Rounded Corners -->
-							<rect x="10" y="10" width="180" height="180" rx="20" ry="20" fill="#e6e6e6" stroke="#999999" stroke-width="4"></rect>
-						</svg>
-					</a>
-					<a
-						hx-boost="true"
-						href="/auth/login"
-						class="bg-ctabase-300/20 hover:bg-ctabase-300 focus:ring-4
-focus:ring-blue-300 font-medium text-sm rounded-2xl px-8 py-[0.375rem]
-dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none
-border-cta border
-dark:focus:ring-blue-800 ml-auto"
-					>Login</a>
+					<a href="/" aria-title="Go to home">@Logo()</a>
+                    <div class="ml-auto">
+                      @HeaderAuthSection()
+                    </div>
 				</header>
 				<div
 					id="body-root"
@@ -50,12 +71,6 @@ dark:focus:ring-blue-800 ml-auto"
 				>
 					@c.Body
 				</div>
-				<!--
-				<footer
-					class="bg-primary-600 text-white p-4 border-t
-      border-primary-800"
-				>Footer content</footer>
-        -->
 			</div>
 			<script>
         // htmx.logAll();

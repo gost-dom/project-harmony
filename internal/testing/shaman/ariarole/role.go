@@ -2,12 +2,18 @@ package ariarole
 
 import "github.com/gost-dom/browser/dom"
 
-// Role represents an [ARIA role]. The contstants equal to their values in the
-// spec, but with the special value [None] that represents an element has no
-// role and [PasswordText], which isn't an official role, but helpful in testing
-// as password fields don't have a role.
+// Role represents an [ARIA role]. See package documentation for more
+// information of aria roles.
 //
-// [ARIA role]: https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles
+// Two special values are defined in this library:
+//   - [None] represents an element has no role
+//   - [PasswordText] represents password input fields
+//
+// PasswordText is not an official ARIA role. It is reported by Firefox's
+// accessibility tools, and is helpful in locating password fields, as the
+// element <input type="password" /> does not have an ARIA role.
+//
+// [ARIA roles]: https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles
 type Role string
 
 const (
@@ -18,6 +24,7 @@ const (
 	Form   Role = "form"
 	Link   Role = "link"
 	Main   Role = "main"
+	Banner Role = "banner"
 
 	// PasswordText represents the "password text" role, which isn't an official
 	// ARIA role. It is reported by Firefox's accessibility tools, and helpful
@@ -27,6 +34,14 @@ const (
 	Textbox      Role = "textbox"
 	Checkbox     Role = "checkbox"
 )
+
+var elementRoles map[string]Role = map[string]Role{
+	"MAIN":   Main,
+	"BUTTON": Button,
+	"A":      Link,
+	"FORM":   Form,
+	"HEADER": Banner,
+}
 
 func GetElementRole(e dom.Element) Role {
 	if r, ok := e.GetAttribute("role"); ok {
@@ -46,14 +61,6 @@ func GetElementRole(e dom.Element) Role {
 			}
 			return Textbox
 		}
-	case "MAIN":
-		return Main
-	case "BUTTON":
-		return Button
-	case "A":
-		return Link
-	case "FORM":
-		return Form
 	}
-	return None
+	return elementRoles[e.TagName()]
 }

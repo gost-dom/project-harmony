@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -13,6 +12,7 @@ import (
 	. "harmony/internal/features/auth/authrouter"
 	"harmony/internal/gosthttp"
 	"harmony/internal/project"
+	serverctx "harmony/internal/server/ctx"
 	"harmony/internal/server/views"
 
 	"github.com/a-h/templ"
@@ -53,6 +53,22 @@ func statusCodeToLogLevel(code int) slog.Level {
 	return slog.LevelInfo
 }
 
+func logHeader(h http.Header) slog.Attr {
+	attrs := make([]any, len(h))
+	i := 0
+	for k, v := range h {
+		switch k {
+		// Don't log request/response cookies
+		case "Cookie", "Set-Cookie":
+			attrs[i] = slog.Any(k, "...")
+		default:
+			attrs[i] = slog.Any(k, v)
+		}
+		i++
+	}
+	return slog.Group("header", attrs...)
+}
+
 func log(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rec := &StatusRecorder{ResponseWriter: w}
@@ -63,9 +79,15 @@ func log(h http.Handler) http.Handler {
 		status := rec.Code()
 		logLvl := statusCodeToLogLevel(status)
 		slog.Log(r.Context(), logLvl, "HTTP Request",
-			slog.String("method", r.Method),
-			slog.String("path", r.URL.Path),
-			slog.Int("status", status),
+			slog.Group("req",
+				slog.String("method", r.Method),
+				slog.String("path", r.URL.Path),
+				logHeader(r.Header),
+			),
+			slog.Group("res",
+				slog.Int("status", status),
+				logHeader(w.Header()),
+			),
 			slog.Duration("duration", time.Since(start)),
 		)
 	})
@@ -88,15 +110,15 @@ type Server struct {
 
 type sessionName string
 
-func (s *Server) GetHost(w http.ResponseWriter, r *http.Request) {
-	if account := s.SessionManager.LoggedInUser(r); account != nil {
-		views.HostsPage().Render(r.Context(), w)
-		return
-	}
-	// Not authenticated; show login page
-	fmtNewLocation := fmt.Sprintf("/auth/login?redirectUrl=%s", url.QueryEscape("/host"))
-	w.Header().Add("hx-push-url", fmtNewLocation)
-	s.AuthRouter.RenderHost(w, r)
+// SessionAuthMiddleware retrieves the logged in user from the session and
+// writes it to the request context.
+func (s *Server) SessionAuthMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if account := s.SessionManager.LoggedInUser(r); account != nil {
+			serverctx.SetUser(&r, account)
+		}
+		h.ServeHTTP(w, r)
+	})
 }
 
 func csrfCookieName(id string) string { return fmt.Sprintf("csrf-%s", id) }
@@ -170,26 +192,48 @@ func CSRFProtection(h http.Handler) http.Handler {
 			)
 			return id, token
 		}
-		newCtx := context.WithValue(r.Context(), "tokenSource", fn)
-		newReq := r.WithContext(newCtx)
-		h.ServeHTTP(w, newReq)
+
+		serverctx.SetReqValue(&r, serverctx.ServerCSRFTokenSrc, fn)
+		h.ServeHTTP(w, r)
 	})
 }
 
 type CSRFGenerator = func() (string, string)
 
+// RequireAuth is a middleware that will only render the inner handler if the
+// user has been authenticated. Otherwise, it sends the user to the login page.
+// If the request is an HTMX request, the login page is sent in the response,
+// otherwise, an HTTP redirect response is returned to the user.
+func (s *Server) RequireAuth(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if serverctx.IsLoggedIn(r.Context()) {
+			h.ServeHTTP(w, r)
+			return
+		}
+
+		query := fmt.Sprintf("redirectUrl=%s", url.QueryEscape(r.URL.Path))
+		newURL := fmt.Sprintf("%s?%s", PathAuthLogin, query)
+		if r.Header.Get("HX-Request") == "" {
+			http.Redirect(w, r, newURL, 303)
+		} else {
+			w.Header().Add("hx-replace-url", newURL)
+			gosthttp.Rewrite(w, r, "/auth/login", query)
+		}
+	})
+}
+
 func (s *Server) Init() {
 	mux := http.NewServeMux()
 	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
 	mux.Handle("GET /{$}", templ.Handler(views.Index()))
-	mux.Handle("GET /host", http.HandlerFunc(s.GetHost))
+	mux.Handle("GET /host", s.RequireAuth(templ.Handler(views.HostsPage())))
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(
 			http.Dir(staticFilesPath()))),
 	)
 	s.Handler = gosthttp.RewriterMiddleware(log(noCache(CSRFProtection(
-		mux))))
+		s.SessionAuthMiddleware(mux)))))
 }
 
 func NewAuthRouter() *AuthRouter {

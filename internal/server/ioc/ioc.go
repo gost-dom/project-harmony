@@ -11,11 +11,7 @@ import (
 var Graph *surgeon.Graph[*server.Server]
 
 func init() {
-	Graph = surgeon.BuildGraph(
-		server.New(),
-		// surgeon.PackagePrefixScope("harmony"),
-		// surgeon.PackagePrefixScope("github.com/gorilla/sessions"),
-	)
+	Graph = surgeon.BuildGraph(server.New())
 	Graph.Inject(memstore.NewMemStore(
 		[]byte("authkey123"),
 		[]byte("enckey12341234567890123456789012"),
