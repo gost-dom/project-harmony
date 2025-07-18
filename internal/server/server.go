@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"harmony/internal/domain"
 	. "harmony/internal/features/auth/authrouter"
 	"harmony/internal/gosthttp"
 	"harmony/internal/project"
@@ -71,9 +72,17 @@ func logHeader(h http.Header) slog.Attr {
 
 func log(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		serverctx.SetReqValue(&r, serverctx.ServerReqID, domain.NewID())
 		rec := &StatusRecorder{ResponseWriter: w}
 		start := time.Now()
 
+		slog.InfoContext(r.Context(), "HTTP Request",
+			slog.Group("req",
+				slog.String("method", r.Method),
+				slog.String("path", r.URL.Path),
+				logHeader(r.Header),
+			),
+		)
 		h.ServeHTTP(rec, r)
 
 		status := rec.Code()
@@ -86,7 +95,7 @@ func log(h http.Handler) http.Handler {
 			),
 			slog.Group("res",
 				slog.Int("status", status),
-				logHeader(w.Header()),
+				// logHeader(w.Header()),
 			),
 			slog.Duration("duration", time.Since(start)),
 		)

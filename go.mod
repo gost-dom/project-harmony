@@ -4,6 +4,7 @@ go 1.24
 
 require (
 	github.com/a-h/templ v0.3.906
+	github.com/golang-cz/devslog v0.0.15
 	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0
