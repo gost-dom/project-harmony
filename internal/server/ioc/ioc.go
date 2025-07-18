@@ -1,21 +1,26 @@
 package ioc
 
 import (
+	"harmony/internal/couchdb"
 	authioc "harmony/internal/features/auth/ioc"
 	"harmony/internal/server"
+	"harmony/internal/server/sessionstore"
 
 	"github.com/gost-dom/surgeon"
-	"github.com/quasoft/memstore"
 )
 
 var Graph *surgeon.Graph[*server.Server]
 
 func init() {
 	Graph = surgeon.BuildGraph(server.New())
-	Graph.Inject(memstore.NewMemStore(
-		[]byte("authkey123"),
-		[]byte("enckey12341234567890123456789012"),
-	))
+	Graph.Inject(&sessionstore.CouchDBStore{
+		DB: &couchdb.DefaultConnection,
+		KeyPairs: [][]byte{
+			[]byte("authkey123"),
+			[]byte("enckey12341234567890123456789012"),
+		},
+	})
+
 	Graph = authioc.Install(Graph)
 	if err := Graph.Validate(); err != nil {
 		panic(err)

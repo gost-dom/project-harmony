@@ -5,6 +5,7 @@ go 1.24
 require (
 	github.com/a-h/templ v0.3.906
 	github.com/gorilla/schema v1.4.1
+	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0
 	github.com/gost-dom/browser v0.9.0
 	github.com/gost-dom/surgeon v0.0.0-20250713144605-6ef100a36361
@@ -19,7 +20,6 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/gost-dom/css v0.1.0 // indirect
 	github.com/gost-dom/v8go v0.0.0-20250712111039-fd213ddc42d7 // indirect
 	github.com/kr/text v0.2.0 // indirect
