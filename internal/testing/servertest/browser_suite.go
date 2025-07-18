@@ -106,7 +106,7 @@ func (s *BrowserSuite) AllowErrorLogs() {
 
 func InitAuthenticatedWindow(t testing.TB, g ServerGraph) html.Window {
 	authMock := authrouter_mock.NewMockAuthenticator(t)
-	g = surgeon.Replace[authrouter.Authenticator](Graph, authMock)
+	g = surgeon.Replace[authrouter.Authenticator](g, authMock)
 	acc := domaintest.InitAuthenticatedAccount()
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
