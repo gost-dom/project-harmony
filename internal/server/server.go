@@ -88,7 +88,7 @@ func log(h http.Handler) http.Handler {
 
 		status := rec.Code()
 		logLvl := statusCodeToLogLevel(status)
-		slog.Log(r.Context(), logLvl, "HTTP Request",
+		slog.Log(r.Context(), logLvl, "HTTP Response",
 			slog.Group("req",
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
