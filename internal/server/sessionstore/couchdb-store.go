@@ -98,23 +98,19 @@ func (store CouchDBStore) Save(
 		return nil
 	}
 
-	if session.ID == "" {
-		session.ID = domain.NewID()
+	doc := SessionDoc{
+		ID:     session.ID,
+		Values: v,
 	}
 
 	if session.ID == "" {
-		return fmt.Errorf("CouchDBStore.Save: session has no ID")
-	}
-	rev, ok := session.Values["_rev"].(string)
-	if !ok {
-		err = store.insert(r.Context(), session, v)
+		session.ID = domain.NewID()
+		err = store.insert(r.Context(), session, doc)
 	} else {
-		delete(session.Values, "_rev")
-		doc := SessionDoc{
-			ID:     session.ID,
-			Values: v,
+		if session.ID == "" {
+			return fmt.Errorf("CouchDBStore.Save: session has no ID")
 		}
-		session.Values["_rev"], err = store.db.Update(r.Context(), store.docID(session.ID), rev, doc)
+		err = store.update(r.Context(), session, doc)
 	}
 	if err != nil {
 		return err
@@ -122,17 +118,28 @@ func (store CouchDBStore) Save(
 
 	encoded, err := store.encodeIDCookie(session)
 	if err != nil {
-		return err
+		return fmt.Errorf("CouchDBStore.Save: encode cookie: %w", err)
 	}
 	http.SetCookie(w, sessions.NewCookie(session.Name(), encoded, session.Options))
 	return nil
 }
 
-func (store CouchDBStore) insert(ctx context.Context, s *sessions.Session, v string) error {
-	doc := SessionDoc{
-		ID:     s.ID,
-		Values: v,
+func (store CouchDBStore) update(
+	ctx context.Context, s *sessions.Session, doc SessionDoc,
+) (err error) {
+	rev, ok := s.Values["_rev"].(string)
+	if !ok || rev == "" {
+		return fmt.Errorf("CouchDBStore.update: session has no _rev value")
 	}
+	delete(s.Values, "_rev")
+	s.Values["_rev"], err = store.db.Update(ctx, store.docID(s.ID), rev, doc)
+	if err != nil {
+		return fmt.Errorf("CouchDBStore.update: %w", err)
+	}
+	return
+}
+
+func (store CouchDBStore) insert(ctx context.Context, s *sessions.Session, doc SessionDoc) error {
 	rev, err := store.db.Insert(ctx, store.docID(s.ID), doc)
 	if err != nil {
 		return fmt.Errorf("CouchDBStore.insert: %w", err)
