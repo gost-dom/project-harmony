@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"harmony/internal/couchdb"
-	"log/slog"
 	"net/http"
 	"strings"
 
@@ -22,13 +21,6 @@ type CouchDBStore struct {
 var _ sessions.Store = CouchDBStore{}
 
 func (store CouchDBStore) Get(r *http.Request, name string) (s *sessions.Session, err error) {
-	defer func() {
-		if err == nil {
-			slog.Info("SessionStore.Get", "session", s)
-		} else {
-			slog.Error("SessionStore.Get: error", "err", err)
-		}
-	}()
 	return sessions.GetRegistry(r).Get(store, name)
 }
 
@@ -37,22 +29,13 @@ func (store CouchDBStore) docID(id string) string {
 }
 
 func (store CouchDBStore) New(r *http.Request, name string) (s *sessions.Session, e error) {
-	defer func() {
-		if e != nil {
-			slog.Error("SessionStore.New: error", "err", e)
-		} else {
-			slog.Info("SessionStore.New", "session", s)
-		}
-	}()
 	session := sessions.NewSession(store, name)
 	*session.Options = store.opts()
 	var err error
 	cook, errCookie := r.Cookie(name)
-	slog.Info("Cookie", "cookie", cook, "err", errCookie)
 	if errCookie == nil {
 		id := decodeIDCookie(cook.Value)
 		if id != "" {
-			slog.Info("Load from DB")
 			var doc SessionDoc
 			rev, err := store.DB.Get(r.Context(), store.docID(id), &doc)
 			if errors.Is(err, couchdb.ErrNotFound) {
@@ -86,12 +69,6 @@ func (store CouchDBStore) Save(
 	w http.ResponseWriter,
 	session *sessions.Session,
 ) (e error) {
-	slog.Info("SessionStore.Save", "session", session)
-	defer func() {
-		if e != nil {
-			slog.Info("SessionStore.Save error", "err", e)
-		}
-	}()
 	v, err := store.encodeValues(session)
 	if err != nil {
 		return fmt.Errorf("CouchDBStore.Save: encodeValues: %w", err)
@@ -99,7 +76,6 @@ func (store CouchDBStore) Save(
 	// Set delete if max-age is < 0
 	if session.Options.MaxAge <= 0 {
 		// TODO: Delete in DB
-		slog.Warn("SessionStore.Save: Delete cookie")
 		http.SetCookie(w, sessions.NewCookie(session.Name(), "", session.Options))
 		return nil
 	}
@@ -131,7 +107,6 @@ func (store CouchDBStore) Save(
 	}
 
 	encoded := encodeIDCookie(session)
-	slog.Info("SetAuthCookie", "name", session.Name(), "value", encoded, "options", session.Options)
 	http.SetCookie(w, sessions.NewCookie(session.Name(), encoded, session.Options))
 	return nil
 }
