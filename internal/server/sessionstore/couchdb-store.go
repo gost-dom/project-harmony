@@ -2,12 +2,11 @@ package sessionstore
 
 import (
 	"context"
-	"encoding/base32"
 	"errors"
 	"fmt"
 	"harmony/internal/couchdb"
+	"harmony/internal/domain"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
@@ -100,11 +99,7 @@ func (store CouchDBStore) Save(
 	}
 
 	if session.ID == "" {
-		// Generate a random session ID key suitable for storage in the DB
-		session.ID = strings.TrimRight(
-			base32.StdEncoding.EncodeToString(
-				securecookie.GenerateRandomKey(32),
-			), "=")
+		session.ID = domain.NewID()
 	}
 
 	if session.ID == "" {

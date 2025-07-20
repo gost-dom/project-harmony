@@ -12,7 +12,10 @@ import (
 type EventID string
 
 func NewEventID() EventID { return EventID(NewID()) }
-func NewID() string       { return gonanoid.Must(32) }
+
+// NewID generates a URL-friendly string identifier based on a cryptographically
+// strong random number generator.
+func NewID() string { return gonanoid.Must(32) }
 
 type EventBody any
 
