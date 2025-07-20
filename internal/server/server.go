@@ -11,6 +11,7 @@ import (
 
 	"harmony/internal/domain"
 	. "harmony/internal/features/auth/authrouter"
+	hostviews "harmony/internal/features/host/hostrouter/views"
 	"harmony/internal/gosthttp"
 	"harmony/internal/project"
 	serverctx "harmony/internal/server/ctx"
@@ -235,7 +236,7 @@ func (s *Server) Init() {
 	mux := http.NewServeMux()
 	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
 	mux.Handle("GET /{$}", templ.Handler(views.Index()))
-	mux.Handle("GET /host", s.RequireAuth(templ.Handler(views.HostsPage())))
+	mux.Handle("GET /host", s.RequireAuth(templ.Handler(hostviews.HostsPage())))
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(
