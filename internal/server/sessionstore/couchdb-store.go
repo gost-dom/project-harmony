@@ -37,33 +37,41 @@ func (store CouchDBStore) docID(id string) string {
 	return fmt.Sprintf("auth:sessions:%s", id)
 }
 
+func (store CouchDBStore) decodeSessionIdCookie(r *http.Request, name string) (string, error) {
+	c, err := r.Cookie(name)
+	if err != nil {
+		if err == http.ErrNoCookie {
+			err = nil
+		}
+		return "", err
+	}
+	return store.decodeIDCookie(name, c.Value)
+}
+
 func (store CouchDBStore) New(r *http.Request, name string) (session *sessions.Session, err error) {
 	session = sessions.NewSession(store, name)
 	*session.Options = store.opts()
-	cook, errCookie := r.Cookie(name)
-	if errCookie == nil {
-		id, err := store.decodeIDCookie(name, cook.Value)
-		if err != nil {
-			return session, err
-		}
-		if id != "" {
-			var doc SessionDoc
-			rev, err := store.db.Get(r.Context(), store.docID(id), &doc)
-			if errors.Is(err, couchdb.ErrNotFound) {
-				session.IsNew = true
-				return session, nil
-			}
-			if err != nil {
-				return session, err
-			}
-			if err := store.decodeValues(doc.Values, session); err != nil {
-				return session, err
-			}
-			session.Values["_rev"] = rev
-			session.ID = id
-			session.IsNew = false
-		}
+
+	id, err := store.decodeSessionIdCookie(r, name)
+	if err != nil || id == "" {
+		return
 	}
+
+	var doc SessionDoc
+	rev, err := store.db.Get(r.Context(), store.docID(id), &doc)
+	if err != nil {
+		if errors.Is(err, couchdb.ErrNotFound) {
+			session.IsNew = true
+			return session, nil
+		}
+		return
+	}
+	if err = store.decodeValues(doc.Values, session); err != nil {
+		return
+	}
+	session.Values["_rev"] = rev
+	session.ID = id
+	session.IsNew = false
 	return session, err
 }
 
