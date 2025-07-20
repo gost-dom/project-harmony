@@ -14,8 +14,17 @@ import (
 )
 
 type CouchDBStore struct {
-	DB       *couchdb.Connection
-	KeyPairs [][]byte
+	db       *couchdb.Connection
+	keyPairs [][]byte
+	codecs   []securecookie.Codec
+}
+
+func NewCouchDBStore(db *couchdb.Connection, keyPairs [][]byte) CouchDBStore {
+	return CouchDBStore{
+		db,
+		keyPairs,
+		securecookie.CodecsFromPairs(keyPairs...),
+	}
 }
 
 var _ sessions.Store = CouchDBStore{}
@@ -37,7 +46,7 @@ func (store CouchDBStore) New(r *http.Request, name string) (s *sessions.Session
 		id := decodeIDCookie(cook.Value)
 		if id != "" {
 			var doc SessionDoc
-			rev, err := store.DB.Get(r.Context(), store.docID(id), &doc)
+			rev, err := store.db.Get(r.Context(), store.docID(id), &doc)
 			if errors.Is(err, couchdb.ErrNotFound) {
 				session.IsNew = true
 				return session, nil
@@ -100,7 +109,7 @@ func (store CouchDBStore) Save(
 			ID:     session.ID,
 			Values: v,
 		}
-		session.Values["_rev"], err = store.DB.Update(r.Context(), store.docID(session.ID), rev, doc)
+		session.Values["_rev"], err = store.db.Update(r.Context(), store.docID(session.ID), rev, doc)
 	}
 	if err != nil {
 		return err
@@ -116,7 +125,7 @@ func (store CouchDBStore) insert(ctx context.Context, s *sessions.Session, v str
 		ID:     s.ID,
 		Values: v,
 	}
-	rev, err := store.DB.Insert(ctx, store.docID(s.ID), doc)
+	rev, err := store.db.Insert(ctx, store.docID(s.ID), doc)
 	if err != nil {
 		return fmt.Errorf("CouchDBStore.insert: %w", err)
 	}
@@ -129,13 +138,11 @@ func decodeIDCookie(c string) string            { return c }
 func encodeIDCookie(s *sessions.Session) string { return s.ID }
 
 func (store CouchDBStore) encodeValues(s *sessions.Session) (string, error) {
-	codecs := securecookie.CodecsFromPairs(store.KeyPairs...)
-	return securecookie.EncodeMulti(s.Name(), s.Values, codecs...)
+	return securecookie.EncodeMulti(s.Name(), s.Values, store.codecs...)
 }
 
 func (store CouchDBStore) decodeValues(v string, s *sessions.Session) error {
-	codecs := securecookie.CodecsFromPairs(store.KeyPairs...)
-	return securecookie.DecodeMulti(s.Name(), v, &s.Values, codecs...)
+	return securecookie.DecodeMulti(s.Name(), v, &s.Values, store.codecs...)
 }
 
 type SessionDoc struct {

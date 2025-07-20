@@ -13,13 +13,13 @@ var Graph *surgeon.Graph[*server.Server]
 
 func init() {
 	Graph = surgeon.BuildGraph(server.New())
-	Graph.Inject(&sessionstore.CouchDBStore{
-		DB: &couchdb.DefaultConnection,
-		KeyPairs: [][]byte{
+	Graph.Inject(sessionstore.NewCouchDBStore(
+		&couchdb.DefaultConnection,
+		[][]byte{
 			[]byte("authkey123"),
 			[]byte("enckey12341234567890123456789012"),
 		},
-	})
+	))
 
 	Graph = authioc.Install(Graph)
 	if err := Graph.Validate(); err != nil {
