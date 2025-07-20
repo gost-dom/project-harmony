@@ -43,7 +43,10 @@ func (store CouchDBStore) New(r *http.Request, name string) (s *sessions.Session
 	var err error
 	cook, errCookie := r.Cookie(name)
 	if errCookie == nil {
-		id := decodeIDCookie(cook.Value)
+		id, err := store.decodeIDCookie(name, cook.Value)
+		if err != nil {
+			return nil, err
+		}
 		if id != "" {
 			var doc SessionDoc
 			rev, err := store.db.Get(r.Context(), store.docID(id), &doc)
@@ -115,7 +118,10 @@ func (store CouchDBStore) Save(
 		return err
 	}
 
-	encoded := encodeIDCookie(session)
+	encoded, err := store.encodeIDCookie(session)
+	if err != nil {
+		return err
+	}
 	http.SetCookie(w, sessions.NewCookie(session.Name(), encoded, session.Options))
 	return nil
 }
@@ -133,9 +139,14 @@ func (store CouchDBStore) insert(ctx context.Context, s *sessions.Session, v str
 	return nil
 }
 
-// TODO: Encrypt the cookie.
-func decodeIDCookie(c string) string            { return c }
-func encodeIDCookie(s *sessions.Session) string { return s.ID }
+func (store CouchDBStore) decodeIDCookie(name, c string) (res string, err error) {
+	err = securecookie.DecodeMulti(name, c, &res, store.codecs...)
+	return
+}
+
+func (store CouchDBStore) encodeIDCookie(s *sessions.Session) (string, error) {
+	return securecookie.EncodeMulti(s.Name(), s.ID, store.codecs...)
+}
 
 func (store CouchDBStore) encodeValues(s *sessions.Session) (string, error) {
 	return securecookie.EncodeMulti(s.Name(), s.Values, store.codecs...)
