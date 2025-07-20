@@ -13,7 +13,6 @@ import (
 	"harmony/internal/features/auth/authrouter/views"
 	"harmony/internal/gosthttp"
 	serverctx "harmony/internal/server/ctx"
-	serverviews "harmony/internal/server/views"
 
 	"github.com/gorilla/schema"
 )
@@ -197,7 +196,7 @@ func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Reque
 	}
 	w.Header().Add("hx-push-url", "/host")
 	w.Header().Add("hx-retarget", "body")
-	serverviews.HostsPage().Render(r.Context(), w)
+	gosthttp.Rewrite(w, r, "/host", "")
 }
 
 func (*AuthRouter) RenderHost(w http.ResponseWriter, r *http.Request) {
