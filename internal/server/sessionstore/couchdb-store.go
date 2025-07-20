@@ -37,15 +37,14 @@ func (store CouchDBStore) docID(id string) string {
 	return fmt.Sprintf("auth:sessions:%s", id)
 }
 
-func (store CouchDBStore) New(r *http.Request, name string) (s *sessions.Session, e error) {
-	session := sessions.NewSession(store, name)
+func (store CouchDBStore) New(r *http.Request, name string) (session *sessions.Session, err error) {
+	session = sessions.NewSession(store, name)
 	*session.Options = store.opts()
-	var err error
 	cook, errCookie := r.Cookie(name)
 	if errCookie == nil {
 		id, err := store.decodeIDCookie(name, cook.Value)
 		if err != nil {
-			return nil, err
+			return session, err
 		}
 		if id != "" {
 			var doc SessionDoc
@@ -55,10 +54,10 @@ func (store CouchDBStore) New(r *http.Request, name string) (s *sessions.Session
 				return session, nil
 			}
 			if err != nil {
-				return nil, err
+				return session, err
 			}
 			if err := store.decodeValues(doc.Values, session); err != nil {
-				return nil, err
+				return session, err
 			}
 			session.Values["_rev"] = rev
 			session.ID = id
