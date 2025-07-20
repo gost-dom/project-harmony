@@ -13,7 +13,8 @@ const (
 
 	ServerRewritten    ContextKey = "server:rewritten"
 	ServerRewriter     ContextKey = "server:rewriter"
-	ServerCSRFTokenSrc ContextKey = "tokenSource" //"server:csrf:token-source"
+	ServerCSRFTokenSrc ContextKey = "server:csrf:token-source"
+	ServerReqID        ContextKey = "server:req-id"
 )
 
 func IsLoggedIn(c context.Context) bool {

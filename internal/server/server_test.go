@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"harmony/internal/features/auth/authrouter"
+	"harmony/internal/server/ioc"
 	"harmony/internal/testing/browsertest"
 	. "harmony/internal/testing/domaintest"
 	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
@@ -30,7 +31,7 @@ func initServerSuite(t *testing.T) serverSuite {
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
 		Return(InitAuthenticatedAccount(), nil).Maybe()
-	g := surgeon.Replace[authrouter.Authenticator](servertest.Graph, authMock)
+	g := surgeon.Replace[authrouter.Authenticator](ioc.Graph, authMock)
 
 	b := servertest.InitBrowser(t, g)
 
