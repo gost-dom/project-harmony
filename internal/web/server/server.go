@@ -208,13 +208,12 @@ func (s *Server) Init() {
 		http.StripPrefix("/static", http.FileServer(
 			http.Dir(staticFilesPath()))),
 	)
-	mw := web.JoinMiddlewares(
-		log,
-		noCache,
-		CSRFProtection,
-		s.AuthMiddlewares.Get(),
+	s.Handler = web.ApplyMiddlewares(mux,
+		web.MiddlewareFunc(log),
+		web.MiddlewareFunc(noCache),
+		web.MiddlewareFunc(CSRFProtection),
+		s.AuthMiddlewares,
 	)
-	s.Handler = mw(mux)
 }
 
 func New() *Server {

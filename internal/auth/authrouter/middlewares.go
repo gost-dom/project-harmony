@@ -25,9 +25,9 @@ func (s Middlewares) SessionAuth(h http.Handler) http.Handler {
 	})
 }
 
-func (m Middlewares) Get() web.Middleware {
-	return web.JoinMiddlewares(
-		RewriterMiddleware,
-		m.SessionAuth,
+func (m Middlewares) Apply(h http.Handler) http.Handler {
+	return web.ApplyMiddlewares(h,
+		web.MiddlewareFunc(RewriterMiddleware),
+		web.MiddlewareFunc(m.SessionAuth),
 	)
 }
