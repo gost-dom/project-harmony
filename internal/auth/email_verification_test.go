@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"harmony/internal/core"
-	"harmony/internal/core/corerepo"
 	"harmony/internal/auth"
 	"harmony/internal/auth/authdomain"
+	"harmony/internal/core"
+	"harmony/internal/core/corerepo"
 	"harmony/internal/messaging"
 	"harmony/internal/messaging/ioc"
 	"harmony/internal/testing/domaintest"
@@ -26,7 +26,7 @@ import (
 
 type domainEvt map[core.EventID]core.DomainEvent
 
-func (e domainEvt) Update(ctx context.Context, event core.DomainEvent) (core.DomainEvent, error) {
+func (e domainEvt) Update(_ context.Context, event core.DomainEvent) (core.DomainEvent, error) {
 	e[event.ID] = event
 	return event, nil
 }
