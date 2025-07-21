@@ -20,12 +20,14 @@ func statusCodeToLogLevel(code int) slog.Level {
 	return slog.LevelInfo
 }
 
+// logHeader creates an [slog.Attr] representing HTTP request or response
+// headers. Cookies values are hidden, but cookie names and options are kept to
+// debug malfunctioning cookies.
 func logHeader(h http.Header) slog.Attr {
 	attrs := make([]any, len(h))
 	i := 0
 	for k, v := range h {
 		switch k {
-		// Hide cookie values
 		case "Cookie", "Set-Cookie":
 			v = slices.Clone(v)
 			for j := range v {
