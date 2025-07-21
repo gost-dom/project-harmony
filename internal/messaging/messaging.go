@@ -2,10 +2,10 @@ package messaging
 
 import (
 	"context"
+	"harmony/internal/auth"
 	"harmony/internal/core"
 	"harmony/internal/core/corerepo"
-	"harmony/internal/auth"
-	"log/slog"
+	"harmony/internal/infrastructure/log"
 	"time"
 )
 
@@ -43,7 +43,7 @@ type MessagePump struct {
 }
 
 func (h MessagePump) Start(ctx context.Context) error {
-	slog.InfoContext(ctx, "Starting message pump")
+	log.Info(ctx, "Starting message pump")
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -58,7 +58,7 @@ func (h MessagePump) Start(ctx context.Context) error {
 	go func() {
 		for event := range ch {
 			if err := h.Handler.ProcessDomainEvent(ctx, event); err != nil {
-				slog.ErrorContext(ctx, "MessageHandler: error processing", "err", err)
+				log.Error(ctx, "MessageHandler: error processing", "err", err)
 			}
 		}
 	}()

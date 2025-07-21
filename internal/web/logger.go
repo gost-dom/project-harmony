@@ -3,27 +3,27 @@ package web
 import (
 	"fmt"
 	"harmony/internal/core"
-	"log/slog"
+	"harmony/internal/infrastructure/log"
 	"net/http"
 	"slices"
 	"strings"
 	"time"
 )
 
-func statusCodeToLogLevel(code int) slog.Level {
+func statusCodeToLogLevel(code int) log.Level {
 	if code >= 500 {
-		return slog.LevelError
+		return log.LevelError
 	}
 	if code >= 400 {
-		return slog.LevelWarn
+		return log.LevelWarn
 	}
-	return slog.LevelInfo
+	return log.LevelInfo
 }
 
-// logHeader creates an [slog.Attr] representing HTTP request or response
+// logHeader creates an [log.Attr] representing HTTP request or response
 // headers. Cookies values are hidden, but cookie names and options are kept to
 // debug malfunctioning cookies.
-func logHeader(h http.Header) slog.Attr {
+func logHeader(h http.Header) log.Attr {
 	attrs := make([]any, len(h))
 	i := 0
 	for k, v := range h {
@@ -42,40 +42,41 @@ func logHeader(h http.Header) slog.Attr {
 				}
 			}
 		}
-		attrs[i] = slog.Any(k, v)
+		attrs[i] = log.Any(k, v)
 		i++
 	}
-	return slog.Group("header", attrs...)
+	return log.Group("header", attrs...)
 }
 
 func Log(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		SetReqValue(&r, CtxKeyReqID, core.NewID())
+		log.ContextWith(&r, "reqID", core.NewID())
+
 		rec := &StatusRecorder{ResponseWriter: w}
 		start := time.Now()
 
-		slog.InfoContext(r.Context(), "HTTP Request",
-			slog.Group("req",
-				slog.String("method", r.Method),
-				slog.String("path", r.URL.Path),
+		log.Info(r.Context(), "HTTP Request",
+			log.Group("req",
+				log.String("method", r.Method),
+				log.String("path", r.URL.Path),
 			),
 		)
-		slog.Log(r.Context(), slog.LevelDebug, "HTTP Request headers", logHeader(r.Header))
+		log.Debug(r.Context(), "HTTP Request headers", logHeader(r.Header))
 		h.ServeHTTP(rec, r)
 
 		status := rec.Code()
 		logLvl := statusCodeToLogLevel(status)
-		slog.Log(r.Context(), logLvl, "HTTP Response",
-			slog.Group("req",
-				slog.String("method", r.Method),
-				slog.String("path", r.URL.Path),
+		log.Log(r.Context(), logLvl, "HTTP Response",
+			log.Group("req",
+				log.String("method", r.Method),
+				log.String("path", r.URL.Path),
 			),
-			slog.Group("res",
-				slog.Int("status", status),
+			log.Group("res",
+				log.Int("status", status),
 			),
-			slog.Duration("duration", time.Since(start)),
+			log.Duration("duration", time.Since(start)),
 		)
-		slog.Log(r.Context(), slog.LevelDebug, "HTTP Response headers", logHeader(w.Header()))
+		log.Debug(r.Context(), "HTTP Response headers", logHeader(w.Header()))
 	})
 }
 

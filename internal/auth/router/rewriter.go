@@ -2,8 +2,8 @@ package router
 
 import (
 	"harmony/internal/auth"
+	"harmony/internal/infrastructure/log"
 	"harmony/internal/web"
-	"log/slog"
 	"net/http"
 )
 
@@ -31,7 +31,7 @@ func RewriterMiddleware(h http.Handler) http.Handler {
 // This is not recommended for normal POST requests; but useful for HTMX handled
 // forms where the response body should be included with the response.
 func rewrite(w http.ResponseWriter, r *http.Request, path string, query string) {
-	slog.DebugContext(r.Context(), "Rewrite URL", "path", path)
+	log.Debug(r.Context(), "Rewrite URL", "path", path)
 	rewriter, ok := web.ReqValue[http.Handler](r, auth.CtxKeyRewriter)
 	if !ok {
 		w.WriteHeader(500)

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"harmony/internal/core"
-	"log/slog"
+	"harmony/internal/infrastructure/log"
 )
 
 type MessageSource struct {
@@ -23,7 +23,7 @@ type DocumentWithEvents[T any] struct {
 func (c MessageSource) StartListener(
 	ctx context.Context,
 ) (err error) {
-	slog.InfoContext(ctx, "corerepo: Connection.StartListener")
+	log.Info(ctx, "corerepo: Connection.StartListener")
 	return c.processNewDomainEvents(ctx)
 }
 
@@ -53,14 +53,14 @@ func (c MessageSource) processNewEntity(
 	for _, domainEvent := range doc.Events {
 		_, err := c.DomainEventRepository.Insert(ctx, domainEvent)
 		if err != nil && !errors.Is(err, ErrConflict) {
-			slog.ErrorContext(ctx, "corerepo: insert domain event", "err", err)
+			log.Error(ctx, "corerepo: insert domain event", "err", err)
 			return
 		}
 	}
 	doc.Events = nil
 	_, err := c.DB.Update(ctx, doc.ID, doc.Rev, doc)
 	if err != nil {
-		slog.ErrorContext(ctx, "corerepo: process event", "err", err)
+		log.Error(ctx, "corerepo: process event", "err", err)
 		return
 	}
 }
@@ -76,7 +76,7 @@ func getNewEntityEvents(
 			var doc DocumentWithEvents[json.RawMessage]
 			err := json.Unmarshal(changeEvent.Doc, &doc)
 			if err != nil {
-				slog.ErrorContext(ctx, "corerepo: process event document", "err", err)
+				log.Error(ctx, "corerepo: process event document", "err", err)
 				continue
 			}
 			res <- doc

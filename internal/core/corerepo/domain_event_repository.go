@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"harmony/internal/core"
-	"log/slog"
+	"harmony/internal/infrastructure/log"
 	"net/url"
 )
 
@@ -86,7 +86,7 @@ func (r DomainEventRepository) domainEventsOfChangeEvents(
 			var ev core.DomainEvent
 			err := json.Unmarshal(changeEvent.Doc, &ev)
 			if err != nil {
-				slog.ErrorContext(ctx, "corerepo: process event", "err", err)
+				log.Error(ctx, "corerepo: process event", "err", err)
 				continue
 			}
 			select {

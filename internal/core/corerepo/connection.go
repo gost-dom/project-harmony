@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"harmony/internal/infrastructure/log"
 	"io"
-	"log/slog"
 	"maps"
 	"net/http"
 	"net/url"
@@ -159,7 +159,7 @@ func getChangeEvents(ctx context.Context, ch <-chan *sse.Event) <-chan ChangeEve
 				err := json.Unmarshal([]byte(e.Data), &cev)
 				// slog.InfoContext(ctx, "couchdb: process event", "event", e.Data)
 				if err != nil {
-					slog.ErrorContext(ctx, "couchdb: process event", "err", err, "event", e.Data)
+					log.Error(ctx, "couchdb: process event", "err", err, "event", e.Data)
 					continue
 				}
 				select {
@@ -193,7 +193,7 @@ func (c Connection) Changes(
 
 	go func() {
 		<-ctx.Done()
-		slog.InfoContext(ctx, "couchdb: closing event stream")
+		log.Info(ctx, "couchdb: closing event stream")
 		conn.Close()
 	}()
 	return getChangeEvents(ctx, conn.Events), nil
@@ -261,7 +261,7 @@ func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string,
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		slog.ErrorContext(ctx, "reading response body", "err", err)
+		log.Error(ctx, "reading response body", "err", err)
 	}
 
 	switch resp.StatusCode {
@@ -270,7 +270,7 @@ func (c Connection) Insert(ctx context.Context, id string, doc any) (rev string,
 	case 409:
 		err = ErrConflict
 	default:
-		slog.ErrorContext(
+		log.Error(
 			ctx, "couchdb: insert failed",
 			"status", resp.StatusCode,
 			"resp", string(respBody),
@@ -447,6 +447,6 @@ func init() {
 	if err == nil {
 		DefaultConnection = conn
 	} else {
-		slog.Error("couchdb: Error initializing", "err", err)
+		panic(fmt.Sprintf("couchdb: Error initializing: %v", err))
 	}
 }

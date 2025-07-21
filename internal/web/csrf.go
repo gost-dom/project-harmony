@@ -3,7 +3,7 @@ package web
 import (
 	"context"
 	"fmt"
-	"log/slog"
+	"harmony/internal/infrastructure/log"
 	"net/http"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
@@ -67,7 +67,7 @@ func csrfMiddleware(h http.Handler) http.Handler {
 			// Unexpected HTTP method. If it's unexpected, it's unlikely that it
 			// will have an effect on the server, so a warning log message
 			// should be fine.
-			slog.WarnContext(
+			log.Warn(
 				r.Context(),
 				"CSRFMiddleware: Unexpected HTTP Method",
 				"method",

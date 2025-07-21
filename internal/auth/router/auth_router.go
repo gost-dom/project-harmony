@@ -3,7 +3,6 @@ package router
 import (
 	"context"
 	"errors"
-	"log/slog"
 	"net/http"
 	"net/mail"
 
@@ -11,6 +10,7 @@ import (
 	"harmony/internal/auth/domain"
 	"harmony/internal/auth/domain/password"
 	"harmony/internal/auth/router/views"
+	"harmony/internal/infrastructure/log"
 	"harmony/internal/web"
 
 	"github.com/gorilla/schema"
@@ -87,7 +87,7 @@ func (s *AuthRouter) PostRegister(w http.ResponseWriter, r *http.Request) {
 		err = s.Registrator.Register(r.Context(), registerInput)
 	}
 	if err != nil {
-		slog.Error("error", "err", err)
+		log.Error(r.Context(), "error", "err", err)
 		formData.Fullname = data.Fullname
 		formData.DisplayName = data.DisplayName
 		formData.TermsOfUse = data.TermsOfUse
