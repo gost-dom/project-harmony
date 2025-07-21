@@ -20,7 +20,7 @@ func (r *HostRouter) Init() {
 	r.ServeMux.Handle("GET /", templ.Handler(views.HostsPage()))
 }
 
-func NewHostRouter() *HostRouter {
+func New() *HostRouter {
 	r := new(HostRouter)
 	r.Init()
 	return r

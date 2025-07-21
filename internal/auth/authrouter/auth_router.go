@@ -201,3 +201,9 @@ func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Reque
 func (*AuthRouter) RenderHost(w http.ResponseWriter, r *http.Request) {
 	views.Login("/host", views.LoginFormData{}).Render(r.Context(), w)
 }
+
+func New() *AuthRouter {
+	r := &AuthRouter{}
+	r.Init()
+	return r
+}

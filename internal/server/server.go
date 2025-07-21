@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
-	. "harmony/internal/auth/authrouter"
+	authrouter "harmony/internal/auth/authrouter"
 	"harmony/internal/core"
-	. "harmony/internal/host/hostrouter"
+	hostrouter "harmony/internal/host/hostrouter"
 	serverctx "harmony/internal/server/ctx"
 	"harmony/internal/server/views"
 
@@ -111,9 +111,9 @@ func staticFilesPath() string { return filepath.Join(projectRoot(), "static") }
 
 type Server struct {
 	http.Handler
-	SessionManager SessionManager
-	AuthRouter     *AuthRouter
-	HostRouter     *HostRouter
+	SessionManager authrouter.SessionManager
+	AuthRouter     *authrouter.AuthRouter
+	HostRouter     *hostrouter.HostRouter
 }
 
 type sessionName string
@@ -212,26 +212,20 @@ func (s *Server) Init() {
 	mux := http.NewServeMux()
 	mux.Handle("GET /{$}", templ.Handler(views.Index()))
 	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
-	mux.Handle("GET /host", RequireAuth(s.HostRouter.Index()))
+	mux.Handle("GET /host", authrouter.RequireAuth(s.HostRouter.Index()))
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(
 			http.Dir(staticFilesPath()))),
 	)
-	s.Handler = RewriterMiddleware(log(noCache(CSRFProtection(
+	s.Handler = authrouter.RewriterMiddleware(log(noCache(CSRFProtection(
 		s.SessionAuthMiddleware(mux)))))
-}
-
-func NewAuthRouter() *AuthRouter {
-	res := &AuthRouter{}
-	res.Init()
-	return res
 }
 
 func New() *Server {
 	res := &Server{
-		AuthRouter: NewAuthRouter(),
-		HostRouter: NewHostRouter(),
+		AuthRouter: authrouter.New(),
+		HostRouter: hostrouter.New(),
 	}
 	res.Init()
 	return res
