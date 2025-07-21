@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -53,7 +52,11 @@ func csrfMiddleware(h http.Handler) http.Handler {
 				formToken := r.FormValue("csrf-token")
 				expectedToken := getCSRFCookie(formTokenId, r)
 				deleteCSRFCookie(formTokenId, w)
-				if formToken != expectedToken || expectedToken == "" {
+				if expectedToken == "" {
+					http.Error(w, "Missing CSRF token", http.StatusBadRequest)
+					return
+				}
+				if formToken != expectedToken {
 					http.Error(w, "Invalid CSRF token", http.StatusBadRequest)
 					return
 				}
@@ -73,12 +76,8 @@ func csrfMiddleware(h http.Handler) http.Handler {
 		}
 
 		var fn csrfGenerator = func() CSRFFields {
-			id, err1 := gonanoid.New()
-			token, err2 := gonanoid.New()
-			if err := errors.Join(err1, err2); err != nil {
-				slog.Error("Error generating token", "err", err)
-				return CSRFFields{}
-			}
+			id := gonanoid.Must()
+			token := gonanoid.Must()
 			http.SetCookie(
 				w,
 				&http.Cookie{
