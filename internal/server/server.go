@@ -13,7 +13,6 @@ import (
 	. "harmony/internal/features/auth/authrouter"
 	. "harmony/internal/features/host/hostrouter"
 	"harmony/internal/gosthttp"
-	"harmony/internal/project"
 	serverctx "harmony/internal/server/ctx"
 	"harmony/internal/server/views"
 
@@ -110,7 +109,7 @@ func noCache(h http.Handler) http.Handler {
 	})
 }
 
-func staticFilesPath() string { return filepath.Join(project.Root(), "static") }
+func staticFilesPath() string { return filepath.Join(ProjectRoot(), "static") }
 
 type Server struct {
 	http.Handler
