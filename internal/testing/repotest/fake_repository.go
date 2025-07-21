@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"harmony/internal/features/auth"
+	"harmony/internal/auth"
+	"harmony/internal/core"
 	"reflect"
 	"testing"
 )
@@ -18,7 +19,7 @@ type EntityTranslator[T, ID any] interface {
 type RepositoryStub[T any, ID comparable] struct {
 	Translator EntityTranslator[T, ID]
 	Entities   map[ID]*T
-	Events     []auth.DomainEvent
+	Events     []core.DomainEvent
 
 	t testing.TB
 }
@@ -57,7 +58,7 @@ func (s *RepositoryStub[T, ID]) InsertEntity(_ context.Context, e T) error {
 	return s.Inject(ptr)
 }
 
-func (s *RepositoryStub[T, ID]) Insert(ctx context.Context, e auth.UseCaseResult[T]) (T, error) {
+func (s *RepositoryStub[T, ID]) Insert(ctx context.Context, e core.UseCaseResult[T]) (T, error) {
 	entity := e.Entity
 	err := s.InsertEntity(ctx, entity)
 	s.Events = append(s.Events, e.Events...)
@@ -85,7 +86,7 @@ func (s RepositoryStub[T, ID]) Update(_ context.Context, e T) (T, error) {
 }
 
 func (s RepositoryStub[T, ID]) TestingT() testing.TB          { return s.t }
-func (s RepositoryStub[T, ID]) AllEvents() []auth.DomainEvent { return s.Events }
+func (s RepositoryStub[T, ID]) AllEvents() []core.DomainEvent { return s.Events }
 func (s RepositoryStub[T, ID]) All() (res []*T) {
 	res = make([]*T, len(s.Entities))
 	i := 0
@@ -117,7 +118,7 @@ func (repo RepositoryStub[T, ID]) GetTestInstance(id ID) *T {
 
 type E interface {
 	TestingT() testing.TB
-	AllEvents() []auth.DomainEvent
+	AllEvents() []core.DomainEvent
 }
 
 func SingleEventOfType[T any](e E) (res T) {

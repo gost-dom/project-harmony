@@ -1,11 +1,10 @@
 package browsertest
 
 import (
-	"harmony/internal/testing/shaman"
-	"harmony/internal/testing/shaman/ariarole"
-	. "harmony/internal/testing/shaman/predicates"
-
 	"github.com/gost-dom/browser/html"
+	"github.com/gost-dom/shaman"
+	"github.com/gost-dom/shaman/ariarole"
+	. "github.com/gost-dom/shaman/predicates"
 )
 
 // A helper to make test code interacting with the login form more expressive.

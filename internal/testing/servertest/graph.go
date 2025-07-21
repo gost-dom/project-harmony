@@ -1,8 +1,8 @@
 package servertest
 
 import (
-	"harmony/internal/server"
-	"harmony/internal/server/ioc"
+	"harmony/internal/web/server"
+	"harmony/internal/web/server/ioc"
 
 	"github.com/gorilla/sessions"
 	"github.com/gost-dom/surgeon"

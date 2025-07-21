@@ -4,7 +4,7 @@ package couchtest
 import (
 	"context"
 	"fmt"
-	"harmony/internal/couchdb"
+	"harmony/internal/core/corerepo"
 	"strings"
 	"testing"
 )
@@ -45,17 +45,17 @@ type BulkDocs struct {
 type couchOption func(*CouchHelper)
 
 func WithT(t testing.TB) couchOption { return func(c *CouchHelper) { c.t.t = t } }
-func WithConnection(c couchdb.Connection) couchOption {
+func WithConnection(c corerepo.Connection) couchOption {
 	return func(ch *CouchHelper) { ch.Connection = c }
 }
 
 type CouchHelper struct {
 	t          testWrapper
-	Connection couchdb.Connection
+	Connection corerepo.Connection
 }
 
 func NewCouchHelper(opts ...couchOption) CouchHelper {
-	res := CouchHelper{Connection: couchdb.DefaultConnection}
+	res := CouchHelper{Connection: corerepo.DefaultConnection}
 	for _, o := range opts {
 		o(&res)
 	}
@@ -64,7 +64,7 @@ func NewCouchHelper(opts ...couchOption) CouchHelper {
 
 func (h CouchHelper) DeleteAllDocs(ctx context.Context) {
 	conn := h.Connection
-	var docs couchdb.ViewResult[allDocsValue]
+	var docs corerepo.ViewResult[allDocsValue]
 	_, err := conn.Get(ctx, "_all_docs", &docs)
 	if err != nil {
 		h.t.Errorf("couchdbtest: cannot initialize: %v", err)
@@ -96,6 +96,6 @@ func (h CouchHelper) DeleteAllDocs(ctx context.Context) {
 }
 
 func init() {
-	couchdb.AssertInitialized()
-	NewCouchHelper(WithConnection(couchdb.DefaultConnection)).DeleteAllDocs(context.Background())
+	corerepo.AssertInitialized()
+	NewCouchHelper(WithConnection(corerepo.DefaultConnection)).DeleteAllDocs(context.Background())
 }

@@ -3,27 +3,32 @@ package corerepo
 import (
 	"context"
 	"encoding/json"
-	"harmony/internal/couchdb"
-	"harmony/internal/domain"
+	"harmony/internal/core"
 	"log/slog"
 	"net/url"
 )
 
 type DomainEventRepository struct {
-	DB *couchdb.Connection
+	DB *Connection
 }
 
-func (r DomainEventRepository) docID(e domain.Event) string {
+func (r DomainEventRepository) docID(e core.DomainEvent) string {
 	return "domain_event:" + string(e.ID)
 }
 
-func (r DomainEventRepository) Insert(ctx context.Context, e domain.Event) (domain.Event, error) {
+func (r DomainEventRepository) Insert(
+	ctx context.Context,
+	e core.DomainEvent,
+) (core.DomainEvent, error) {
 	var err error
 	e.Rev, err = r.DB.Insert(ctx, r.docID(e), e)
 	return e, err
 }
 
-func (r DomainEventRepository) Update(ctx context.Context, e domain.Event) (domain.Event, error) {
+func (r DomainEventRepository) Update(
+	ctx context.Context,
+	e core.DomainEvent,
+) (core.DomainEvent, error) {
 	var err error
 	e.Rev, err = r.DB.Update(ctx, r.docID(e), e.Rev, e)
 	return e, err
@@ -31,11 +36,13 @@ func (r DomainEventRepository) Update(ctx context.Context, e domain.Event) (doma
 
 // StreamOfEvents returns a channel of domain events. New events stored in the
 // database will automatically be sent to the channel
-func (r DomainEventRepository) StreamOfEvents(ctx context.Context) (<-chan domain.Event, error) {
+func (r DomainEventRepository) StreamOfEvents(
+	ctx context.Context,
+) (<-chan core.DomainEvent, error) {
 	ch, err := r.DB.Changes(
 		ctx,
-		couchdb.ChangeOptViewFilter("events", "unpublished_domain_events"),
-		couchdb.ChangeOptIncludeDocs(),
+		ChangeOptViewFilter("events", "unpublished_domain_events"),
+		ChangeOptIncludeDocs(),
 	)
 	if err != nil {
 		return nil, err
@@ -43,27 +50,27 @@ func (r DomainEventRepository) StreamOfEvents(ctx context.Context) (<-chan domai
 	return r.domainEventsOfChangeEvents(ctx, ch)
 }
 
-func (r DomainEventRepository) getCurrentDomainEvents() ([]domain.Event, error) {
+func (r DomainEventRepository) getCurrentDomainEvents() ([]core.DomainEvent, error) {
 	v := make(url.Values)
 	v.Add("include_docs", "true")
-	var res couchdb.DocsViewResult[domain.Event]
+	var res DocsViewResult[core.DomainEvent]
 	_, err := r.DB.GetPath("_design/events/_view/unpublished_domain_events", v, &res)
 	return res.Docs(), err
 }
 
 // domainEventsOfChangeEvents takes a channel of CouchDB change events, assumed
 // to contain new domain event documents, and transforms it to a channel of
-// [domain.Event]
+// [core.DomainEvent]
 func (r DomainEventRepository) domainEventsOfChangeEvents(
 	ctx context.Context,
-	ch <-chan couchdb.ChangeEvent,
-) (<-chan domain.Event, error) {
+	ch <-chan ChangeEvent,
+) (<-chan core.DomainEvent, error) {
 	events, err := r.getCurrentDomainEvents()
 	if err != nil {
 		return nil, err
 	}
 
-	cha := make(chan domain.Event, couchdb.DEFAULT_EVENT_BUFFER_SIZE)
+	cha := make(chan core.DomainEvent, DEFAULT_EVENT_BUFFER_SIZE)
 	go func() {
 		defer close(cha)
 
@@ -76,7 +83,7 @@ func (r DomainEventRepository) domainEventsOfChangeEvents(
 		}
 
 		for changeEvent := range ch {
-			var ev domain.Event
+			var ev core.DomainEvent
 			err := json.Unmarshal(changeEvent.Doc, &ev)
 			if err != nil {
 				slog.ErrorContext(ctx, "corerepo: process event", "err", err)

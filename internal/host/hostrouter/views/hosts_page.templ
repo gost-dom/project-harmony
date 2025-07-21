@@ -1,0 +1,16 @@
+package views
+
+import . "harmony/internal/server/views"
+
+templ HostsPage() {
+	@Layout(Contents{Body: hostsPage()})
+}
+
+templ hostsPage() {
+	<div class="container mx-auto py-4">
+		<h1 class="text-4xl font-bold text-center py-4">Host</h1>
+		<p>
+			Your services
+		</p>
+	</div>
+}

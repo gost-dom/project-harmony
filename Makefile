@@ -49,3 +49,15 @@ test:
 codegen:
 	rm -rf internal/testing/mocks
 	mockery
+
+.PHONY: workspace/make
+workspace/make:
+	go work init
+	go work use .
+	go work use ../browser
+	go work use ../shaman
+	go work use ../surgeon
+
+.PHONY: workspace/clean
+workspace/clean:
+	rm -f go.work go.work.sum

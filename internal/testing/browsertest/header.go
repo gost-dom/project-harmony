@@ -1,11 +1,10 @@
 package browsertest
 
 import (
-	"harmony/internal/testing/shaman"
-	"harmony/internal/testing/shaman/ariarole"
-	. "harmony/internal/testing/shaman/predicates"
-
 	"github.com/gost-dom/browser/html"
+	"github.com/gost-dom/shaman"
+	"github.com/gost-dom/shaman/ariarole"
+	. "github.com/gost-dom/shaman/predicates"
 )
 
 type Header struct{ shaman.Scope }
