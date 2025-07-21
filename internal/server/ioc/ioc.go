@@ -1,7 +1,7 @@
 package ioc
 
 import (
-	"harmony/internal/couchdb"
+	"harmony/internal/core/corerepo"
 	authioc "harmony/internal/features/auth/ioc"
 	"harmony/internal/server"
 	"harmony/internal/server/sessionstore"
@@ -14,7 +14,7 @@ var Graph *surgeon.Graph[*server.Server]
 func init() {
 	Graph = surgeon.BuildGraph(server.New())
 	Graph.Inject(sessionstore.NewCouchDBStore(
-		&couchdb.DefaultConnection,
+		&corerepo.DefaultConnection,
 		[][]byte{
 			[]byte("authkey123"),
 			[]byte("enckey12341234567890123456789012"),

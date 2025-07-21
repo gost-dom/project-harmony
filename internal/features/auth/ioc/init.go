@@ -1,7 +1,7 @@
 package ioc
 
 import (
-	"harmony/internal/couchdb"
+	"harmony/internal/core/corerepo"
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authrepo"
 	"harmony/internal/features/auth/authrouter"
@@ -15,7 +15,7 @@ func Install[T any](graph *surgeon.Graph[T]) *surgeon.Graph[T] {
 	graph = surgeon.Replace[authrouter.EmailValidator](graph, &auth.EmailChallengeValidator{})
 
 	repo := &authrepo.AccountRepository{
-		Connection: couchdb.DefaultConnection,
+		Connection: corerepo.DefaultConnection,
 	}
 	graph = surgeon.ReplaceAll(graph, repo)
 	return graph

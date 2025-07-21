@@ -3,14 +3,13 @@ package corerepo
 import (
 	"context"
 	"encoding/json"
-	"harmony/internal/couchdb"
 	"harmony/internal/domain"
 	"log/slog"
 	"net/url"
 )
 
 type DomainEventRepository struct {
-	DB *couchdb.Connection
+	DB *Connection
 }
 
 func (r DomainEventRepository) docID(e domain.Event) string {
@@ -34,8 +33,8 @@ func (r DomainEventRepository) Update(ctx context.Context, e domain.Event) (doma
 func (r DomainEventRepository) StreamOfEvents(ctx context.Context) (<-chan domain.Event, error) {
 	ch, err := r.DB.Changes(
 		ctx,
-		couchdb.ChangeOptViewFilter("events", "unpublished_domain_events"),
-		couchdb.ChangeOptIncludeDocs(),
+		ChangeOptViewFilter("events", "unpublished_domain_events"),
+		ChangeOptIncludeDocs(),
 	)
 	if err != nil {
 		return nil, err
@@ -46,7 +45,7 @@ func (r DomainEventRepository) StreamOfEvents(ctx context.Context) (<-chan domai
 func (r DomainEventRepository) getCurrentDomainEvents() ([]domain.Event, error) {
 	v := make(url.Values)
 	v.Add("include_docs", "true")
-	var res couchdb.DocsViewResult[domain.Event]
+	var res DocsViewResult[domain.Event]
 	_, err := r.DB.GetPath("_design/events/_view/unpublished_domain_events", v, &res)
 	return res.Docs(), err
 }
@@ -56,14 +55,14 @@ func (r DomainEventRepository) getCurrentDomainEvents() ([]domain.Event, error) 
 // [domain.Event]
 func (r DomainEventRepository) domainEventsOfChangeEvents(
 	ctx context.Context,
-	ch <-chan couchdb.ChangeEvent,
+	ch <-chan ChangeEvent,
 ) (<-chan domain.Event, error) {
 	events, err := r.getCurrentDomainEvents()
 	if err != nil {
 		return nil, err
 	}
 
-	cha := make(chan domain.Event, couchdb.DEFAULT_EVENT_BUFFER_SIZE)
+	cha := make(chan domain.Event, DEFAULT_EVENT_BUFFER_SIZE)
 	go func() {
 		defer close(cha)
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"harmony/internal/couchdb"
+	"harmony/internal/core/corerepo"
 	"harmony/internal/domain"
 	"net/http"
 
@@ -13,12 +13,12 @@ import (
 )
 
 type CouchDBStore struct {
-	db       *couchdb.Connection
+	db       *corerepo.Connection
 	keyPairs [][]byte
 	codecs   []securecookie.Codec
 }
 
-func NewCouchDBStore(db *couchdb.Connection, keyPairs [][]byte) CouchDBStore {
+func NewCouchDBStore(db *corerepo.Connection, keyPairs [][]byte) CouchDBStore {
 	return CouchDBStore{
 		db,
 		keyPairs,
@@ -59,7 +59,7 @@ func (store CouchDBStore) New(r *http.Request, name string) (session *sessions.S
 	var doc SessionDoc
 	rev, err := store.db.Get(r.Context(), store.docID(id), &doc)
 	if err != nil {
-		if errors.Is(err, couchdb.ErrNotFound) {
+		if errors.Is(err, corerepo.ErrNotFound) {
 			session.IsNew = true
 			return session, nil
 		}

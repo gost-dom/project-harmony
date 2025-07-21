@@ -4,14 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"harmony/internal/couchdb"
 	"harmony/internal/domain"
 	"log/slog"
 )
 
 type MessageSource struct {
 	DomainEventRepository
-	DB *couchdb.Connection
+	DB *Connection
 }
 
 type DocumentWithEvents[T any] struct {
@@ -33,8 +32,8 @@ func (c MessageSource) StartListener(
 func (c MessageSource) processNewDomainEvents(ctx context.Context) (err error) {
 	ch, err := c.DB.Changes(
 		ctx,
-		couchdb.ChangeOptFilter("events", "aggregate_events"),
-		couchdb.ChangeOptIncludeDocs(),
+		ChangeOptFilter("events", "aggregate_events"),
+		ChangeOptIncludeDocs(),
 	)
 	if err != nil {
 		return
@@ -53,7 +52,7 @@ func (c MessageSource) processNewEntity(
 ) {
 	for _, domainEvent := range doc.Events {
 		_, err := c.DomainEventRepository.Insert(ctx, domainEvent)
-		if err != nil && !errors.Is(err, couchdb.ErrConflict) {
+		if err != nil && !errors.Is(err, ErrConflict) {
 			slog.ErrorContext(ctx, "corerepo: insert domain event", "err", err)
 			return
 		}
@@ -68,7 +67,7 @@ func (c MessageSource) processNewEntity(
 
 func getNewEntityEvents(
 	ctx context.Context,
-	ch <-chan couchdb.ChangeEvent,
+	ch <-chan ChangeEvent,
 ) <-chan DocumentWithEvents[json.RawMessage] {
 	res := make(chan DocumentWithEvents[json.RawMessage])
 	go func() {

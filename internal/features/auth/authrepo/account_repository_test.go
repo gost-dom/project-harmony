@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"harmony/internal/core/corerepo"
-	"harmony/internal/couchdb"
 	"harmony/internal/domain"
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
@@ -21,8 +20,8 @@ import (
 )
 
 func initRepository() AccountRepository {
-	couchdb.AssertInitialized()
-	conn := couchdb.DefaultConnection
+	corerepo.AssertInitialized()
+	conn := corerepo.DefaultConnection
 	return AccountRepository{conn}
 }
 

@@ -5,13 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"harmony/internal/core/corerepo"
-	"harmony/internal/couchdb"
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 )
 
-var ErrConflict = couchdb.ErrConflict
+var ErrConflict = corerepo.ErrConflict
 
 type accountEmailDoc struct {
 	authdomain.AccountID
@@ -23,7 +22,7 @@ type accountPasswordDoc struct {
 }
 
 type AccountRepository struct {
-	couchdb.Connection
+	corerepo.Connection
 }
 
 func (r AccountRepository) accDocId(id authdomain.AccountID) string {

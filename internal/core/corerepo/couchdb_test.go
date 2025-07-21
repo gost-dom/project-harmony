@@ -1,7 +1,7 @@
-package couchdb_test
+package corerepo_test
 
 import (
-	"harmony/internal/couchdb"
+	"harmony/internal/core/corerepo"
 	"testing"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
@@ -13,8 +13,8 @@ type Doc struct {
 }
 
 func TestDatabaseRoundtrip(t *testing.T) {
-	couchdb.AssertInitialized()
-	conn := couchdb.DefaultConnection
+	corerepo.AssertInitialized()
+	conn := corerepo.DefaultConnection
 	ctx := t.Context()
 
 	// Insert a document
@@ -44,7 +44,7 @@ func TestDatabaseRoundtrip(t *testing.T) {
 	assert.Equal(t, "Baz", actualV2.Foo)
 
 	_, err = conn.Update(ctx, id, rev, actual)
-	assert.ErrorIs(t, err, couchdb.ErrConflict)
+	assert.ErrorIs(t, err, corerepo.ErrConflict)
 }
 
 func TestDatabaseBootstrap(t *testing.T) {
@@ -54,8 +54,8 @@ func TestDatabaseBootstrap(t *testing.T) {
 		// issues in different environments.
 		t.SkipNow()
 	}
-	_, err := couchdb.NewCouchConnection("http://invalid.localhost/")
-	assert.ErrorIs(t, err, couchdb.ErrConn)
+	_, err := corerepo.NewCouchConnection("http://invalid.localhost/")
+	assert.ErrorIs(t, err, corerepo.ErrConn)
 	assert.ErrorContains(
 		t,
 		err,
