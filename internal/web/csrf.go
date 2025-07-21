@@ -72,12 +72,12 @@ func csrfMiddleware(h http.Handler) http.Handler {
 			)
 		}
 
-		fn := func() (string, string) {
+		var fn csrfGenerator = func() CSRFFields {
 			id, err1 := gonanoid.New()
 			token, err2 := gonanoid.New()
 			if err := errors.Join(err1, err2); err != nil {
 				slog.Error("Error generating token", "err", err)
-				return "", ""
+				return CSRFFields{}
 			}
 			http.SetCookie(
 				w,
@@ -91,7 +91,7 @@ func csrfMiddleware(h http.Handler) http.Handler {
 					MaxAge:   3600,
 				},
 			)
-			return id, token
+			return CSRFFields{id, token}
 		}
 
 		SetReqValue(&r, CtxKeyCSRFTokenSrc, fn)
@@ -99,7 +99,7 @@ func csrfMiddleware(h http.Handler) http.Handler {
 	})
 }
 
-type CSRFGenerator = func() (string, string)
+type csrfGenerator = func() CSRFFields
 
 // CSRFFields contains a pair of ID and Token value.
 type CSRFFields struct {
@@ -110,10 +110,10 @@ type CSRFFields struct {
 // GetCSRFFields generates a set of CSRF id/token values, and saves them in a
 // cookie.
 func GetCSRFFields(ctx context.Context) (fields CSRFFields, ok bool) {
-	var g CSRFGenerator
-	g, ok = ctx.Value(CtxKeyCSRFTokenSrc).(CSRFGenerator)
+	var g csrfGenerator
+	g, ok = ctx.Value(CtxKeyCSRFTokenSrc).(csrfGenerator)
 	if ok {
-		fields.ID, fields.Token = g()
+		fields = g()
 	}
 	return
 }
