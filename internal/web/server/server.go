@@ -12,12 +12,12 @@ import (
 	"github.com/a-h/templ"
 )
 
-func noCache(h http.Handler) http.Handler {
+var noCache = web.MiddlewareFunc(func(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("cache-control", "no-cache")
 		h.ServeHTTP(w, r)
 	})
-}
+})
 
 func staticFilesPath() string { return filepath.Join(projectRoot(), "static") }
 
@@ -43,7 +43,7 @@ func (s *Server) Init() {
 	)
 	s.Handler = web.ApplyMiddlewares(mux,
 		web.Logger,
-		web.MiddlewareFunc(noCache),
+		noCache,
 		web.CSRFMiddleware,
 		s.AuthMiddlewares,
 	)
