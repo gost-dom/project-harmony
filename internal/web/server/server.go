@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"path/filepath"
 
-	authrouter "harmony/internal/auth/authrouter"
-	hostrouter "harmony/internal/host/hostrouter"
+	authrouter "harmony/internal/auth/router"
+	hostrouter "harmony/internal/host/router"
 	"harmony/internal/web"
 	"harmony/internal/web/server/views"
 

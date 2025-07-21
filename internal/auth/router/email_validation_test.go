@@ -1,4 +1,4 @@
-package authrouter_test
+package router_test
 
 import (
 	"errors"
@@ -6,9 +6,9 @@ import (
 
 	"harmony/internal/auth"
 	"harmony/internal/auth/authdomain"
-	"harmony/internal/auth/authrouter"
+	"harmony/internal/auth/router"
 	"harmony/internal/testing/domaintest"
-	authmock "harmony/internal/testing/mocks/auth/authrouter_mock"
+	"harmony/internal/testing/mocks/auth/router_mock"
 	"harmony/internal/testing/servertest"
 
 	"github.com/gost-dom/browser/html"
@@ -39,12 +39,12 @@ func (s *ValidateEmailTestSuite) TestEmailAddressIsPrefilledFromQuery() {
 }
 
 func (s *ValidateEmailTestSuite) TestInvalidCodeShowsError() {
-	validatorMock := authmock.NewMockEmailValidator(s.T())
+	validatorMock := router_mock.NewMockEmailValidator(s.T())
 	validatorMock.EXPECT().
 		Validate(mock.Anything, mock.Anything).
 		Return(authdomain.AuthenticatedAccount{}, auth.ErrBadChallengeResponse)
 
-	s.Graph = surgeon.Replace[authrouter.EmailValidator](s.Graph, validatorMock)
+	s.Graph = surgeon.Replace[router.EmailValidator](s.Graph, validatorMock)
 	win := s.OpenWindow("https://example.com/auth/validate-email")
 	form := NewValidateEmailForm(s.T(), win)
 	s.Expect(form.Alert()).To(gomega.BeNil())
@@ -62,12 +62,12 @@ func (s *ValidateEmailTestSuite) TestInvalidCodeShowsError() {
 }
 
 func (s *ValidateEmailTestSuite) TestValidCodeRedirects() {
-	validatorMock := authmock.NewMockEmailValidator(s.T())
+	validatorMock := router_mock.NewMockEmailValidator(s.T())
 	validatorMock.EXPECT().
 		Validate(mock.Anything, mock.Anything).
 		Return(domaintest.InitAuthenticatedAccount(), nil)
 
-	s.Graph = surgeon.Replace[authrouter.EmailValidator](s.Graph, validatorMock)
+	s.Graph = surgeon.Replace[router.EmailValidator](s.Graph, validatorMock)
 	win := s.OpenWindow("https://example.com/auth/validate-email")
 	form := NewValidateEmailForm(s.T(), win)
 	s.Expect(form.Alert()).To(gomega.BeNil())
@@ -81,12 +81,12 @@ func (s *ValidateEmailTestSuite) TestValidCodeRedirects() {
 }
 
 func (s *ValidateEmailTestSuite) TestUnexpectedError() {
-	validatorMock := authmock.NewMockEmailValidator(s.T())
+	validatorMock := router_mock.NewMockEmailValidator(s.T())
 	validatorMock.EXPECT().
 		Validate(mock.Anything, mock.Anything).
 		Return(domaintest.InitAuthenticatedAccount(), errors.New("Unexpected error"))
 
-	s.Graph = surgeon.Replace[authrouter.EmailValidator](s.Graph, validatorMock)
+	s.Graph = surgeon.Replace[router.EmailValidator](s.Graph, validatorMock)
 	win := s.OpenWindow("https://example.com/auth/validate-email")
 	form := NewValidateEmailForm(s.T(), win)
 	s.Expect(form.Alert()).To(gomega.BeNil())

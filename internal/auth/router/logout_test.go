@@ -1,4 +1,4 @@
-package authrouter_test
+package router_test
 
 import (
 	"testing"

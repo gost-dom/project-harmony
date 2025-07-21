@@ -1,11 +1,11 @@
-package authrouter_test
+package router_test
 
 import (
 	"harmony/internal/auth"
 	"harmony/internal/auth/authdomain/password"
-	"harmony/internal/auth/authrouter"
+	"harmony/internal/auth/router"
 	. "harmony/internal/testing/gomegamatchers"
-	"harmony/internal/testing/mocks/auth/authrouter_mock"
+	"harmony/internal/testing/mocks/auth/router_mock"
 	"harmony/internal/testing/servertest"
 	"testing"
 
@@ -24,7 +24,7 @@ import (
 
 type RegisterTestSuite struct {
 	servertest.BrowserSuite
-	registrator *authrouter_mock.MockRegistrator
+	registrator *router_mock.MockRegistrator
 }
 
 func TestRegister(t *testing.T) {
@@ -34,8 +34,8 @@ func TestRegister(t *testing.T) {
 
 func (s *RegisterTestSuite) SetupTest() {
 	s.BrowserSuite.SetupTest()
-	s.registrator = authrouter_mock.NewMockRegistrator(s.T())
-	s.Graph = surgeon.Replace[authrouter.Registrator](s.Graph, s.registrator)
+	s.registrator = router_mock.NewMockRegistrator(s.T())
+	s.Graph = surgeon.Replace[router.Registrator](s.Graph, s.registrator)
 	s.OpenWindow("https://example.com/auth/register")
 }
 

@@ -1,5 +1,5 @@
 //go:generate mockery --all --srcpkg harmony/internal --recursive=true --with-expecter=true
-package authrouter_test
+package router_test
 
 import (
 	"errors"
@@ -8,10 +8,10 @@ import (
 	"harmony/internal/auth"
 	"harmony/internal/auth/authdomain"
 	"harmony/internal/auth/authdomain/password"
-	router "harmony/internal/auth/authrouter"
+	"harmony/internal/auth/router"
 	. "harmony/internal/testing/browsertest"
 	. "harmony/internal/testing/domaintest"
-	. "harmony/internal/testing/mocks/auth/authrouter_mock"
+	"harmony/internal/testing/mocks/auth/router_mock"
 	"harmony/internal/testing/servertest"
 
 	. "github.com/gost-dom/browser/testing/gomega-matchers"
@@ -31,12 +31,12 @@ func matchPassword(pw string) any {
 type LoginPageSuite struct {
 	servertest.BrowserSuite
 	loginForm LoginForm
-	authMock  *MockAuthenticator
+	authMock  *router_mock.MockAuthenticator
 }
 
 func (s *LoginPageSuite) SetupTest() {
 	s.BrowserSuite.SetupTest()
-	s.authMock = NewMockAuthenticator(s.T())
+	s.authMock = router_mock.NewMockAuthenticator(s.T())
 	s.Graph = surgeon.Replace[router.Authenticator](s.Graph, s.authMock)
 	s.OpenWindow("https://example.com/auth/login")
 	s.loginForm = NewLoginForm(s.Scope)

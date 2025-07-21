@@ -1,4 +1,4 @@
-package authrouter
+package router
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"harmony/internal/auth"
 	"harmony/internal/auth/authdomain"
 	"harmony/internal/auth/authdomain/password"
-	"harmony/internal/auth/authrouter/views"
+	"harmony/internal/auth/router/views"
 	"harmony/internal/web"
 
 	"github.com/gorilla/schema"

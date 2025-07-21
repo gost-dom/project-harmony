@@ -1,12 +1,12 @@
 package server_test
 
 import (
-	"harmony/internal/auth/authrouter"
-	"harmony/internal/web/server/ioc"
+	"harmony/internal/auth/router"
 	"harmony/internal/testing/browsertest"
 	. "harmony/internal/testing/domaintest"
-	. "harmony/internal/testing/mocks/auth/authrouter_mock"
+	"harmony/internal/testing/mocks/auth/router_mock"
 	"harmony/internal/testing/servertest"
+	"harmony/internal/web/server/ioc"
 	"testing"
 
 	"github.com/gost-dom/browser/html"
@@ -27,11 +27,11 @@ type serverSuite struct {
 }
 
 func initServerSuite(t *testing.T) serverSuite {
-	authMock := NewMockAuthenticator(t)
+	authMock := router_mock.NewMockAuthenticator(t)
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
 		Return(InitAuthenticatedAccount(), nil).Maybe()
-	g := surgeon.Replace[authrouter.Authenticator](ioc.Graph, authMock)
+	g := surgeon.Replace[router.Authenticator](ioc.Graph, authMock)
 
 	b := servertest.InitBrowser(t, g)
 

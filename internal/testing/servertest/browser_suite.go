@@ -2,12 +2,12 @@ package servertest
 
 import (
 	"context"
-	"harmony/internal/auth/authrouter"
-	"harmony/internal/web/server"
+	"harmony/internal/auth/router"
 	"harmony/internal/testing/browsertest"
 	"harmony/internal/testing/domaintest"
 	"harmony/internal/testing/htest"
-	"harmony/internal/testing/mocks/auth/authrouter_mock"
+	"harmony/internal/testing/mocks/auth/router_mock"
+	"harmony/internal/web/server"
 	"log/slog"
 	"net/http/cookiejar"
 	"testing"
@@ -105,8 +105,8 @@ func (s *BrowserSuite) AllowErrorLogs() {
 }
 
 func InitAuthenticatedWindow(t testing.TB, g ServerGraph) html.Window {
-	authMock := authrouter_mock.NewMockAuthenticator(t)
-	g = surgeon.Replace[authrouter.Authenticator](g, authMock)
+	authMock := router_mock.NewMockAuthenticator(t)
+	g = surgeon.Replace[router.Authenticator](g, authMock)
 	acc := domaintest.InitAuthenticatedAccount()
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).

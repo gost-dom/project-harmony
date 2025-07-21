@@ -1,4 +1,4 @@
-package authrouter
+package router
 
 import (
 	"harmony/internal/auth"

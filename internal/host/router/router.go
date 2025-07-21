@@ -1,7 +1,7 @@
-package hostrouter
+package router
 
 import (
-	"harmony/internal/host/hostrouter/views"
+	"harmony/internal/host/router/views"
 	"net/http"
 
 	"github.com/a-h/templ"
