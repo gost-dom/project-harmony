@@ -4,9 +4,9 @@ package auth_mock
 
 import (
 	context "context"
-	authdomain "harmony/internal/auth/authdomain"
-
 	core "harmony/internal/core"
+
+	domain "harmony/internal/auth/domain"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -25,25 +25,25 @@ func (_m *MockAccountInserter) EXPECT() *MockAccountInserter_Expecter {
 }
 
 // Insert provides a mock function with given fields: _a0, _a1
-func (_m *MockAccountInserter) Insert(_a0 context.Context, _a1 core.UseCaseResult[authdomain.PasswordAuthentication]) (authdomain.PasswordAuthentication, error) {
+func (_m *MockAccountInserter) Insert(_a0 context.Context, _a1 core.UseCaseResult[domain.PasswordAuthentication]) (domain.PasswordAuthentication, error) {
 	ret := _m.Called(_a0, _a1)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Insert")
 	}
 
-	var r0 authdomain.PasswordAuthentication
+	var r0 domain.PasswordAuthentication
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, core.UseCaseResult[authdomain.PasswordAuthentication]) (authdomain.PasswordAuthentication, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, core.UseCaseResult[domain.PasswordAuthentication]) (domain.PasswordAuthentication, error)); ok {
 		return rf(_a0, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, core.UseCaseResult[authdomain.PasswordAuthentication]) authdomain.PasswordAuthentication); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, core.UseCaseResult[domain.PasswordAuthentication]) domain.PasswordAuthentication); ok {
 		r0 = rf(_a0, _a1)
 	} else {
-		r0 = ret.Get(0).(authdomain.PasswordAuthentication)
+		r0 = ret.Get(0).(domain.PasswordAuthentication)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, core.UseCaseResult[authdomain.PasswordAuthentication]) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, core.UseCaseResult[domain.PasswordAuthentication]) error); ok {
 		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)
@@ -59,24 +59,24 @@ type MockAccountInserter_Insert_Call struct {
 
 // Insert is a helper method to define mock.On call
 //   - _a0 context.Context
-//   - _a1 core.UseCaseResult[authdomain.PasswordAuthentication]
+//   - _a1 core.UseCaseResult[domain.PasswordAuthentication]
 func (_e *MockAccountInserter_Expecter) Insert(_a0 interface{}, _a1 interface{}) *MockAccountInserter_Insert_Call {
 	return &MockAccountInserter_Insert_Call{Call: _e.mock.On("Insert", _a0, _a1)}
 }
 
-func (_c *MockAccountInserter_Insert_Call) Run(run func(_a0 context.Context, _a1 core.UseCaseResult[authdomain.PasswordAuthentication])) *MockAccountInserter_Insert_Call {
+func (_c *MockAccountInserter_Insert_Call) Run(run func(_a0 context.Context, _a1 core.UseCaseResult[domain.PasswordAuthentication])) *MockAccountInserter_Insert_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(core.UseCaseResult[authdomain.PasswordAuthentication]))
+		run(args[0].(context.Context), args[1].(core.UseCaseResult[domain.PasswordAuthentication]))
 	})
 	return _c
 }
 
-func (_c *MockAccountInserter_Insert_Call) Return(_a0 authdomain.PasswordAuthentication, _a1 error) *MockAccountInserter_Insert_Call {
+func (_c *MockAccountInserter_Insert_Call) Return(_a0 domain.PasswordAuthentication, _a1 error) *MockAccountInserter_Insert_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockAccountInserter_Insert_Call) RunAndReturn(run func(context.Context, core.UseCaseResult[authdomain.PasswordAuthentication]) (authdomain.PasswordAuthentication, error)) *MockAccountInserter_Insert_Call {
+func (_c *MockAccountInserter_Insert_Call) RunAndReturn(run func(context.Context, core.UseCaseResult[domain.PasswordAuthentication]) (domain.PasswordAuthentication, error)) *MockAccountInserter_Insert_Call {
 	_c.Call.Return(run)
 	return _c
 }

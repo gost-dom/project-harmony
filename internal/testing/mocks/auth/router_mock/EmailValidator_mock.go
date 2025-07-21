@@ -3,10 +3,10 @@
 package router_mock
 
 import (
-	auth "harmony/internal/auth"
-	authdomain "harmony/internal/auth/authdomain"
-
 	context "context"
+	auth "harmony/internal/auth"
+
+	domain "harmony/internal/auth/domain"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -25,22 +25,22 @@ func (_m *MockEmailValidator) EXPECT() *MockEmailValidator_Expecter {
 }
 
 // Validate provides a mock function with given fields: ctx, input
-func (_m *MockEmailValidator) Validate(ctx context.Context, input auth.ValidateEmailInput) (authdomain.AuthenticatedAccount, error) {
+func (_m *MockEmailValidator) Validate(ctx context.Context, input auth.ValidateEmailInput) (domain.AuthenticatedAccount, error) {
 	ret := _m.Called(ctx, input)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Validate")
 	}
 
-	var r0 authdomain.AuthenticatedAccount
+	var r0 domain.AuthenticatedAccount
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, auth.ValidateEmailInput) (authdomain.AuthenticatedAccount, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, auth.ValidateEmailInput) (domain.AuthenticatedAccount, error)); ok {
 		return rf(ctx, input)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, auth.ValidateEmailInput) authdomain.AuthenticatedAccount); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, auth.ValidateEmailInput) domain.AuthenticatedAccount); ok {
 		r0 = rf(ctx, input)
 	} else {
-		r0 = ret.Get(0).(authdomain.AuthenticatedAccount)
+		r0 = ret.Get(0).(domain.AuthenticatedAccount)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, auth.ValidateEmailInput) error); ok {
@@ -71,12 +71,12 @@ func (_c *MockEmailValidator_Validate_Call) Run(run func(ctx context.Context, in
 	return _c
 }
 
-func (_c *MockEmailValidator_Validate_Call) Return(_a0 authdomain.AuthenticatedAccount, _a1 error) *MockEmailValidator_Validate_Call {
+func (_c *MockEmailValidator_Validate_Call) Return(_a0 domain.AuthenticatedAccount, _a1 error) *MockEmailValidator_Validate_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockEmailValidator_Validate_Call) RunAndReturn(run func(context.Context, auth.ValidateEmailInput) (authdomain.AuthenticatedAccount, error)) *MockEmailValidator_Validate_Call {
+func (_c *MockEmailValidator_Validate_Call) RunAndReturn(run func(context.Context, auth.ValidateEmailInput) (domain.AuthenticatedAccount, error)) *MockEmailValidator_Validate_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -1,8 +1,8 @@
-package authdomain_test
+package domain_test
 
 import (
 	"fmt"
-	"harmony/internal/auth/authdomain/password"
+	"harmony/internal/auth/domain/password"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

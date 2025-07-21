@@ -4,7 +4,7 @@ package auth_mock
 
 import (
 	context "context"
-	authdomain "harmony/internal/auth/authdomain"
+	domain "harmony/internal/auth/domain"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -23,25 +23,25 @@ func (_m *MockAccountLoader) EXPECT() *MockAccountLoader_Expecter {
 }
 
 // Get provides a mock function with given fields: _a0, _a1
-func (_m *MockAccountLoader) Get(_a0 context.Context, _a1 authdomain.AccountID) (authdomain.Account, error) {
+func (_m *MockAccountLoader) Get(_a0 context.Context, _a1 domain.AccountID) (domain.Account, error) {
 	ret := _m.Called(_a0, _a1)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
 	}
 
-	var r0 authdomain.Account
+	var r0 domain.Account
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, authdomain.AccountID) (authdomain.Account, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.AccountID) (domain.Account, error)); ok {
 		return rf(_a0, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, authdomain.AccountID) authdomain.Account); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.AccountID) domain.Account); ok {
 		r0 = rf(_a0, _a1)
 	} else {
-		r0 = ret.Get(0).(authdomain.Account)
+		r0 = ret.Get(0).(domain.Account)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, authdomain.AccountID) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, domain.AccountID) error); ok {
 		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)
@@ -57,24 +57,24 @@ type MockAccountLoader_Get_Call struct {
 
 // Get is a helper method to define mock.On call
 //   - _a0 context.Context
-//   - _a1 authdomain.AccountID
+//   - _a1 domain.AccountID
 func (_e *MockAccountLoader_Expecter) Get(_a0 interface{}, _a1 interface{}) *MockAccountLoader_Get_Call {
 	return &MockAccountLoader_Get_Call{Call: _e.mock.On("Get", _a0, _a1)}
 }
 
-func (_c *MockAccountLoader_Get_Call) Run(run func(_a0 context.Context, _a1 authdomain.AccountID)) *MockAccountLoader_Get_Call {
+func (_c *MockAccountLoader_Get_Call) Run(run func(_a0 context.Context, _a1 domain.AccountID)) *MockAccountLoader_Get_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(authdomain.AccountID))
+		run(args[0].(context.Context), args[1].(domain.AccountID))
 	})
 	return _c
 }
 
-func (_c *MockAccountLoader_Get_Call) Return(_a0 authdomain.Account, _a1 error) *MockAccountLoader_Get_Call {
+func (_c *MockAccountLoader_Get_Call) Return(_a0 domain.Account, _a1 error) *MockAccountLoader_Get_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockAccountLoader_Get_Call) RunAndReturn(run func(context.Context, authdomain.AccountID) (authdomain.Account, error)) *MockAccountLoader_Get_Call {
+func (_c *MockAccountLoader_Get_Call) RunAndReturn(run func(context.Context, domain.AccountID) (domain.Account, error)) *MockAccountLoader_Get_Call {
 	_c.Call.Return(run)
 	return _c
 }

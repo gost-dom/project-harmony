@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/gob"
 	"errors"
-	domain "harmony/internal/auth/authdomain"
-	"harmony/internal/auth/authdomain/password"
+	domain "harmony/internal/auth/domain"
+	"harmony/internal/auth/domain/password"
 )
 
 type AccountEmailFinder interface {

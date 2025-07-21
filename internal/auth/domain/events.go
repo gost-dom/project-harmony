@@ -1,4 +1,4 @@
-package authdomain
+package domain
 
 import (
 	"harmony/internal/core"

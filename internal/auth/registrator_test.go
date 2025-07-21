@@ -8,8 +8,8 @@ import (
 
 	"harmony/internal/core"
 	. "harmony/internal/auth"
-	"harmony/internal/auth/authdomain"
-	"harmony/internal/auth/authdomain/password"
+	"harmony/internal/auth/domain"
+	"harmony/internal/auth/domain/password"
 	"harmony/internal/testing/htest"
 	"harmony/internal/testing/repotest"
 
@@ -59,7 +59,7 @@ func (s *RegisterTestSuite) TestValidRegistrationInput() {
 	s.Assert().Equal("John", entity.DisplayName)
 
 	s.Expect(s.repo.Events).To(gomega.ContainElement(
-		MatchDomainEvent(authdomain.AccountRegistered{AccountID: entity.ID})),
+		MatchDomainEvent(domain.AccountRegistered{AccountID: entity.ID})),
 	)
 }
 
@@ -70,10 +70,10 @@ func (s *RegisterTestSuite) TestActivation() {
 	s.Assert().False(entity.Email.Validated, "Email validated - before validation")
 
 	s.Assert().ErrorIs(entity.ValidateEmail(
-		authdomain.EmailValidationCode("invalid")),
-		authdomain.ErrBadEmailChallengeResponse, "Validating wrong code")
+		domain.EmailValidationCode("invalid")),
+		domain.ErrBadEmailChallengeResponse, "Validating wrong code")
 
-	code := repotest.SingleEventOfType[authdomain.EmailValidationRequest](s.repo).Code
+	code := repotest.SingleEventOfType[domain.EmailValidationRequest](s.repo).Code
 	s.Assert().NoError(entity.ValidateEmail(code), "Validating right code")
 	s.Assert().True(entity.Email.Validated, "Email validated - after validation")
 }
@@ -82,7 +82,7 @@ func (s *RegisterTestSuite) TestActivationCodeBeforeExpiry() {
 	synctest.Run(func() {
 		s.Register(s.Context(), s.validInput)
 		entity := s.repo.Single()
-		code := repotest.SingleEventOfType[authdomain.EmailValidationRequest](
+		code := repotest.SingleEventOfType[domain.EmailValidationRequest](
 			s.repo,
 		).Code
 
@@ -98,7 +98,7 @@ func (s *RegisterTestSuite) TestActivationCodeExpired() {
 	synctest.Run(func() {
 		s.Register(s.Context(), s.validInput)
 		entity := s.repo.Single()
-		validationRequest := repotest.SingleEventOfType[authdomain.EmailValidationRequest](
+		validationRequest := repotest.SingleEventOfType[domain.EmailValidationRequest](
 			s.repo,
 		)
 		code := validationRequest.Code
@@ -108,7 +108,7 @@ func (s *RegisterTestSuite) TestActivationCodeExpired() {
 		time.Sleep(16 * time.Minute)
 		synctest.Wait()
 
-		s.Assert().ErrorIs(entity.ValidateEmail(code), authdomain.ErrEmailChallengeExpired)
+		s.Assert().ErrorIs(entity.ValidateEmail(code), domain.ErrEmailChallengeExpired)
 		s.Assert().False(entity.Email.Validated, "Email validated - after validation")
 	})
 }

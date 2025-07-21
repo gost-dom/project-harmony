@@ -2,7 +2,7 @@ package router_test
 
 import (
 	"harmony/internal/auth"
-	"harmony/internal/auth/authdomain/password"
+	"harmony/internal/auth/domain/password"
 	"harmony/internal/auth/router"
 	. "harmony/internal/testing/gomegamatchers"
 	"harmony/internal/testing/mocks/auth/router_mock"

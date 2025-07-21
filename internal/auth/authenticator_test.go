@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"harmony/internal/auth"
-	"harmony/internal/auth/authdomain"
-	"harmony/internal/auth/authdomain/password"
+	"harmony/internal/auth/domain"
+	"harmony/internal/auth/domain/password"
 	"harmony/internal/testing/htest"
 
 	"github.com/stretchr/testify/assert"
@@ -16,7 +16,7 @@ import (
 type AuthenticatorTestSuite struct {
 	htest.GomegaSuite
 	auth.Authenticator
-	Account *authdomain.PasswordAuthentication
+	Account *domain.PasswordAuthentication
 }
 
 // MustParseEmail creates a *mail.Address from an email string. The function
@@ -52,7 +52,7 @@ func (s *AuthenticatorTestSuite) TestAuthenticateUnvalidatedAccount() {
 
 	_, err := s.Authenticate(s.Context(), "jd@example.com", password.Parse("valid_password"))
 	s.Assert().Error(err, "Cannot log in until the email address has been validated")
-	s.Assert().ErrorIs(err, authdomain.ErrAccountNotValidated)
+	s.Assert().ErrorIs(err, domain.ErrAccountNotValidated)
 }
 
 func (s *AuthenticatorTestSuite) validateAccount() {

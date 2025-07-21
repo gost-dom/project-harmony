@@ -6,18 +6,18 @@ import (
 	"fmt"
 	"harmony/internal/core/corerepo"
 	"harmony/internal/auth"
-	"harmony/internal/auth/authdomain"
-	"harmony/internal/auth/authdomain/password"
+	"harmony/internal/auth/domain"
+	"harmony/internal/auth/domain/password"
 )
 
 var ErrConflict = corerepo.ErrConflict
 
 type accountEmailDoc struct {
-	authdomain.AccountID
+	domain.AccountID
 }
 
 type accountPasswordDoc struct {
-	ID           authdomain.AccountID
+	ID           domain.AccountID
 	PasswordHash []byte
 }
 
@@ -25,7 +25,7 @@ type AccountRepository struct {
 	corerepo.Connection
 }
 
-func (r AccountRepository) accDocId(id authdomain.AccountID) string {
+func (r AccountRepository) accDocId(id domain.AccountID) string {
 	return fmt.Sprintf("auth:account:%s", id)
 }
 
@@ -33,18 +33,18 @@ func (r AccountRepository) addrDocId(addr string) string {
 	return fmt.Sprintf("auth:account:email:%s", addr)
 }
 
-func (r AccountRepository) accEmailDocID(acc authdomain.Account) string {
+func (r AccountRepository) accEmailDocID(acc domain.Account) string {
 	return r.addrDocId(acc.Email.String())
 }
 
-func passwordDocId(id authdomain.AccountID) string {
+func passwordDocId(id domain.AccountID) string {
 	return fmt.Sprintf("auth:accunt:%s:password", id)
 }
 
 func (r AccountRepository) insertAccountDoc(
 	ctx context.Context,
-	acc authdomain.Account,
-) (authdomain.Account, error) {
+	acc domain.Account,
+) (domain.Account, error) {
 	rev, err := r.Connection.Insert(ctx, r.accDocId(acc.ID), acc)
 	acc.Rev = rev
 	return acc, err
@@ -67,7 +67,7 @@ func (r AccountRepository) insertEmailDoc(
 
 func (r AccountRepository) insertPasswordDoc(
 	ctx context.Context,
-	acc authdomain.PasswordAuthentication,
+	acc domain.PasswordAuthentication,
 ) error {
 	doc := accountPasswordDoc{
 		acc.ID,
@@ -80,7 +80,7 @@ func (r AccountRepository) insertPasswordDoc(
 func (r AccountRepository) Insert(
 	ctx context.Context,
 	acc auth.AccountUseCaseResult,
-) (authdomain.PasswordAuthentication, error) {
+) (domain.PasswordAuthentication, error) {
 	res, err := r.insertAccountDoc(ctx, acc.Entity.Account)
 	if err == nil {
 		err = r.insertPasswordDoc(ctx, acc.Entity)
@@ -94,8 +94,8 @@ func (r AccountRepository) Insert(
 
 func (r AccountRepository) Get(
 	ctx context.Context,
-	id authdomain.AccountID,
-) (res authdomain.Account, err error) {
+	id domain.AccountID,
+) (res domain.Account, err error) {
 	rev, err := r.Connection.Get(ctx, r.accDocId(id), &res)
 	res.Rev = rev
 	return
@@ -103,7 +103,7 @@ func (r AccountRepository) Get(
 
 func (r AccountRepository) FindByEmail(ctx context.Context,
 	email string,
-) (res authdomain.Account, err error) {
+) (res domain.Account, err error) {
 	var emailDoc corerepo.DocumentWithEvents[accountEmailDoc]
 	_, err1 := r.Connection.Get(ctx, r.addrDocId(email), &emailDoc)
 	acc, err3 := r.Get(ctx, emailDoc.Document.AccountID)
@@ -115,7 +115,7 @@ func (r AccountRepository) FindByEmail(ctx context.Context,
 }
 func (r AccountRepository) FindPWAuthByEmail(ctx context.Context,
 	email string,
-) (res authdomain.PasswordAuthentication, err error) {
+) (res domain.PasswordAuthentication, err error) {
 	var emailDoc corerepo.DocumentWithEvents[accountEmailDoc]
 	var pwDoc accountPasswordDoc
 	_, err1 := r.Connection.Get(ctx, r.addrDocId(email), &emailDoc)
@@ -130,12 +130,12 @@ func (r AccountRepository) FindPWAuthByEmail(ctx context.Context,
 }
 
 func (r AccountRepository) Update(
-	ctx context.Context, acc authdomain.Account,
-) (authdomain.Account, error) {
-	// var tmp authdomain.Account
+	ctx context.Context, acc domain.Account,
+) (domain.Account, error) {
+	// var tmp domain.Account
 	// rev, err := r.Connection.Get(ctx, r.accDocId(acc.ID), &tmp)
 	// if err != nil {
-	// 	return authdomain.Account{}, err
+	// 	return domain.Account{}, err
 	// }
 	newRev, err := r.Connection.Update(ctx, r.accDocId(acc.ID), acc.Rev, acc)
 	acc.Rev = newRev

@@ -8,8 +8,8 @@ import (
 	"net/mail"
 
 	"harmony/internal/auth"
-	"harmony/internal/auth/authdomain"
-	"harmony/internal/auth/authdomain/password"
+	"harmony/internal/auth/domain"
+	"harmony/internal/auth/domain/password"
 	"harmony/internal/auth/router/views"
 	"harmony/internal/web"
 
@@ -27,7 +27,7 @@ type Authenticator interface {
 		context.Context,
 		string,
 		password.Password,
-	) (authdomain.AuthenticatedAccount, error)
+	) (domain.AuthenticatedAccount, error)
 }
 
 type Registrator interface {
@@ -38,7 +38,7 @@ type EmailValidator interface {
 	Validate(
 		ctx context.Context,
 		input auth.ValidateEmailInput,
-	) (authdomain.AuthenticatedAccount, error)
+	) (domain.AuthenticatedAccount, error)
 }
 
 type AuthRouter struct {
@@ -178,7 +178,7 @@ func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Reque
 	account, err := router.EmailValidator.Validate(r.Context(),
 		auth.ValidateEmailInput{
 			Email: email,
-			Code:  authdomain.EmailValidationCode(code),
+			Code:  domain.EmailValidationCode(code),
 		})
 	if err != nil {
 		w.Header().Add("hx-retarget", "#validation-error-container")

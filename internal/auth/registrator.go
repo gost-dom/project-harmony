@@ -3,9 +3,8 @@ package auth
 import (
 	"context"
 	"errors"
-	"harmony/internal/auth/authdomain"
-	domain "harmony/internal/auth/authdomain"
-	"harmony/internal/auth/authdomain/password"
+	"harmony/internal/auth/domain"
+	"harmony/internal/auth/domain/password"
 	"harmony/internal/core"
 	"net/mail"
 )
@@ -20,7 +19,7 @@ type AccountInserter interface {
 
 type ValidateEmailInput struct {
 	Email *mail.Address
-	Code  authdomain.EmailValidationCode
+	Code  domain.EmailValidationCode
 }
 
 type RegistratorInput struct {
@@ -47,7 +46,7 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 	}
 	account := domain.PasswordAuthentication{
 		Account: domain.Account{
-			ID:          domain.AccountID(authdomain.NewID()),
+			ID:          domain.AccountID(domain.NewID()),
 			Email:       domain.NewUnvalidatedEmail(*input.Email),
 			Name:        input.Name,
 			DisplayName: input.DisplayName,

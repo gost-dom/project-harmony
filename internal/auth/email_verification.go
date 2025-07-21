@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"harmony/internal/core"
-	"harmony/internal/auth/authdomain"
+	"harmony/internal/auth/domain"
 	"net/smtp"
 	"strings"
 )
@@ -13,8 +13,8 @@ import (
 const host = "harmony.example.com"
 
 type EmailChallengeRepository interface {
-	FindByEmail(context.Context, string) (authdomain.Account, error)
-	Update(context.Context, authdomain.Account) (authdomain.Account, error)
+	FindByEmail(context.Context, string) (domain.Account, error)
+	Update(context.Context, domain.Account) (domain.Account, error)
 }
 
 type EmailChallengeValidator struct {
@@ -24,9 +24,9 @@ type EmailChallengeValidator struct {
 func (a EmailChallengeValidator) Validate(
 	ctx context.Context,
 	input ValidateEmailInput,
-) (res authdomain.AuthenticatedAccount, err error) {
+) (res domain.AuthenticatedAccount, err error) {
 	defer func() {
-		if errors.Is(err, authdomain.ErrBadEmailChallengeResponse) {
+		if errors.Is(err, domain.ErrBadEmailChallengeResponse) {
 			err = ErrBadChallengeResponse
 		}
 	}()
@@ -45,7 +45,7 @@ func (a EmailChallengeValidator) Validate(
 }
 
 type AccountLoader interface {
-	Get(context.Context, authdomain.AccountID) (authdomain.Account, error)
+	Get(context.Context, domain.AccountID) (domain.Account, error)
 }
 
 type EmailValidator struct {
@@ -55,7 +55,7 @@ type EmailValidator struct {
 func NewEmailValidator() *EmailValidator { return &EmailValidator{nil} }
 
 func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event core.DomainEvent) error {
-	req, ok := event.Body.(authdomain.EmailValidationRequest)
+	req, ok := event.Body.(domain.EmailValidationRequest)
 	if !ok { // Not an event we want to handle
 		return nil
 	}
@@ -69,7 +69,7 @@ func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event core.Domai
 	return err
 }
 
-func sendChallengeEmail(eventID string, acc authdomain.Account) error {
+func sendChallengeEmail(eventID string, acc domain.Account) error {
 	messageID := fmt.Sprintf("<%s@%s>", eventID, host)
 	receiver := acc.Email.Address // Yeah, net/mail.Address has an Address field
 	receiver.Name = acc.Name

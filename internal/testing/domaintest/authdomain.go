@@ -2,8 +2,8 @@ package domaintest
 
 import (
 	"fmt"
-	"harmony/internal/auth/authdomain"
-	"harmony/internal/auth/authdomain/password"
+	"harmony/internal/auth/domain"
+	"harmony/internal/auth/domain/password"
 	"net/mail"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
@@ -13,10 +13,10 @@ func NewAddress() string {
 	return fmt.Sprintf("%s@example.com", gonanoid.MustGenerate("abcdefghjklmnipqrstuvwxyz", 20))
 }
 
-func InitEmail() authdomain.Email {
+func InitEmail() domain.Email {
 	addr, err := mail.ParseAddress(NewAddress())
 	must("domaintest: InitEmail", err)
-	res := authdomain.NewUnvalidatedEmail(*addr)
+	res := domain.NewUnvalidatedEmail(*addr)
 	return res
 }
 
@@ -33,25 +33,25 @@ func WithEmail(email string) InitAccountOption {
 }
 
 func WithEmailAddress(addr *mail.Address) InitAccountOption {
-	return func(acc *authdomain.Account) {
-		em := authdomain.NewUnvalidatedEmail(*addr)
+	return func(acc *domain.Account) {
+		em := domain.NewUnvalidatedEmail(*addr)
 		acc.Email = em
 	}
 }
 
 func WithName(name string) InitAccountOption {
-	return func(acc *authdomain.Account) {
+	return func(acc *domain.Account) {
 		acc.Name = name
 	}
 }
 
-type InitAccountOption = func(*authdomain.Account)
+type InitAccountOption = func(*domain.Account)
 
 // InitAccount creates and returns a valid minimal Account for test scenarios
 // that requires a valid account, but details are irrelevant.
-func InitAccount(opts ...InitAccountOption) authdomain.Account {
-	result := authdomain.Account{
-		ID:    authdomain.AccountID(authdomain.NewID()),
+func InitAccount(opts ...InitAccountOption) domain.Account {
+	result := domain.Account{
+		ID:    domain.AccountID(domain.NewID()),
 		Email: InitEmail(),
 	}
 	for _, o := range opts {
@@ -63,15 +63,15 @@ func InitAccount(opts ...InitAccountOption) authdomain.Account {
 // InitAuthenticatedAccount creates and returns an AuthenticatedAccount with a
 // minimal account for use in test scenarios where an authenticated account is
 // required, but the specific user details are irrelevant.
-func InitAuthenticatedAccount(opts ...InitAccountOption) authdomain.AuthenticatedAccount {
+func InitAuthenticatedAccount(opts ...InitAccountOption) domain.AuthenticatedAccount {
 	acc := InitAccount(opts...)
-	return authdomain.AuthenticatedAccount{Account: &acc}
+	return domain.AuthenticatedAccount{Account: &acc}
 }
 
-type InitPasswordOption = func(*authdomain.PasswordAuthentication)
+type InitPasswordOption = func(*domain.PasswordAuthentication)
 
 func WithPassword(pw string) InitPasswordOption {
-	return func(ac *authdomain.PasswordAuthentication) {
+	return func(ac *domain.PasswordAuthentication) {
 		var err error
 		if ac.PasswordHash, err = password.Parse(pw).Hash(); err != nil {
 			panic(fmt.Sprintf("WithPassword: hashing failed: %v", err))
@@ -79,12 +79,12 @@ func WithPassword(pw string) InitPasswordOption {
 	}
 }
 
-// InitPasswordAuthAccount creates a new [authdomain.PasswordAuthentication]
+// InitPasswordAuthAccount creates a new [domain.PasswordAuthentication]
 // entity. The options must be either [InitPasswordOption] or
 // [InitAccountOption]. The function panics if any of the options are not a
 // compatible type.
-func InitPasswordAuthAccount(opts ...any) authdomain.PasswordAuthentication {
-	res := authdomain.PasswordAuthentication{Account: InitAccount()}
+func InitPasswordAuthAccount(opts ...any) domain.PasswordAuthentication {
+	res := domain.PasswordAuthentication{Account: InitAccount()}
 	for _, o := range opts {
 		switch t := o.(type) {
 		case InitPasswordOption:

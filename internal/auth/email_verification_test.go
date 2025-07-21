@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"harmony/internal/auth"
-	"harmony/internal/auth/authdomain"
+	"harmony/internal/auth/domain"
 	"harmony/internal/core"
 	"harmony/internal/core/corerepo"
 	"harmony/internal/messaging"
@@ -43,7 +43,7 @@ func TestEmailValidatorValidate(t *testing.T) {
 
 		got, err := validator.Validate(t.Context(), auth.ValidateEmailInput{
 			Email: addr,
-			Code:  authdomain.EmailValidationCode("invalid-code"),
+			Code:  domain.EmailValidationCode("invalid-code"),
 		})
 
 		if assert.ErrorIs(t, err, auth.ErrBadChallengeResponse, "Validate error result") {
@@ -94,7 +94,7 @@ func TestEmailValidatorValidate(t *testing.T) {
 func TestSendEmailValidationChallenge(t *testing.T) {
 	assert.NoError(t, mailhog.DeleteAll())
 
-	acc := domaintest.InitAccount(func(acc *authdomain.Account) {
+	acc := domaintest.InitAccount(func(acc *domain.Account) {
 		acc.DisplayName = "John"
 		acc.Name = "John Smith"
 	})

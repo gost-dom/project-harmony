@@ -2,13 +2,13 @@ package auth
 
 import (
 	"errors"
-	"harmony/internal/auth/authdomain"
+	"harmony/internal/auth/domain"
 	"harmony/internal/core"
 )
 
 // ErrAccountNotValidated is re-exported from authdom so callers need a single
 // import path
-var ErrAccountNotValidated = authdomain.ErrAccountNotValidated
+var ErrAccountNotValidated = domain.ErrAccountNotValidated
 
 // ErrNotFound is re-exported from core so callers need a single import path
 var ErrNotFound = core.ErrNotFound

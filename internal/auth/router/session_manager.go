@@ -1,7 +1,7 @@
 package router
 
 import (
-	"harmony/internal/auth/authdomain"
+	"harmony/internal/auth/domain"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -17,13 +17,13 @@ type SessionManager struct {
 }
 
 // TODO: Check account id is valid
-func (m *SessionManager) LoggedInUser(r *http.Request) (acc *authdomain.Account) {
+func (m *SessionManager) LoggedInUser(r *http.Request) (acc *domain.Account) {
 	reg := sessions.GetRegistry(r)
 	session, _ := reg.Get(m.SessionStore, sessionNameAuth)
 	if id, ok := session.Values[sessionCookieName]; ok {
-		result := new(authdomain.Account)
+		result := new(domain.Account)
 		if strId, ok := id.(string); ok && strId != "" {
-			result.ID = authdomain.AccountID(strId)
+			result.ID = domain.AccountID(strId)
 			return result
 		}
 	}
@@ -33,7 +33,7 @@ func (m *SessionManager) LoggedInUser(r *http.Request) (acc *authdomain.Account)
 func (s SessionManager) SetAccount(
 	w http.ResponseWriter,
 	req *http.Request,
-	account authdomain.AuthenticatedAccount,
+	account domain.AuthenticatedAccount,
 ) error {
 	reg := sessions.GetRegistry(req)
 	session, err := reg.Get(s.SessionStore, sessionNameAuth)

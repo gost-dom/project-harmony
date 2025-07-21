@@ -3,7 +3,7 @@ package auth_test
 import (
 	"context"
 	"harmony/internal/auth"
-	domain "harmony/internal/auth/authdomain"
+	domain "harmony/internal/auth/domain"
 	"harmony/internal/testing/repotest"
 	"testing"
 )

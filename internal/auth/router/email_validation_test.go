@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"harmony/internal/auth"
-	"harmony/internal/auth/authdomain"
+	"harmony/internal/auth/domain"
 	"harmony/internal/auth/router"
 	"harmony/internal/testing/domaintest"
 	"harmony/internal/testing/mocks/auth/router_mock"
@@ -42,7 +42,7 @@ func (s *ValidateEmailTestSuite) TestInvalidCodeShowsError() {
 	validatorMock := router_mock.NewMockEmailValidator(s.T())
 	validatorMock.EXPECT().
 		Validate(mock.Anything, mock.Anything).
-		Return(authdomain.AuthenticatedAccount{}, auth.ErrBadChallengeResponse)
+		Return(domain.AuthenticatedAccount{}, auth.ErrBadChallengeResponse)
 
 	s.Graph = surgeon.Replace[router.EmailValidator](s.Graph, validatorMock)
 	win := s.OpenWindow("https://example.com/auth/validate-email")

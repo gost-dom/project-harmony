@@ -4,7 +4,7 @@ package auth_mock
 
 import (
 	context "context"
-	authdomain "harmony/internal/auth/authdomain"
+	domain "harmony/internal/auth/domain"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -23,22 +23,22 @@ func (_m *MockEmailChallengeRepository) EXPECT() *MockEmailChallengeRepository_E
 }
 
 // FindByEmail provides a mock function with given fields: _a0, _a1
-func (_m *MockEmailChallengeRepository) FindByEmail(_a0 context.Context, _a1 string) (authdomain.Account, error) {
+func (_m *MockEmailChallengeRepository) FindByEmail(_a0 context.Context, _a1 string) (domain.Account, error) {
 	ret := _m.Called(_a0, _a1)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindByEmail")
 	}
 
-	var r0 authdomain.Account
+	var r0 domain.Account
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (authdomain.Account, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (domain.Account, error)); ok {
 		return rf(_a0, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) authdomain.Account); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) domain.Account); ok {
 		r0 = rf(_a0, _a1)
 	} else {
-		r0 = ret.Get(0).(authdomain.Account)
+		r0 = ret.Get(0).(domain.Account)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
@@ -69,36 +69,36 @@ func (_c *MockEmailChallengeRepository_FindByEmail_Call) Run(run func(_a0 contex
 	return _c
 }
 
-func (_c *MockEmailChallengeRepository_FindByEmail_Call) Return(_a0 authdomain.Account, _a1 error) *MockEmailChallengeRepository_FindByEmail_Call {
+func (_c *MockEmailChallengeRepository_FindByEmail_Call) Return(_a0 domain.Account, _a1 error) *MockEmailChallengeRepository_FindByEmail_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockEmailChallengeRepository_FindByEmail_Call) RunAndReturn(run func(context.Context, string) (authdomain.Account, error)) *MockEmailChallengeRepository_FindByEmail_Call {
+func (_c *MockEmailChallengeRepository_FindByEmail_Call) RunAndReturn(run func(context.Context, string) (domain.Account, error)) *MockEmailChallengeRepository_FindByEmail_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Update provides a mock function with given fields: _a0, _a1
-func (_m *MockEmailChallengeRepository) Update(_a0 context.Context, _a1 authdomain.Account) (authdomain.Account, error) {
+func (_m *MockEmailChallengeRepository) Update(_a0 context.Context, _a1 domain.Account) (domain.Account, error) {
 	ret := _m.Called(_a0, _a1)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
 	}
 
-	var r0 authdomain.Account
+	var r0 domain.Account
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, authdomain.Account) (authdomain.Account, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.Account) (domain.Account, error)); ok {
 		return rf(_a0, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, authdomain.Account) authdomain.Account); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.Account) domain.Account); ok {
 		r0 = rf(_a0, _a1)
 	} else {
-		r0 = ret.Get(0).(authdomain.Account)
+		r0 = ret.Get(0).(domain.Account)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, authdomain.Account) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, domain.Account) error); ok {
 		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)
@@ -114,24 +114,24 @@ type MockEmailChallengeRepository_Update_Call struct {
 
 // Update is a helper method to define mock.On call
 //   - _a0 context.Context
-//   - _a1 authdomain.Account
+//   - _a1 domain.Account
 func (_e *MockEmailChallengeRepository_Expecter) Update(_a0 interface{}, _a1 interface{}) *MockEmailChallengeRepository_Update_Call {
 	return &MockEmailChallengeRepository_Update_Call{Call: _e.mock.On("Update", _a0, _a1)}
 }
 
-func (_c *MockEmailChallengeRepository_Update_Call) Run(run func(_a0 context.Context, _a1 authdomain.Account)) *MockEmailChallengeRepository_Update_Call {
+func (_c *MockEmailChallengeRepository_Update_Call) Run(run func(_a0 context.Context, _a1 domain.Account)) *MockEmailChallengeRepository_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(authdomain.Account))
+		run(args[0].(context.Context), args[1].(domain.Account))
 	})
 	return _c
 }
 
-func (_c *MockEmailChallengeRepository_Update_Call) Return(_a0 authdomain.Account, _a1 error) *MockEmailChallengeRepository_Update_Call {
+func (_c *MockEmailChallengeRepository_Update_Call) Return(_a0 domain.Account, _a1 error) *MockEmailChallengeRepository_Update_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockEmailChallengeRepository_Update_Call) RunAndReturn(run func(context.Context, authdomain.Account) (authdomain.Account, error)) *MockEmailChallengeRepository_Update_Call {
+func (_c *MockEmailChallengeRepository_Update_Call) RunAndReturn(run func(context.Context, domain.Account) (domain.Account, error)) *MockEmailChallengeRepository_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

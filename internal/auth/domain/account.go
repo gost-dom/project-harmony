@@ -1,9 +1,9 @@
-package authdomain
+package domain
 
 import (
 	"errors"
 	"harmony/internal/core"
-	"harmony/internal/auth/authdomain/password"
+	"harmony/internal/auth/domain/password"
 )
 
 // ErrAccountNotValidated is returned when an action requires the account

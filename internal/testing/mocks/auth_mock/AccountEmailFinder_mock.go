@@ -4,7 +4,7 @@ package auth_mock
 
 import (
 	context "context"
-	authdomain "harmony/internal/auth/authdomain"
+	domain "harmony/internal/auth/domain"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -23,22 +23,22 @@ func (_m *MockAccountEmailFinder) EXPECT() *MockAccountEmailFinder_Expecter {
 }
 
 // FindPWAuthByEmail provides a mock function with given fields: ctx, email
-func (_m *MockAccountEmailFinder) FindPWAuthByEmail(ctx context.Context, email string) (authdomain.PasswordAuthentication, error) {
+func (_m *MockAccountEmailFinder) FindPWAuthByEmail(ctx context.Context, email string) (domain.PasswordAuthentication, error) {
 	ret := _m.Called(ctx, email)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindPWAuthByEmail")
 	}
 
-	var r0 authdomain.PasswordAuthentication
+	var r0 domain.PasswordAuthentication
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (authdomain.PasswordAuthentication, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (domain.PasswordAuthentication, error)); ok {
 		return rf(ctx, email)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) authdomain.PasswordAuthentication); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) domain.PasswordAuthentication); ok {
 		r0 = rf(ctx, email)
 	} else {
-		r0 = ret.Get(0).(authdomain.PasswordAuthentication)
+		r0 = ret.Get(0).(domain.PasswordAuthentication)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
@@ -69,12 +69,12 @@ func (_c *MockAccountEmailFinder_FindPWAuthByEmail_Call) Run(run func(ctx contex
 	return _c
 }
 
-func (_c *MockAccountEmailFinder_FindPWAuthByEmail_Call) Return(_a0 authdomain.PasswordAuthentication, _a1 error) *MockAccountEmailFinder_FindPWAuthByEmail_Call {
+func (_c *MockAccountEmailFinder_FindPWAuthByEmail_Call) Return(_a0 domain.PasswordAuthentication, _a1 error) *MockAccountEmailFinder_FindPWAuthByEmail_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockAccountEmailFinder_FindPWAuthByEmail_Call) RunAndReturn(run func(context.Context, string) (authdomain.PasswordAuthentication, error)) *MockAccountEmailFinder_FindPWAuthByEmail_Call {
+func (_c *MockAccountEmailFinder_FindPWAuthByEmail_Call) RunAndReturn(run func(context.Context, string) (domain.PasswordAuthentication, error)) *MockAccountEmailFinder_FindPWAuthByEmail_Call {
 	_c.Call.Return(run)
 	return _c
 }

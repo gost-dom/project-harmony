@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"harmony/internal/auth"
-	"harmony/internal/auth/authdomain"
-	"harmony/internal/auth/authdomain/password"
+	"harmony/internal/auth/domain"
+	"harmony/internal/auth/domain/password"
 	. "harmony/internal/auth/authrepo"
 	"harmony/internal/core"
 	"harmony/internal/core/corerepo"
@@ -158,7 +158,7 @@ func TestInsertDomainEvents(t *testing.T) {
 		// Insert an entity with two domain events
 		acc := core.UseCaseOfEntity(domaintest.InitPasswordAuthAccount())
 		event1 := acc.Entity.StartEmailValidationChallenge()
-		event2 := authdomain.CreateAccountRegisteredEvent(acc.Entity.Account)
+		event2 := domain.CreateAccountRegisteredEvent(acc.Entity.Account)
 		acc.AddEvent(event1)
 		acc.AddEvent(event2)
 		assert.NoError(t, insertAccount(ctx, repo, acc))

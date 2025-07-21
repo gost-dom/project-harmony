@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"harmony/internal/auth"
-	"harmony/internal/auth/authdomain"
-	"harmony/internal/auth/authdomain/password"
+	"harmony/internal/auth/domain"
+	"harmony/internal/auth/domain/password"
 	"harmony/internal/auth/router"
 	. "harmony/internal/testing/browsertest"
 	. "harmony/internal/testing/domaintest"
@@ -45,7 +45,7 @@ func (s *LoginPageSuite) SetupTest() {
 func (s *LoginPageSuite) TestMissingUsername() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "", matchPassword("s3cret")).
-		Return(authdomain.AuthenticatedAccount{}, auth.ErrBadCredentials)
+		Return(domain.AuthenticatedAccount{}, auth.ErrBadCredentials)
 
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
@@ -59,7 +59,7 @@ func (s *LoginPageSuite) TestMissingUsername() {
 func (s *LoginPageSuite) TestMissingPassword() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "valid-user@example.com", matchPassword("")).
-		Return(authdomain.AuthenticatedAccount{}, auth.ErrBadCredentials)
+		Return(domain.AuthenticatedAccount{}, auth.ErrBadCredentials)
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.SubmitBtn().Click()
 
@@ -114,7 +114,7 @@ func (s *LoginPageSuite) TestCSRFWithMultipleWindows() {
 func (s *LoginPageSuite) TestInvalidCredentials() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, "bad-user@example.com", matchPassword("s3cret")).
-		Return(authdomain.AuthenticatedAccount{}, auth.ErrBadCredentials).Once()
+		Return(domain.AuthenticatedAccount{}, auth.ErrBadCredentials).Once()
 	s.loginForm.Email().SetAttribute("value", "bad-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")
 	s.loginForm.SubmitBtn().Click()
@@ -131,7 +131,7 @@ func (s *LoginPageSuite) TestInvalidCredentials() {
 func (s *LoginPageSuite) TestUnexpectedError() {
 	s.authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
-		Return(authdomain.AuthenticatedAccount{}, errors.New("Unexpected")).Once()
+		Return(domain.AuthenticatedAccount{}, errors.New("Unexpected")).Once()
 
 	s.loginForm.Email().SetAttribute("value", "valid-user@example.com")
 	s.loginForm.Password().SetAttribute("value", "s3cret")
