@@ -49,3 +49,12 @@ test:
 codegen:
 	rm -rf internal/testing/mocks
 	mockery
+
+workspace/make:
+	go work init
+	go work use .
+	go work use ../browser
+	go work use ../shaman
+
+workspace/clean:
+	rm go.work*
