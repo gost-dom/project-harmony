@@ -70,8 +70,7 @@ func csrfMiddleware(h http.Handler) http.Handler {
 			log.Warn(
 				r.Context(),
 				"CSRFMiddleware: Unexpected HTTP Method",
-				"method",
-				r.Method,
+				log.String("method", r.Method),
 			)
 		}
 
@@ -87,7 +86,6 @@ func csrfMiddleware(h http.Handler) http.Handler {
 					HttpOnly: true,
 					Secure:   true,
 					SameSite: http.SameSiteStrictMode,
-					MaxAge:   3600,
 				},
 			)
 			return CSRFFields{id, token}
