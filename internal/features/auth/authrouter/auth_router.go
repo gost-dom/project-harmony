@@ -11,7 +11,6 @@ import (
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
 	"harmony/internal/features/auth/authrouter/views"
-	"harmony/internal/gosthttp"
 	serverctx "harmony/internal/server/ctx"
 
 	"github.com/gorilla/schema"
@@ -122,7 +121,7 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 		serverctx.SetUser(&r, account.Account)
 		w.Header().Add("hx-push-url", redirectUrl)
 		w.Header().Add("hx-retarget", "body")
-		gosthttp.Rewrite(w, r, redirectUrl, "")
+		rewrite(w, r, redirectUrl, "")
 	} else {
 		authError := errors.Is(err, auth.ErrBadCredentials)
 		data := views.LoginFormData{
@@ -196,7 +195,7 @@ func (router *AuthRouter) postValidateEmail(w http.ResponseWriter, r *http.Reque
 	}
 	w.Header().Add("hx-push-url", "/host")
 	w.Header().Add("hx-retarget", "body")
-	gosthttp.Rewrite(w, r, "/host", "")
+	rewrite(w, r, "/host", "")
 }
 
 func (*AuthRouter) RenderHost(w http.ResponseWriter, r *http.Request) {

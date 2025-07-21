@@ -1,4 +1,4 @@
-package gosthttp
+package authrouter
 
 import (
 	serverctx "harmony/internal/server/ctx"
@@ -7,7 +7,7 @@ import (
 )
 
 // RewriterMiddleware injects a "rewriter" into the request context. See
-// [Rewrite] for more information
+// [rewrite] for more information
 func RewriterMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var rewriter http.Handler = http.HandlerFunc(
@@ -24,12 +24,12 @@ func RewriterMiddleware(h http.Handler) http.Handler {
 	})
 }
 
-// Rewrite reprocesses the request as if it was a GET request to a different
+// rewrite reprocesses the request as if it was a GET request to a different
 // path; allowing e.g., a POST request to return the body.
 //
 // This is not recommended for normal POST requests; but useful for HTMX handled
 // forms where the response body should be included with the response.
-func Rewrite(w http.ResponseWriter, r *http.Request, path string, query string) {
+func rewrite(w http.ResponseWriter, r *http.Request, path string, query string) {
 	slog.DebugContext(r.Context(), "Rewrite URL", "path", path)
 	rewriter, ok := serverctx.ReqValue[http.Handler](r, serverctx.ServerRewriter)
 	if !ok {

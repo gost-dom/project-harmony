@@ -2,7 +2,6 @@ package authrouter
 
 import (
 	"fmt"
-	"harmony/internal/gosthttp"
 	serverctx "harmony/internal/server/ctx"
 	"net/http"
 	"net/url"
@@ -29,7 +28,7 @@ func RequireAuth(h http.Handler) http.Handler {
 			http.Redirect(w, r, newURL, 303)
 		} else {
 			w.Header().Add("hx-replace-url", newURL)
-			gosthttp.Rewrite(w, r, "/auth/login", query)
+			rewrite(w, r, "/auth/login", query)
 		}
 	})
 }

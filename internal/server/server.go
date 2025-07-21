@@ -11,7 +11,6 @@ import (
 	"harmony/internal/domain"
 	. "harmony/internal/features/auth/authrouter"
 	. "harmony/internal/features/host/hostrouter"
-	"harmony/internal/gosthttp"
 	serverctx "harmony/internal/server/ctx"
 	"harmony/internal/server/views"
 
@@ -219,7 +218,7 @@ func (s *Server) Init() {
 		http.StripPrefix("/static", http.FileServer(
 			http.Dir(staticFilesPath()))),
 	)
-	s.Handler = gosthttp.RewriterMiddleware(log(noCache(CSRFProtection(
+	s.Handler = RewriterMiddleware(log(noCache(CSRFProtection(
 		s.SessionAuthMiddleware(mux)))))
 }
 
