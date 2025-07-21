@@ -4,7 +4,7 @@ import (
 	"net/mail"
 	"testing"
 
-	. "harmony/internal/auth"
+	"harmony/internal/auth"
 	"harmony/internal/auth/authdomain"
 	"harmony/internal/auth/authdomain/password"
 	"harmony/internal/testing/htest"
@@ -15,7 +15,7 @@ import (
 
 type AuthenticatorTestSuite struct {
 	htest.GomegaSuite
-	Authenticator
+	auth.Authenticator
 	Account *authdomain.PasswordAuthentication
 }
 
@@ -37,9 +37,9 @@ func (s *AuthenticatorTestSuite) SetupTest() {
 	input.Password = password.Parse("valid_password")
 	repo := NewPWAuthRepositoryStub(s.T())
 
-	assert.NoError(s.T(), Registrator{repo}.Register(s.Context(), input))
+	assert.NoError(s.T(), auth.Registrator{repo}.Register(s.Context(), input))
 
-	s.Authenticator = Authenticator{repo}
+	s.Authenticator = auth.Authenticator{repo}
 	s.Account = repo.Single()
 }
 
@@ -65,7 +65,7 @@ func (s *AuthenticatorTestSuite) TestAuthenticateWrongPassword() {
 	s.validateAccount()
 
 	_, err := s.Authenticate(s.Context(), "jd@example.com", password.Parse("wrong_pw"))
-	s.Assert().ErrorIs(err, ErrBadCredentials, "Validating with bad credentials")
+	s.Assert().ErrorIs(err, auth.ErrBadCredentials, "Validating with bad credentials")
 }
 
 func (s *AuthenticatorTestSuite) TestAuthenticateCorrectPassword() {
