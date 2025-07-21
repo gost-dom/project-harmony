@@ -1,9 +1,11 @@
 package web
 
 import (
+	"fmt"
 	"harmony/internal/core"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -22,12 +24,23 @@ func logHeader(h http.Header) slog.Attr {
 	i := 0
 	for k, v := range h {
 		switch k {
-		// Don't log request/response cookies
+		// Hide cookie values
 		case "Cookie", "Set-Cookie":
-			attrs[i] = slog.Any(k, "...")
-		default:
-			attrs[i] = slog.Any(k, v)
+			u := v
+			v = make([]string, len(v))
+			for j := range v {
+				v[j] = "******"
+				components := strings.Split(u[j], ";")
+				if len(components) > 0 {
+					parts := strings.Split(components[0], "=")
+					if len(parts) > 0 {
+						components[0] = fmt.Sprintf("%s=******", parts[0])
+						v[j] = strings.Join(components, ";")
+					}
+				}
+			}
 		}
+		attrs[i] = slog.Any(k, v)
 		i++
 	}
 	return slog.Group("header", attrs...)
@@ -43,9 +56,9 @@ func Log(h http.Handler) http.Handler {
 			slog.Group("req",
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
-				logHeader(r.Header),
 			),
 		)
+		slog.Log(r.Context(), slog.LevelDebug, "HTTP Request headers", logHeader(r.Header))
 		h.ServeHTTP(rec, r)
 
 		status := rec.Code()
@@ -54,14 +67,13 @@ func Log(h http.Handler) http.Handler {
 			slog.Group("req",
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
-				logHeader(r.Header),
 			),
 			slog.Group("res",
 				slog.Int("status", status),
-				// logHeader(w.Header()),
 			),
 			slog.Duration("duration", time.Since(start)),
 		)
+		slog.Log(r.Context(), slog.LevelDebug, "HTTP Response headers", logHeader(w.Header()))
 	})
 }
 
