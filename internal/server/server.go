@@ -11,7 +11,7 @@ import (
 
 	"harmony/internal/domain"
 	. "harmony/internal/features/auth/authrouter"
-	hostviews "harmony/internal/features/host/hostrouter/views"
+	. "harmony/internal/features/host/hostrouter"
 	"harmony/internal/gosthttp"
 	"harmony/internal/project"
 	serverctx "harmony/internal/server/ctx"
@@ -116,6 +116,7 @@ type Server struct {
 	http.Handler
 	SessionManager SessionManager
 	AuthRouter     *AuthRouter
+	HostRouter     *HostRouter
 }
 
 type sessionName string
@@ -234,9 +235,9 @@ func (s *Server) RequireAuth(h http.Handler) http.Handler {
 
 func (s *Server) Init() {
 	mux := http.NewServeMux()
-	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
 	mux.Handle("GET /{$}", templ.Handler(views.Index()))
-	mux.Handle("GET /host", s.RequireAuth(templ.Handler(hostviews.HostsPage())))
+	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
+	mux.Handle("GET /host", s.RequireAuth(s.HostRouter.Index()))
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(
@@ -255,6 +256,7 @@ func NewAuthRouter() *AuthRouter {
 func New() *Server {
 	res := &Server{
 		AuthRouter: NewAuthRouter(),
+		HostRouter: NewHostRouter(),
 	}
 	res.Init()
 	return res
