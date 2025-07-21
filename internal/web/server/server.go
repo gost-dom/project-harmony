@@ -28,8 +28,6 @@ type Server struct {
 	HostRouter      *hostrouter.HostRouter
 }
 
-type sessionName string
-
 // Init implements interface [surgeon.Initer].
 func (s *Server) Init() {
 	mux := http.NewServeMux()
