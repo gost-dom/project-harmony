@@ -18,7 +18,7 @@ func (r *HostRouter) Index() http.Handler {
 // Init implements interface [surgeon.Initer].
 func (r *HostRouter) Init() {
 	r.ServeMux = http.NewServeMux()
-	r.ServeMux.Handle("GET /", templ.Handler(views.HostsPage()))
+	r.ServeMux.Handle("GET /", r.Index())
 }
 
 func New() *HostRouter {
