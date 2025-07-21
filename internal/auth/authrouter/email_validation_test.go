@@ -8,7 +8,7 @@ import (
 	"harmony/internal/auth/authdomain"
 	"harmony/internal/auth/authrouter"
 	"harmony/internal/testing/domaintest"
-	. "harmony/internal/testing/mocks/auth/authrouter_mock"
+	authmock "harmony/internal/testing/mocks/auth/authrouter_mock"
 	"harmony/internal/testing/servertest"
 
 	"github.com/gost-dom/browser/html"
@@ -39,7 +39,7 @@ func (s *ValidateEmailTestSuite) TestEmailAddressIsPrefilledFromQuery() {
 }
 
 func (s *ValidateEmailTestSuite) TestInvalidCodeShowsError() {
-	validatorMock := NewMockEmailValidator(s.T())
+	validatorMock := authmock.NewMockEmailValidator(s.T())
 	validatorMock.EXPECT().
 		Validate(mock.Anything, mock.Anything).
 		Return(authdomain.AuthenticatedAccount{}, auth.ErrBadChallengeResponse)
@@ -62,7 +62,7 @@ func (s *ValidateEmailTestSuite) TestInvalidCodeShowsError() {
 }
 
 func (s *ValidateEmailTestSuite) TestValidCodeRedirects() {
-	validatorMock := NewMockEmailValidator(s.T())
+	validatorMock := authmock.NewMockEmailValidator(s.T())
 	validatorMock.EXPECT().
 		Validate(mock.Anything, mock.Anything).
 		Return(domaintest.InitAuthenticatedAccount(), nil)
@@ -81,7 +81,7 @@ func (s *ValidateEmailTestSuite) TestValidCodeRedirects() {
 }
 
 func (s *ValidateEmailTestSuite) TestUnexpectedError() {
-	validatorMock := NewMockEmailValidator(s.T())
+	validatorMock := authmock.NewMockEmailValidator(s.T())
 	validatorMock.EXPECT().
 		Validate(mock.Anything, mock.Anything).
 		Return(domaintest.InitAuthenticatedAccount(), errors.New("Unexpected error"))
