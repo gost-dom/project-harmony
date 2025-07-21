@@ -11,6 +11,7 @@ import (
 	authrouter "harmony/internal/auth/authrouter"
 	"harmony/internal/core"
 	hostrouter "harmony/internal/host/hostrouter"
+	"harmony/internal/web"
 	serverctx "harmony/internal/web/server/ctx"
 	"harmony/internal/web/server/views"
 
@@ -111,23 +112,12 @@ func staticFilesPath() string { return filepath.Join(projectRoot(), "static") }
 
 type Server struct {
 	http.Handler
-	SessionManager authrouter.SessionManager
-	AuthRouter     *authrouter.AuthRouter
-	HostRouter     *hostrouter.HostRouter
+	AuthMiddlewares authrouter.Middlewares
+	AuthRouter      *authrouter.AuthRouter
+	HostRouter      *hostrouter.HostRouter
 }
 
 type sessionName string
-
-// SessionAuthMiddleware retrieves the logged in user from the session and
-// writes it to the request context.
-func (s *Server) SessionAuthMiddleware(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if account := s.SessionManager.LoggedInUser(r); account != nil {
-			serverctx.SetUser(&r, account)
-		}
-		h.ServeHTTP(w, r)
-	})
-}
 
 func csrfCookieName(id string) string { return fmt.Sprintf("csrf-%s", id) }
 
@@ -218,8 +208,13 @@ func (s *Server) Init() {
 		http.StripPrefix("/static", http.FileServer(
 			http.Dir(staticFilesPath()))),
 	)
-	s.Handler = authrouter.RewriterMiddleware(log(noCache(CSRFProtection(
-		s.SessionAuthMiddleware(mux)))))
+	mw := web.JoinMiddlewares(
+		log,
+		noCache,
+		CSRFProtection,
+		s.AuthMiddlewares.Get(),
+	)
+	s.Handler = mw(mux)
 }
 
 func New() *Server {
