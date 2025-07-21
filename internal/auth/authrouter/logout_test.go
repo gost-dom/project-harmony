@@ -5,10 +5,10 @@ import (
 
 	"harmony/internal/testing/browsertest"
 	"harmony/internal/testing/servertest"
-	"harmony/internal/testing/shaman"
-	"harmony/internal/testing/shaman/ariarole"
 
-	. "harmony/internal/testing/shaman/predicates"
+	"github.com/gost-dom/shaman"
+	"github.com/gost-dom/shaman/ariarole"
+	. "github.com/gost-dom/shaman/predicates"
 )
 
 func TestPOSTLogout(t *testing.T) {

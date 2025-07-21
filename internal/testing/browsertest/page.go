@@ -1,12 +1,12 @@
 package browsertest
 
 import (
-	"harmony/internal/testing/shaman"
-	"harmony/internal/testing/shaman/ariarole"
-	. "harmony/internal/testing/shaman/predicates"
 	"testing"
 
 	"github.com/gost-dom/browser/html"
+	"github.com/gost-dom/shaman"
+	"github.com/gost-dom/shaman/ariarole"
+	. "github.com/gost-dom/shaman/predicates"
 	"github.com/stretchr/testify/assert"
 )
 
