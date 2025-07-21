@@ -3,7 +3,7 @@ package corerepo
 import (
 	"errors"
 	"fmt"
-	"harmony/internal/domain"
+	"harmony/internal/core"
 	"net/http"
 )
 
@@ -20,7 +20,7 @@ var ErrConn = errors.New("couchdb: connection error")
 var ErrRequest = errors.New("request error")
 
 var ErrConflict = errors.New("couchdb: conflict")
-var ErrNotFound = fmt.Errorf("couchdb: %w", domain.ErrNotFound)
+var ErrNotFound = fmt.Errorf("couchdb: %w", core.ErrNotFound)
 
 type Document any
 

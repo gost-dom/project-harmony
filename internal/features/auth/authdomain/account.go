@@ -2,7 +2,7 @@ package authdomain
 
 import (
 	"errors"
-	"harmony/internal/domain"
+	"harmony/internal/core"
 	"harmony/internal/features/auth/authdomain/password"
 )
 
@@ -13,7 +13,7 @@ var ErrAccountNotValidated = errors.New("Account not validated")
 
 type AccountID string
 
-var NewID = domain.NewID
+var NewID = core.NewID
 
 type Account struct {
 	ID          AccountID
@@ -51,9 +51,9 @@ func (a *Account) Authenticated() (AuthenticatedAccount, error) {
 	return res, nil
 }
 
-func (a *Account) StartEmailValidationChallenge() domain.Event {
+func (a *Account) StartEmailValidationChallenge() core.Event {
 	challenge := a.Email.NewChallenge()
-	return domain.NewDomainEvent(EmailValidationRequest{
+	return core.NewDomainEvent(EmailValidationRequest{
 		AccountID:  a.ID,
 		Code:       challenge.Code,
 		ValidUntil: challenge.NotAfter,

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"harmony/internal/domain"
+	"harmony/internal/core"
 	. "harmony/internal/features/auth/authrouter"
 	. "harmony/internal/features/host/hostrouter"
 	serverctx "harmony/internal/server/ctx"
@@ -70,7 +70,7 @@ func logHeader(h http.Header) slog.Attr {
 
 func log(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		serverctx.SetReqValue(&r, serverctx.ServerReqID, domain.NewID())
+		serverctx.SetReqValue(&r, serverctx.ServerReqID, core.NewID())
 		rec := &StatusRecorder{ResponseWriter: w}
 		start := time.Now()
 

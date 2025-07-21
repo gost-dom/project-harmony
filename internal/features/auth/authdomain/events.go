@@ -2,7 +2,7 @@ package authdomain
 
 import (
 	"encoding/json"
-	"harmony/internal/domain"
+	"harmony/internal/core"
 	"reflect"
 	"time"
 )
@@ -22,19 +22,19 @@ type AccountRegistered struct {
 	AccountID
 }
 
-func CreateAccountRegisteredEvent(account Account) domain.Event {
-	return domain.NewDomainEvent(AccountRegistered{AccountID: account.ID})
+func CreateAccountRegisteredEvent(account Account) core.Event {
+	return core.NewDomainEvent(AccountRegistered{AccountID: account.ID})
 }
 
-func UnmarshalAuthEvent(data []byte) (domain.EventBody, error) {
+func UnmarshalAuthEvent(data []byte) (core.EventBody, error) {
 	var res EmailValidationRequest
 	return res, json.Unmarshal(data, &res)
 }
 
 func init() {
-	domain.RegisterEventType(
+	core.RegisterEventType(
 		reflect.TypeFor[EmailValidationRequest](),
 		"auth.EmailValidationRequest",
 	)
-	domain.RegisterEventType(reflect.TypeFor[AccountRegistered](), "auth.AccountRegistered")
+	core.RegisterEventType(reflect.TypeFor[AccountRegistered](), "auth.AccountRegistered")
 }

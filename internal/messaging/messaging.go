@@ -2,15 +2,15 @@ package messaging
 
 import (
 	"context"
+	"harmony/internal/core"
 	"harmony/internal/core/corerepo"
-	"harmony/internal/domain"
 	"harmony/internal/features/auth"
 	"log/slog"
 	"time"
 )
 
 type DomainEventUpdater interface {
-	Update(context.Context, domain.Event) (domain.Event, error)
+	Update(context.Context, core.Event) (core.Event, error)
 }
 
 type MessageHandler struct {
@@ -25,7 +25,7 @@ func NewMessageHandler() *MessageHandler {
 	}
 }
 
-func (h MessageHandler) ProcessDomainEvent(ctx context.Context, event domain.Event) error {
+func (h MessageHandler) ProcessDomainEvent(ctx context.Context, event core.Event) error {
 	var err error
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()

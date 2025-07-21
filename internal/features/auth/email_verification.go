@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"harmony/internal/domain"
+	"harmony/internal/core"
 	"harmony/internal/features/auth/authdomain"
 	"net/smtp"
 	"strings"
@@ -54,7 +54,7 @@ type EmailValidator struct {
 
 func NewEmailValidator() *EmailValidator { return &EmailValidator{nil} }
 
-func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event domain.Event) error {
+func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event core.Event) error {
 	req, ok := event.Body.(authdomain.EmailValidationRequest)
 	if !ok { // Not an event we want to handle
 		return nil

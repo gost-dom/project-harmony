@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"harmony/internal/core"
 	"harmony/internal/core/corerepo"
-	"harmony/internal/domain"
 	"net/http"
 
 	"github.com/gorilla/securecookie"
@@ -104,7 +104,7 @@ func (store CouchDBStore) Save(
 	}
 
 	if session.ID == "" {
-		session.ID = domain.NewID()
+		session.ID = core.NewID()
 		err = store.insert(r.Context(), session, doc)
 	} else {
 		if session.ID == "" {

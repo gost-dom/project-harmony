@@ -6,7 +6,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"harmony/internal/domain"
+	"harmony/internal/core"
 	. "harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
@@ -115,7 +115,7 @@ func (s *RegisterTestSuite) TestActivationCodeExpired() {
 
 func MatchDomainEvent(data any) types.GomegaMatcher {
 	m := gomega.Equal(data)
-	return gcustom.MakeMatcher(func(event domain.Event) (bool, error) {
+	return gcustom.MakeMatcher(func(event core.Event) (bool, error) {
 		return m.Match(event.Body)
 	})
 }

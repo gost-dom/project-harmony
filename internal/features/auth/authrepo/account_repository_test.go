@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"harmony/internal/core"
 	"harmony/internal/core/corerepo"
-	"harmony/internal/domain"
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/features/auth/authdomain/password"
@@ -149,7 +149,7 @@ func (t TimeoutTest) RunWithErrorf(format string, args ...any) {
 }
 
 func TestInsertDomainEvents(t *testing.T) {
-	var actual []domain.Event
+	var actual []core.Event
 	withTimeout(t, func(ctx context.Context) {
 		repo := initRepository()
 		coreRepo := corerepo.DefaultMessageSource
@@ -167,7 +167,7 @@ func TestInsertDomainEvents(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Wait for the domain events to appear. Ignore other events,
-		expected := []domain.Event{event1, event2}
+		expected := []core.Event{event1, event2}
 		for e := range ch {
 			e.Rev = ""
 			if reflect.DeepEqual(e, event1) || reflect.DeepEqual(e, event2) {

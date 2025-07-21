@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"harmony/internal/core"
 	"harmony/internal/core/corerepo"
-	"harmony/internal/domain"
 	"harmony/internal/features/auth"
 	"harmony/internal/features/auth/authdomain"
 	"harmony/internal/messaging"
@@ -24,9 +24,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type domainEvt map[domain.EventID]domain.Event
+type domainEvt map[core.EventID]core.Event
 
-func (e domainEvt) Update(ctx context.Context, event domain.Event) (domain.Event, error) {
+func (e domainEvt) Update(ctx context.Context, event core.Event) (core.Event, error) {
 	e[event.ID] = event
 	return event, nil
 }

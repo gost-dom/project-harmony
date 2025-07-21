@@ -1,12 +1,12 @@
 package auth
 
-import "harmony/internal/domain"
+import "harmony/internal/core"
 
 // TODO: This is a general concept for domain logic - move to a general place
 
 type Entity[T any] interface{ ID() T }
 
-type DomainEvent = domain.Event
+type DomainEvent = core.Event
 
 // UseCaseResult represents the outcome of a use case operating on a single
 // entity or aggregate. The use case may result in an updated or new entity, as
