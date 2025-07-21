@@ -19,7 +19,7 @@ func NewID() string { return gonanoid.Must(32) }
 
 type EventBody any
 
-type Event struct {
+type DomainEvent struct {
 	ID          EventID    `json:"id"`
 	Rev         string     `json:"-"`
 	CreatedAt   time.Time  `json:"created_at"`
@@ -27,7 +27,7 @@ type Event struct {
 	Body        EventBody
 }
 
-func (e *Event) MarkPublished() {
+func (e *DomainEvent) MarkPublished() {
 	if e.PublishedAt != nil {
 		return
 	}
@@ -35,7 +35,7 @@ func (e *Event) MarkPublished() {
 	e.PublishedAt = &now
 }
 
-func (e Event) MarshalJSON() ([]byte, error) {
+func (e DomainEvent) MarshalJSON() ([]byte, error) {
 	var js eventJSON
 	typeName := types[reflect.TypeOf(e.Body)]
 
@@ -67,7 +67,7 @@ type eventJSON struct {
 	Body        json.RawMessage
 }
 
-func (e *Event) UnmarshalJSON(data []byte) error {
+func (e *DomainEvent) UnmarshalJSON(data []byte) error {
 	var rawEvent eventJSON
 	if err := json.Unmarshal(data, &rawEvent); err != nil {
 		return err
@@ -91,8 +91,8 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func NewDomainEvent(data EventBody) Event {
-	return Event{
+func NewDomainEvent(data EventBody) DomainEvent {
+	return DomainEvent{
 		ID: NewEventID(), Body: data,
 		CreatedAt: time.Now().UTC(),
 	}

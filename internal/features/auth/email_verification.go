@@ -54,7 +54,7 @@ type EmailValidator struct {
 
 func NewEmailValidator() *EmailValidator { return &EmailValidator{nil} }
 
-func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event core.Event) error {
+func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event core.DomainEvent) error {
 	req, ok := event.Body.(authdomain.EmailValidationRequest)
 	if !ok { // Not an event we want to handle
 		return nil

@@ -51,7 +51,7 @@ func (a *Account) Authenticated() (AuthenticatedAccount, error) {
 	return res, nil
 }
 
-func (a *Account) StartEmailValidationChallenge() core.Event {
+func (a *Account) StartEmailValidationChallenge() core.DomainEvent {
 	challenge := a.Email.NewChallenge()
 	return core.NewDomainEvent(EmailValidationRequest{
 		AccountID:  a.ID,

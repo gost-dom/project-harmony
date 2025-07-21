@@ -149,7 +149,7 @@ func (t TimeoutTest) RunWithErrorf(format string, args ...any) {
 }
 
 func TestInsertDomainEvents(t *testing.T) {
-	var actual []core.Event
+	var actual []core.DomainEvent
 	withTimeout(t, func(ctx context.Context) {
 		repo := initRepository()
 		coreRepo := corerepo.DefaultMessageSource
@@ -167,7 +167,7 @@ func TestInsertDomainEvents(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Wait for the domain events to appear. Ignore other events,
-		expected := []core.Event{event1, event2}
+		expected := []core.DomainEvent{event1, event2}
 		for e := range ch {
 			e.Rev = ""
 			if reflect.DeepEqual(e, event1) || reflect.DeepEqual(e, event2) {

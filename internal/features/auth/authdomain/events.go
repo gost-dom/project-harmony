@@ -22,7 +22,7 @@ type AccountRegistered struct {
 	AccountID
 }
 
-func CreateAccountRegisteredEvent(account Account) core.Event {
+func CreateAccountRegisteredEvent(account Account) core.DomainEvent {
 	return core.NewDomainEvent(AccountRegistered{AccountID: account.ID})
 }
 

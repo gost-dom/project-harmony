@@ -115,7 +115,7 @@ func (s *RegisterTestSuite) TestActivationCodeExpired() {
 
 func MatchDomainEvent(data any) types.GomegaMatcher {
 	m := gomega.Equal(data)
-	return gcustom.MakeMatcher(func(event core.Event) (bool, error) {
+	return gcustom.MakeMatcher(func(event core.DomainEvent) (bool, error) {
 		return m.Match(event.Body)
 	})
 }

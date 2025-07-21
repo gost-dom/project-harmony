@@ -10,7 +10,7 @@ import (
 )
 
 type DomainEventUpdater interface {
-	Update(context.Context, core.Event) (core.Event, error)
+	Update(context.Context, core.DomainEvent) (core.DomainEvent, error)
 }
 
 type MessageHandler struct {
@@ -25,7 +25,7 @@ func NewMessageHandler() *MessageHandler {
 	}
 }
 
-func (h MessageHandler) ProcessDomainEvent(ctx context.Context, event core.Event) error {
+func (h MessageHandler) ProcessDomainEvent(ctx context.Context, event core.DomainEvent) error {
 	var err error
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()

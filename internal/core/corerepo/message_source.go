@@ -14,10 +14,10 @@ type MessageSource struct {
 }
 
 type DocumentWithEvents[T any] struct {
-	ID       string       `json:"_id,omitempty"`
-	Rev      string       `json:"_rev,omitempty"`
-	Document T            `json:"doc"`
-	Events   []core.Event `json:"events,omitempty"`
+	ID       string             `json:"_id,omitempty"`
+	Rev      string             `json:"_rev,omitempty"`
+	Document T                  `json:"doc"`
+	Events   []core.DomainEvent `json:"events,omitempty"`
 }
 
 func (c MessageSource) StartListener(

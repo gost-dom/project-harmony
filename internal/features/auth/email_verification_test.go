@@ -24,9 +24,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type domainEvt map[core.EventID]core.Event
+type domainEvt map[core.EventID]core.DomainEvent
 
-func (e domainEvt) Update(ctx context.Context, event core.Event) (core.Event, error) {
+func (e domainEvt) Update(ctx context.Context, event core.DomainEvent) (core.DomainEvent, error) {
 	e[event.ID] = event
 	return event, nil
 }

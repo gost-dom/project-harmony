@@ -6,7 +6,7 @@ import "harmony/internal/core"
 
 type Entity[T any] interface{ ID() T }
 
-type DomainEvent = core.Event
+type DomainEvent = core.DomainEvent
 
 // UseCaseResult represents the outcome of a use case operating on a single
 // entity or aggregate. The use case may result in an updated or new entity, as
