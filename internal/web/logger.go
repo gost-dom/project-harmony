@@ -5,6 +5,7 @@ import (
 	"harmony/internal/core"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 )
@@ -26,11 +27,10 @@ func logHeader(h http.Header) slog.Attr {
 		switch k {
 		// Hide cookie values
 		case "Cookie", "Set-Cookie":
-			u := v
-			v = make([]string, len(v))
+			v = slices.Clone(v)
 			for j := range v {
+				components := strings.Split(v[j], ";")
 				v[j] = "******"
-				components := strings.Split(u[j], ";")
 				if len(components) > 0 {
 					parts := strings.Split(components[0], "=")
 					if len(parts) > 0 {
