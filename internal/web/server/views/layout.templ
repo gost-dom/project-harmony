@@ -1,6 +1,6 @@
 package views
 
-import serverctx "harmony/internal/web/server/ctx"
+import web "harmony/internal/web"
 import auth "harmony/internal/auth"
 
 type Contents struct {
@@ -24,7 +24,7 @@ templ Logo() {
 
 templ CSRFFields() {
 	{{
-	source := ctx.Value(serverctx.ServerCSRFTokenSrc)
+	source := ctx.Value(web.CtxKeyCSRFTokenSrc)
 	g, ok := source.(func() (string, string))
 	}}
 	if ok {

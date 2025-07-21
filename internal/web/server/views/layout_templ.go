@@ -8,7 +8,7 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import serverctx "harmony/internal/web/server/ctx"
+import web "harmony/internal/web"
 import auth "harmony/internal/auth"
 
 type Contents struct {
@@ -72,7 +72,7 @@ func CSRFFields() templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 
-		source := ctx.Value(serverctx.ServerCSRFTokenSrc)
+		source := ctx.Value(web.CtxKeyCSRFTokenSrc)
 		g, ok := source.(func() (string, string))
 		if ok {
 			id, token := g()

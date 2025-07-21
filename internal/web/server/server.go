@@ -12,7 +12,6 @@ import (
 	"harmony/internal/core"
 	hostrouter "harmony/internal/host/hostrouter"
 	"harmony/internal/web"
-	serverctx "harmony/internal/web/server/ctx"
 	"harmony/internal/web/server/views"
 
 	"github.com/a-h/templ"
@@ -71,7 +70,7 @@ func logHeader(h http.Header) slog.Attr {
 
 func log(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		serverctx.SetReqValue(&r, serverctx.ServerReqID, core.NewID())
+		web.SetReqValue(&r, web.CtxKeyReqID, core.NewID())
 		rec := &StatusRecorder{ResponseWriter: w}
 		start := time.Now()
 
@@ -191,7 +190,7 @@ func CSRFProtection(h http.Handler) http.Handler {
 			return id, token
 		}
 
-		serverctx.SetReqValue(&r, serverctx.ServerCSRFTokenSrc, fn)
+		web.SetReqValue(&r, web.CtxKeyCSRFTokenSrc, fn)
 		h.ServeHTTP(w, r)
 	})
 }
