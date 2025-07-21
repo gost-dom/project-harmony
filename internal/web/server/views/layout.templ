@@ -1,6 +1,7 @@
 package views
 
-import serverctx "harmony/internal/server/ctx"
+import serverctx "harmony/internal/web/server/ctx"
+import auth "harmony/internal/auth"
 
 type Contents struct {
 	Body templ.Component
@@ -34,7 +35,7 @@ templ CSRFFields() {
 }
 
 templ HeaderAuthSection() {
-  if !serverctx.IsLoggedIn(ctx) {
+  if !auth.UserAuthenticated(ctx) {
     <a hx-boost="true" href="/auth/login" class={buttonClassName}>Login</a>
   } else {
   <form method="post" action="/auth/logout">

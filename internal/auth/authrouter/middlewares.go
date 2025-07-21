@@ -1,6 +1,7 @@
 package authrouter
 
 import (
+	"harmony/internal/auth"
 	"harmony/internal/web"
 	serverctx "harmony/internal/web/server/ctx"
 	"net/http"
@@ -19,7 +20,7 @@ type Middlewares struct {
 func (s Middlewares) SessionAuth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if account := s.SessionManager.LoggedInUser(r); account != nil {
-			serverctx.SetUser(&r, account)
+			serverctx.SetReqValue(&r, auth.CtxKeyAuthAccount, account)
 		}
 		h.ServeHTTP(w, r)
 	})

@@ -1,6 +1,7 @@
 package authrouter
 
 import (
+	"harmony/internal/auth"
 	serverctx "harmony/internal/web/server/ctx"
 	"log/slog"
 	"net/http"
@@ -16,10 +17,10 @@ func RewriterMiddleware(h http.Handler) http.Handler {
 					w.WriteHeader(500)
 					return
 				}
-				serverctx.SetReqValue(&r, serverctx.ServerRewritten, true)
+				serverctx.SetReqValue(&r, auth.CtxKeyRewritten, true)
 				h.ServeHTTP(w, r)
 			})
-		serverctx.SetReqValue(&r, serverctx.ServerRewriter, rewriter)
+		serverctx.SetReqValue(&r, auth.CtxKeyRewriter, rewriter)
 		h.ServeHTTP(w, r)
 	})
 }
@@ -31,7 +32,7 @@ func RewriterMiddleware(h http.Handler) http.Handler {
 // forms where the response body should be included with the response.
 func rewrite(w http.ResponseWriter, r *http.Request, path string, query string) {
 	slog.DebugContext(r.Context(), "Rewrite URL", "path", path)
-	rewriter, ok := serverctx.ReqValue[http.Handler](r, serverctx.ServerRewriter)
+	rewriter, ok := serverctx.ReqValue[http.Handler](r, auth.CtxKeyRewriter)
 	if !ok {
 		w.WriteHeader(500)
 		return

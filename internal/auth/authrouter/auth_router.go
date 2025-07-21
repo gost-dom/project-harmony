@@ -118,7 +118,7 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		serverctx.SetUser(&r, account.Account)
+		serverctx.SetReqValue(&r, auth.CtxKeyAuthAccount, account.Account)
 		w.Header().Add("hx-push-url", redirectUrl)
 		w.Header().Add("hx-retarget", "body")
 		rewrite(w, r, redirectUrl, "")
@@ -140,6 +140,7 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Init implements interface [surgeon.Initer].
 func (r *AuthRouter) Init() {
 	r.ServeMux = http.NewServeMux()
 	r.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {

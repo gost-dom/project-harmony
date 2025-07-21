@@ -198,6 +198,7 @@ func CSRFProtection(h http.Handler) http.Handler {
 
 type CSRFGenerator = func() (string, string)
 
+// Init implements interface [surgeon.Initer].
 func (s *Server) Init() {
 	mux := http.NewServeMux()
 	mux.Handle("GET /{$}", templ.Handler(views.Index()))

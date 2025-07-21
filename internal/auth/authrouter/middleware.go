@@ -2,9 +2,10 @@ package authrouter
 
 import (
 	"fmt"
-	serverctx "harmony/internal/web/server/ctx"
 	"net/http"
 	"net/url"
+
+	"harmony/internal/auth"
 )
 
 const (
@@ -17,7 +18,7 @@ const (
 // otherwise, an HTTP redirect response is returned to the user.
 func RequireAuth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if serverctx.IsLoggedIn(r.Context()) {
+		if auth.UserAuthenticated(r.Context()) {
 			h.ServeHTTP(w, r)
 			return
 		}
