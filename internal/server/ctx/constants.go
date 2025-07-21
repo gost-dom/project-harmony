@@ -2,7 +2,7 @@ package serverctx
 
 import (
 	"context"
-	"harmony/internal/features/auth/authdomain"
+	"harmony/internal/auth/authdomain"
 	"net/http"
 )
 

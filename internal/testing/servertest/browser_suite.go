@@ -2,12 +2,12 @@ package servertest
 
 import (
 	"context"
-	"harmony/internal/features/auth/authrouter"
+	"harmony/internal/auth/authrouter"
 	"harmony/internal/server"
 	"harmony/internal/testing/browsertest"
 	"harmony/internal/testing/domaintest"
 	"harmony/internal/testing/htest"
-	"harmony/internal/testing/mocks/features/auth/authrouter_mock"
+	"harmony/internal/testing/mocks/auth/authrouter_mock"
 	"harmony/internal/testing/shaman"
 	"log/slog"
 	"net/http/cookiejar"

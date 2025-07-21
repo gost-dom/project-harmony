@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"harmony/internal/features/auth"
+	"harmony/internal/auth"
 	"reflect"
 	"testing"
 )

@@ -4,7 +4,7 @@ import (
 	"context"
 	"harmony/internal/core"
 	"harmony/internal/core/corerepo"
-	"harmony/internal/features/auth"
+	"harmony/internal/auth"
 	"log/slog"
 	"time"
 )

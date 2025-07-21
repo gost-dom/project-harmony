@@ -2,8 +2,8 @@ package domaintest
 
 import (
 	"fmt"
-	"harmony/internal/features/auth/authdomain"
-	"harmony/internal/features/auth/authdomain/password"
+	"harmony/internal/auth/authdomain"
+	"harmony/internal/auth/authdomain/password"
 	"net/mail"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"

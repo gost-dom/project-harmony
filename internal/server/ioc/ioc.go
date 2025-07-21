@@ -2,7 +2,7 @@ package ioc
 
 import (
 	"harmony/internal/core/corerepo"
-	authioc "harmony/internal/features/auth/ioc"
+	authioc "harmony/internal/auth/ioc"
 	"harmony/internal/server"
 	"harmony/internal/server/sessionstore"
 

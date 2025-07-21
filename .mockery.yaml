@@ -4,6 +4,6 @@ filename: "{{.InterfaceName}}_mock.go"
 all: true
 dir: internal/testing/mocks/{{trimPrefix .PackagePath "harmony/internal/"}}_mock
 packages:
-  harmony/internal/features:
+  harmony/internal/auth:
     config:
       recursive: true

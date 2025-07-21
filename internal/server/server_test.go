@@ -1,11 +1,11 @@
 package server_test
 
 import (
-	"harmony/internal/features/auth/authrouter"
+	"harmony/internal/auth/authrouter"
 	"harmony/internal/server/ioc"
 	"harmony/internal/testing/browsertest"
 	. "harmony/internal/testing/domaintest"
-	. "harmony/internal/testing/mocks/features/auth/authrouter_mock"
+	. "harmony/internal/testing/mocks/auth/authrouter_mock"
 	"harmony/internal/testing/servertest"
 	"harmony/internal/testing/shaman"
 	"harmony/internal/testing/shaman/ariarole"

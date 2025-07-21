@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
+	. "harmony/internal/auth/authrouter"
 	"harmony/internal/core"
-	. "harmony/internal/features/auth/authrouter"
-	. "harmony/internal/features/host/hostrouter"
+	. "harmony/internal/host/hostrouter"
 	serverctx "harmony/internal/server/ctx"
 	"harmony/internal/server/views"
 
