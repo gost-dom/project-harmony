@@ -39,7 +39,7 @@ func csrfMiddleware(h http.Handler) http.Handler {
 	// This scheme would ruin it for users opening multiple windows, so each
 	// request generates a unique cookie name; also deleting the previous value.
 	//
-	// Cookies have a max-age of 1 hour. It is sufficient for type types of form
+	// Cookies have a max-age of 1 hour. It is sufficient for the types of form
 	// that the system is currently serving.
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
