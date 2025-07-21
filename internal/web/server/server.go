@@ -11,8 +11,8 @@ import (
 	authrouter "harmony/internal/auth/authrouter"
 	"harmony/internal/core"
 	hostrouter "harmony/internal/host/hostrouter"
-	serverctx "harmony/internal/server/ctx"
-	"harmony/internal/server/views"
+	serverctx "harmony/internal/web/server/ctx"
+	"harmony/internal/web/server/views"
 
 	"github.com/a-h/templ"
 	gonanoid "github.com/matoous/go-nanoid/v2"

@@ -8,7 +8,7 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import serverctx "harmony/internal/server/ctx"
+import serverctx "harmony/internal/web/server/ctx"
 
 type Contents struct {
 	Body templ.Component

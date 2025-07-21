@@ -3,7 +3,7 @@ package servertest
 import (
 	"context"
 	"harmony/internal/auth/authrouter"
-	"harmony/internal/server"
+	"harmony/internal/web/server"
 	"harmony/internal/testing/browsertest"
 	"harmony/internal/testing/domaintest"
 	"harmony/internal/testing/htest"

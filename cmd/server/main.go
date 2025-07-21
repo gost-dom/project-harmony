@@ -6,7 +6,7 @@ import (
 	"harmony/internal/core/corerepo"
 	"harmony/internal/messaging"
 	mioc "harmony/internal/messaging/ioc"
-	"harmony/internal/server/ioc"
+	"harmony/internal/web/server/ioc"
 	"log/slog"
 	"net/http"
 	"os"

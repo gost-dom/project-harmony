@@ -11,7 +11,7 @@ import (
 	"harmony/internal/auth/authdomain"
 	"harmony/internal/auth/authdomain/password"
 	"harmony/internal/auth/authrouter/views"
-	serverctx "harmony/internal/server/ctx"
+	serverctx "harmony/internal/web/server/ctx"
 
 	"github.com/gorilla/schema"
 )

@@ -2,7 +2,7 @@ package server_test
 
 import (
 	"harmony/internal/auth/authrouter"
-	"harmony/internal/server/ioc"
+	"harmony/internal/web/server/ioc"
 	"harmony/internal/testing/browsertest"
 	. "harmony/internal/testing/domaintest"
 	. "harmony/internal/testing/mocks/auth/authrouter_mock"

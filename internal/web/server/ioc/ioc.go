@@ -3,8 +3,8 @@ package ioc
 import (
 	"harmony/internal/core/corerepo"
 	authioc "harmony/internal/auth/ioc"
-	"harmony/internal/server"
-	"harmony/internal/server/sessionstore"
+	"harmony/internal/web/server"
+	"harmony/internal/web/server/sessionstore"
 
 	"github.com/gost-dom/surgeon"
 )

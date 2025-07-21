@@ -2,7 +2,7 @@ package authrouter
 
 import (
 	"fmt"
-	serverctx "harmony/internal/server/ctx"
+	serverctx "harmony/internal/web/server/ctx"
 	"net/http"
 	"net/url"
 )
