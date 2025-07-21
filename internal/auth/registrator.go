@@ -6,12 +6,13 @@ import (
 	"harmony/internal/auth/authdomain"
 	domain "harmony/internal/auth/authdomain"
 	"harmony/internal/auth/authdomain/password"
+	"harmony/internal/core"
 	"net/mail"
 )
 
 var ErrInvalidInput = errors.New("Invalid input")
 
-type AccountUseCaseResult = UseCaseResult[domain.PasswordAuthentication]
+type AccountUseCaseResult = core.UseCaseResult[domain.PasswordAuthentication]
 
 type AccountInserter interface {
 	Insert(context.Context, AccountUseCaseResult) (domain.PasswordAuthentication, error)
@@ -54,7 +55,7 @@ func (r Registrator) Register(ctx context.Context, input RegistratorInput) error
 		PasswordHash: hash,
 	}
 
-	res := UseCaseOfEntity(account)
+	res := core.UseCaseOfEntity(account)
 	res.AddEvent(domain.CreateAccountRegisteredEvent(account.Account))
 	res.AddEvent(res.Entity.StartEmailValidationChallenge())
 	_, err = r.Repository.Insert(ctx, res)

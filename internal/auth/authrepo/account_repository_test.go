@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"harmony/internal/core"
-	"harmony/internal/core/corerepo"
 	"harmony/internal/auth"
 	"harmony/internal/auth/authdomain"
 	"harmony/internal/auth/authdomain/password"
 	. "harmony/internal/auth/authrepo"
+	"harmony/internal/core"
+	"harmony/internal/core/corerepo"
 	_ "harmony/internal/testing/couchtest" // clear database before tests
 	"harmony/internal/testing/domaintest"
 
@@ -63,9 +63,9 @@ func TestDuplicateEmail(t *testing.T) {
 	repo := initRepository()
 
 	email := domaintest.NewAddress()
-	acc1 := auth.UseCaseOfEntity(
+	acc1 := core.UseCaseOfEntity(
 		domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email)))
-	acc2 := auth.UseCaseOfEntity(
+	acc2 := core.UseCaseOfEntity(
 		domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email)))
 	assert.NoError(t, insertAccount(ctx, repo, acc1))
 	assert.ErrorIs(t, insertAccount(ctx, repo, acc2), ErrConflict)
@@ -76,7 +76,7 @@ func TestAccountRepositoryUpdate(t *testing.T) {
 	repo := initRepository()
 
 	email := domaintest.NewAddress()
-	pwacc := auth.UseCaseOfEntity(domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email)))
+	pwacc := core.UseCaseOfEntity(domaintest.InitPasswordAuthAccount(domaintest.WithEmail(email)))
 	tmp, err := repo.Insert(ctx, pwacc)
 	inserted := tmp.Account
 	if !assert.NoError(t, err, "Error inserting account") {
@@ -156,7 +156,7 @@ func TestInsertDomainEvents(t *testing.T) {
 		assert.NoError(t, coreRepo.StartListener(ctx))
 
 		// Insert an entity with two domain events
-		acc := auth.UseCaseOfEntity(domaintest.InitPasswordAuthAccount())
+		acc := core.UseCaseOfEntity(domaintest.InitPasswordAuthAccount())
 		event1 := acc.Entity.StartEmailValidationChallenge()
 		event2 := authdomain.CreateAccountRegisteredEvent(acc.Entity.Account)
 		acc.AddEvent(event1)
