@@ -2,7 +2,7 @@ package ioc
 
 import (
 	"harmony/internal/auth"
-	"harmony/internal/auth/authrepo"
+	"harmony/internal/auth/repo"
 	"harmony/internal/auth/router"
 	"harmony/internal/auth/sessionstore"
 	"harmony/internal/core/corerepo"
@@ -31,7 +31,7 @@ func Install[T any](graph *surgeon.Graph[T]) *surgeon.Graph[T] {
 			[]byte(encKey),
 		},
 	))
-	repo := &authrepo.AccountRepository{
+	repo := &repo.AccountRepository{
 		Connection: corerepo.DefaultConnection,
 	}
 	graph = surgeon.ReplaceAll(graph, repo)

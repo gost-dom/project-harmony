@@ -13,11 +13,11 @@ func init() {
 	handler := messaging.NewMessageHandler()
 	// handler := messaging.MessageHandler{
 	// 	corerepo.DefaultDomainEventRepo,
-	// 	auth.EmailValidator{Repository: authrepo.DefaultAccountRepository},
+	// 	auth.EmailValidator{Repository: repo.DefaultAccountRepository},
 	// }
 	Graph = surgeon.BuildGraph(*handler) // messaging.MessageHandler{})
 
-	// Graph.Inject(authrepo.AccountRepository{Connection: couchdb.DefaultConnection})
+	// Graph.Inject(repo.AccountRepository{Connection: couchdb.DefaultConnection})
 	Graph.Inject(corerepo.DefaultDomainEventRepo)
 }
 

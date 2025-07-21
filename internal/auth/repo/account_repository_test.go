@@ -1,4 +1,4 @@
-package authrepo_test
+package repo_test
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"harmony/internal/auth"
 	"harmony/internal/auth/domain"
 	"harmony/internal/auth/domain/password"
-	. "harmony/internal/auth/authrepo"
+	. "harmony/internal/auth/repo"
 	"harmony/internal/core"
 	"harmony/internal/core/corerepo"
 	_ "harmony/internal/testing/couchtest" // clear database before tests
