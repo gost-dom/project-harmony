@@ -24,13 +24,11 @@ templ Logo() {
 
 templ CSRFFields() {
 	{{
-	source := ctx.Value(web.CtxKeyCSRFTokenSrc)
-	g, ok := source.(func() (string, string))
+	fields, ok := web.GetCSRFFields(ctx)
 	}}
 	if ok {
-		{{ id, token := g() }}
-		<input type="hidden" name="csrf-id" value={ id }/>
-		<input type="hidden" name="csrf-token" value={ token }/>
+		<input type="hidden" name="csrf-id" value={ fields.ID }/>
+		<input type="hidden" name="csrf-token" value={ fields.Token }/>
 	}
 }
 

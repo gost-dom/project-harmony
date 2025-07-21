@@ -4,8 +4,8 @@ import (
 	"harmony/internal/auth"
 	"harmony/internal/auth/authrepo"
 	"harmony/internal/auth/authrouter"
-	"harmony/internal/core/corerepo"
 	"harmony/internal/auth/sessionstore"
+	"harmony/internal/core/corerepo"
 
 	"github.com/gost-dom/surgeon"
 )
