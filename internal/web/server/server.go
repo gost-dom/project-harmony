@@ -6,10 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 	"path/filepath"
-	"time"
 
 	authrouter "harmony/internal/auth/authrouter"
-	"harmony/internal/core"
 	hostrouter "harmony/internal/host/hostrouter"
 	"harmony/internal/web"
 	"harmony/internal/web/server/views"
@@ -17,88 +15,6 @@ import (
 	"github.com/a-h/templ"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
-
-// StatusRecorder embeds an [http.ResponseWriter] which remembers the status
-// code being generated, allowing client to retroactively query the status code.
-type StatusRecorder struct {
-	http.ResponseWriter
-	code int
-}
-
-func (r *StatusRecorder) WriteHeader(code int) {
-	r.ResponseWriter.WriteHeader(code)
-	r.code = code
-}
-
-// Unwrap implements the unexported rwUnwrapper interface. This is necessary for
-// [http.ResponseController] to get the underlying ResponseWriter, e.g. to
-// query for cabilities like [http.Flusher].
-func (r *StatusRecorder) Unwrap() http.ResponseWriter { return r.ResponseWriter }
-
-func (r *StatusRecorder) Code() int {
-	if r.code == 0 {
-		return 200
-	}
-	return r.code
-}
-
-func statusCodeToLogLevel(code int) slog.Level {
-	if code >= 500 {
-		return slog.LevelError
-	}
-	if code >= 400 {
-		return slog.LevelWarn
-	}
-	return slog.LevelInfo
-}
-
-func logHeader(h http.Header) slog.Attr {
-	attrs := make([]any, len(h))
-	i := 0
-	for k, v := range h {
-		switch k {
-		// Don't log request/response cookies
-		case "Cookie", "Set-Cookie":
-			attrs[i] = slog.Any(k, "...")
-		default:
-			attrs[i] = slog.Any(k, v)
-		}
-		i++
-	}
-	return slog.Group("header", attrs...)
-}
-
-func log(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		web.SetReqValue(&r, web.CtxKeyReqID, core.NewID())
-		rec := &StatusRecorder{ResponseWriter: w}
-		start := time.Now()
-
-		slog.InfoContext(r.Context(), "HTTP Request",
-			slog.Group("req",
-				slog.String("method", r.Method),
-				slog.String("path", r.URL.Path),
-				logHeader(r.Header),
-			),
-		)
-		h.ServeHTTP(rec, r)
-
-		status := rec.Code()
-		logLvl := statusCodeToLogLevel(status)
-		slog.Log(r.Context(), logLvl, "HTTP Response",
-			slog.Group("req",
-				slog.String("method", r.Method),
-				slog.String("path", r.URL.Path),
-				logHeader(r.Header),
-			),
-			slog.Group("res",
-				slog.Int("status", status),
-				// logHeader(w.Header()),
-			),
-			slog.Duration("duration", time.Since(start)),
-		)
-	})
-}
 
 func noCache(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -209,7 +125,7 @@ func (s *Server) Init() {
 			http.Dir(staticFilesPath()))),
 	)
 	s.Handler = web.ApplyMiddlewares(mux,
-		web.MiddlewareFunc(log),
+		web.Logger,
 		web.MiddlewareFunc(noCache),
 		web.MiddlewareFunc(CSRFProtection),
 		s.AuthMiddlewares,
