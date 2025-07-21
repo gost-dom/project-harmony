@@ -79,6 +79,7 @@ func (store CouchDBStore) opts() sessions.Options {
 		Path:     "/",
 		MaxAge:   86400 * 30,
 		HttpOnly: true,
+		Secure:   true,
 	}
 }
 
