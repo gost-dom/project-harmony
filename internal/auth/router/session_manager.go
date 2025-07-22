@@ -2,6 +2,7 @@ package router
 
 import (
 	"harmony/internal/auth/domain"
+	"harmony/internal/infrastructure/log"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -16,13 +17,13 @@ type SessionManager struct {
 	SessionStore sessions.Store
 }
 
-func (m SessionManager) session(r *http.Request) (*sessions.Session, error) {
-	return m.SessionStore.Get(r, sessionNameAuth)
-}
-
 // TODO: Check account id is valid
 func (m *SessionManager) LoggedInUser(r *http.Request) (acc *domain.Account) {
-	session, _ := m.session(r)
+	session, err := m.session(r)
+	if err != nil {
+		log.LogError(r.Context(), "SessionManager: load session error", err)
+		return nil
+	}
 	if id, ok := session.Values[sessionCookieName]; ok {
 		result := new(domain.Account)
 		if strId, ok := id.(string); ok && strId != "" {
@@ -54,4 +55,8 @@ func (m SessionManager) Logout(w http.ResponseWriter, r *http.Request) error {
 	}
 	delete(session.Values, sessionCookieName)
 	return session.Save(r, w)
+}
+
+func (m SessionManager) session(r *http.Request) (*sessions.Session, error) {
+	return m.SessionStore.Get(r, sessionNameAuth)
 }
