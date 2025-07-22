@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"harmony/internal/auth/domain"
 	"harmony/internal/infrastructure/log"
 	"net/http"
@@ -13,7 +14,12 @@ const (
 	sessionCookieName = "accountId"
 )
 
+type AccountGetter interface {
+	Get(context.Context, domain.AccountID) (domain.Account, error)
+}
+
 type SessionManager struct {
+	Repo         AccountGetter
 	SessionStore sessions.Store
 }
 
@@ -25,10 +31,13 @@ func (m *SessionManager) LoggedInUser(r *http.Request) (acc *domain.Account) {
 		return nil
 	}
 	if id, ok := session.Values[sessionCookieName]; ok {
-		result := new(domain.Account)
-		if strId, ok := id.(string); ok && strId != "" {
-			result.ID = domain.AccountID(strId)
-			return result
+		if id, ok := id.(domain.AccountID); ok {
+			acc, err := m.Repo.Get(r.Context(), id)
+			if err != nil {
+				log.LogError(r.Context(), "SessionManager: load account error", err)
+				return nil
+			}
+			return &acc
 		}
 	}
 	return nil
@@ -44,7 +53,7 @@ func (m SessionManager) SetAccount(
 	if err != nil {
 		return err
 	}
-	session.Values[sessionCookieName] = string(account.ID)
+	session.Values[sessionCookieName] = account.ID
 	return session.Save(req, w)
 }
 
