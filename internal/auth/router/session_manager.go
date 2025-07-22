@@ -16,10 +16,13 @@ type SessionManager struct {
 	SessionStore sessions.Store
 }
 
+func (m SessionManager) session(r *http.Request) (*sessions.Session, error) {
+	return m.SessionStore.Get(r, sessionNameAuth)
+}
+
 // TODO: Check account id is valid
 func (m *SessionManager) LoggedInUser(r *http.Request) (acc *domain.Account) {
-	reg := sessions.GetRegistry(r)
-	session, _ := reg.Get(m.SessionStore, sessionNameAuth)
+	session, _ := m.session(r)
 	if id, ok := session.Values[sessionCookieName]; ok {
 		result := new(domain.Account)
 		if strId, ok := id.(string); ok && strId != "" {
@@ -30,13 +33,13 @@ func (m *SessionManager) LoggedInUser(r *http.Request) (acc *domain.Account) {
 	return nil
 }
 
-func (s SessionManager) SetAccount(
+func (m SessionManager) SetAccount(
 	w http.ResponseWriter,
 	req *http.Request,
 	account domain.AuthenticatedAccount,
 ) error {
 	reg := sessions.GetRegistry(req)
-	session, err := reg.Get(s.SessionStore, sessionNameAuth)
+	session, err := reg.Get(m.SessionStore, sessionNameAuth)
 	if err != nil {
 		return err
 	}
@@ -44,12 +47,11 @@ func (s SessionManager) SetAccount(
 	return session.Save(req, w)
 }
 
-func (s SessionManager) Logout(w http.ResponseWriter, req *http.Request) error {
-	reg := sessions.GetRegistry(req)
-	session, err := reg.Get(s.SessionStore, sessionNameAuth)
+func (m SessionManager) Logout(w http.ResponseWriter, r *http.Request) error {
+	session, err := m.session(r)
 	if err != nil {
 		return err
 	}
 	delete(session.Values, sessionCookieName)
-	return session.Save(req, w)
+	return session.Save(r, w)
 }
