@@ -33,9 +33,9 @@ type Contextable[T any] interface {
 // args.
 //
 // E.g., *http.Request is a compatible context-bearing type.
-func ContextWith[T Contextable[T]](rp *T, args ...any) {
-	r := *rp
-	*rp = r.WithContext(With(r.Context(), args...))
+func ContextWith[T Contextable[T]](cp *T, args ...any) {
+	c := *cp
+	*cp = c.WithContext(With(c.Context(), args...))
 }
 
 func With(ctx context.Context, args ...any) context.Context {
