@@ -1,6 +1,10 @@
 package auth
 
-import "context"
+import (
+	"context"
+	"harmony/internal/auth/domain"
+	"harmony/internal/infrastructure/log"
+)
 
 // Auth-related context values
 
@@ -17,4 +21,18 @@ const (
 func UserAuthenticated(c context.Context) bool {
 	acc := c.Value(CtxKeyAuthAccount)
 	return acc != nil
+}
+
+// AuthenticatedUser returns the currently authenticated account. If no user is
+// authenticated, acc will be a zero Account, and ok will be false.
+func AuthenticatedUser(ctx context.Context) (acc *domain.Account, ok bool) {
+	ctxVal := ctx.Value(CtxKeyAuthAccount)
+	log.Info(ctx, "LookupAccount", "ctxVal", ctxVal)
+	if ok = (ctxVal != nil); !ok {
+		return
+	}
+
+	acc, ok = ctxVal.(*domain.Account)
+	log.Info(ctx, "LookupAccount", "acc", acc, "ok", ok)
+	return
 }

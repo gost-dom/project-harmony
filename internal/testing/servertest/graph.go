@@ -9,13 +9,16 @@ import (
 	"github.com/quasoft/memstore"
 )
 
+func NewMemStore() sessions.Store {
+	return memstore.NewMemStore(
+		[]byte("authkey123"),
+		[]byte("enckey12341234567890123456789012"),
+	)
+}
+
 func init() {
 	Graph = ioc.Graph
-	Graph = surgeon.Replace[sessions.Store](
-		Graph, memstore.NewMemStore(
-			[]byte("authkey123"),
-			[]byte("enckey12341234567890123456789012"),
-		))
+	Graph = surgeon.Replace(Graph, NewMemStore())
 }
 
 type ServerGraph = *surgeon.Graph[*server.Server]

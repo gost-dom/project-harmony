@@ -26,6 +26,12 @@ func must(prefix string, err error) {
 	}
 }
 
+func WithDisplayName(name string) InitAccountOption {
+	return func(acc *domain.Account) {
+		acc.DisplayName = name
+	}
+}
+
 func WithEmail(email string) InitAccountOption {
 	addr, err := mail.ParseAddress(email)
 	must("domaintest: WithEmail", err)
