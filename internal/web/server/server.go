@@ -34,6 +34,7 @@ func (s *Server) Init() {
 	mux.Handle("GET /{$}", templ.Handler(views.Index()))
 	mux.Handle("/auth/", http.StripPrefix("/auth", s.AuthRouter))
 	mux.Handle("GET /host", authrouter.RequireAuth(s.HostRouter.Index()))
+	mux.Handle("/host/", http.StripPrefix("/host", authrouter.RequireAuth(s.HostRouter)))
 	mux.Handle(
 		"GET /static/",
 		http.StripPrefix("/static", http.FileServer(

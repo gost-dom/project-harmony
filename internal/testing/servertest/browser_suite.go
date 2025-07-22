@@ -106,11 +106,16 @@ func (s *BrowserSuite) AllowErrorLogs() {
 
 func InitAuthenticatedWindow(t testing.TB, g ServerGraph) html.Window {
 	authMock := router_mock.NewMockAuthenticator(t)
+	getterMock := router_mock.NewMockAccountGetter(t)
 	g = surgeon.Replace[router.Authenticator](g, authMock)
+	g = surgeon.Replace[router.AccountGetter](g, getterMock)
 	acc := domaintest.InitAuthenticatedAccount()
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
 		Return(acc, nil)
+	getterMock.EXPECT().
+		Get(mock.Anything, acc.ID).
+		Return(*acc.Account, nil)
 	b := InitBrowser(t, g)
 	win, err := b.Open("https://example.com/auth/login")
 	assert.NoError(t, err, "error opening login page")
