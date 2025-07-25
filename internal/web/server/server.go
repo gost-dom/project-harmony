@@ -81,12 +81,3 @@ func (s *Server) Init() {
 		s.AuthMiddlewares,
 	)
 }
-
-func New() *Server {
-	res := &Server{
-		AuthRouter: authrouter.New(),
-		HostRouter: hostrouter.New(),
-	}
-	res.Init()
-	return res
-}

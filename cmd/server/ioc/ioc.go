@@ -19,7 +19,7 @@ var Graph *surgeon.Graph[RootGraph]
 
 func init() {
 	Graph = surgeon.BuildGraph(RootGraph{
-		server.New(),
+		new(server.Server),
 		messaging.MessagePump{
 			MessageSource:         corerepo.DefaultMessageSource,
 			DomainEventRepository: corerepo.DefaultDomainEventRepo,
