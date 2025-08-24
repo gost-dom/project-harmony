@@ -46,9 +46,3 @@ func (r *HostRouter) Init() {
 	r.ServeMux.Handle("GET /{$}", r.Index())
 	r.ServeMux.Handle("GET /services/new", r.RenderPage(""))
 }
-
-func New() *HostRouter {
-	r := new(HostRouter)
-	r.Init()
-	return r
-}
