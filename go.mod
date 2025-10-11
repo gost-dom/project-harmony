@@ -1,6 +1,6 @@
 module harmony
 
-go 1.24
+go 1.25
 
 require (
 	github.com/a-h/templ v0.3.906
@@ -9,6 +9,7 @@ require (
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0
 	github.com/gost-dom/browser v0.9.0
+	github.com/gost-dom/shaman v0.0.0-20250824112729-9f7336b10c08
 	github.com/gost-dom/surgeon v0.0.0-20250713144605-6ef100a36361
 	github.com/lampctl/go-sse v1.1.4
 	github.com/matoous/go-nanoid/v2 v2.1.0
@@ -40,4 +41,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/gost-dom/browser => /Users/peter/go/src/github.com/gost-dom/browser
+replace github.com/gost-dom/browser => /Users/peter/src/go/gost-dom/browser
