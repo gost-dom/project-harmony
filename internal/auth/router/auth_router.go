@@ -118,7 +118,7 @@ func (s *AuthRouter) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		web.SetReqValue(&r, auth.CtxKeyAuthAccount, account.Account)
+		web.SetReqValue(&r, auth.CtxKeyAuthAccount, *account.Account)
 		w.Header().Add("hx-push-url", redirectUrl)
 		w.Header().Add("hx-retarget", "body")
 		rewrite(w, r, redirectUrl, "")
