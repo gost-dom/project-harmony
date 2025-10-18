@@ -6,7 +6,6 @@ import (
 	. "harmony/internal/testing/domaintest"
 	"harmony/internal/testing/mocks/auth/router_mock"
 	"harmony/internal/testing/servertest"
-	"harmony/internal/web/server/ioc"
 	"testing"
 
 	"github.com/gost-dom/browser/html"
@@ -31,7 +30,7 @@ func initServerSuite(t *testing.T) serverSuite {
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
 		Return(InitAuthenticatedAccount(), nil).Maybe()
-	g := surgeon.Replace[router.Authenticator](ioc.Graph, authMock)
+	g := surgeon.Replace[router.Authenticator](servertest.Graph, authMock)
 
 	b := servertest.InitBrowser(t, g)
 

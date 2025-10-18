@@ -1,8 +1,8 @@
 package servertest
 
 import (
+	"harmony/cmd/server/ioc"
 	"harmony/internal/web/server"
-	"harmony/internal/web/server/ioc"
 
 	"github.com/gorilla/sessions"
 	"github.com/gost-dom/surgeon"
@@ -10,7 +10,8 @@ import (
 )
 
 func init() {
-	Graph = ioc.Graph
+	root := ioc.Graph.Instance()
+	Graph = surgeon.BuildGraph(root.Server)
 	Graph = surgeon.Replace[sessions.Store](
 		Graph, memstore.NewMemStore(
 			[]byte("authkey123"),

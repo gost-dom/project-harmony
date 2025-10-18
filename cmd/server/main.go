@@ -2,11 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"harmony/internal/core/corerepo"
-	"harmony/internal/messaging"
-	mioc "harmony/internal/messaging/ioc"
-	"harmony/internal/web/server/ioc"
+	"harmony/cmd/server/ioc"
 	"log/slog"
 	"net/http"
 	"os"
@@ -15,18 +11,15 @@ import (
 )
 
 func main() {
+	graph := ioc.Root()
 	slog.SetDefault(slog.New(devslog.NewHandler(os.Stdout, nil)))
 
-	fmt.Println("Starting server")
-	pump := messaging.MessagePump{
-		MessageSource:         corerepo.DefaultMessageSource,
-		DomainEventRepository: corerepo.DefaultDomainEventRepo,
-		Handler:               mioc.Handler(),
-	}
+	pump := graph.MessagePump
+	server := graph.Server
 	err := pump.Start(context.Background())
 	if err != nil {
 		slog.Error("Error starting pump", "err", err)
 	}
 
-	http.ListenAndServe("0.0.0.0:9999", ioc.Server())
+	http.ListenAndServe("0.0.0.0:9999", server)
 }

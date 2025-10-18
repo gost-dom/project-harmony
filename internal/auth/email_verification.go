@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"harmony/internal/core"
 	"harmony/internal/auth/domain"
+	"harmony/internal/core"
 	"net/smtp"
 	"strings"
 )
@@ -59,6 +59,7 @@ func (v EmailValidator) ProcessDomainEvent(ctx context.Context, event core.Domai
 	if !ok { // Not an event we want to handle
 		return nil
 	}
+
 	acc, err := v.Repository.Get(ctx, req.AccountID)
 	if err == nil {
 		err = sendChallengeEmail(string(event.ID), acc)
@@ -110,5 +111,4 @@ func sendChallengeEmail(eventID string, acc domain.Account) error {
 		[]string{receiver.Address},
 		msg,
 	)
-
 }
