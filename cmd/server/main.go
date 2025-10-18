@@ -19,7 +19,11 @@ func main() {
 	err := pump.Start(context.Background())
 	if err != nil {
 		slog.Error("Error starting pump", "err", err)
+		os.Exit(1)
 	}
 
-	http.ListenAndServe("0.0.0.0:9999", server)
+	if err := http.ListenAndServe("0.0.0.0:9999", server); err != nil {
+		slog.Error("Error starting http server", "err", err)
+		os.Exit(1)
+	}
 }
