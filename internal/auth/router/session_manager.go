@@ -24,6 +24,7 @@ type SessionManager struct {
 }
 
 // TODO: Check account id is valid
+// TODO: Return an AuthenticatedAccount if successful
 func (m *SessionManager) LoggedInUser(r *http.Request) (acc *domain.Account) {
 	session, err := m.session(r)
 	if err != nil {
