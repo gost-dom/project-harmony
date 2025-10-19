@@ -6,7 +6,7 @@ import "harmony/internal/auth"
 
 func displayName(ctx context.Context) (res string) {
      if user, ok := auth.AuthenticatedUser(ctx); ok {
-       res= user.DisplayName
+       res = user.DisplayName
      }
      return
 }
