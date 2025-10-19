@@ -11,7 +11,7 @@ import (
 
 const (
 	sessionNameAuth   = "auth"
-	sessionCookieName = "accountId"
+	sessionAccountKey = "accountId"
 )
 
 type AccountGetter interface {
@@ -31,7 +31,7 @@ func (m *SessionManager) LoggedInUser(r *http.Request) (acc *domain.Account) {
 		log.LogError(r.Context(), "SessionManager: load session error", err)
 		return nil
 	}
-	if id, ok := session.Values[sessionCookieName]; ok {
+	if id, ok := session.Values[sessionAccountKey]; ok {
 		if id, ok := id.(domain.AccountID); ok {
 			acc, err := m.Repo.Get(r.Context(), id)
 			if err != nil {
@@ -49,12 +49,16 @@ func (m SessionManager) SetAccount(
 	req *http.Request,
 	account domain.AuthenticatedAccount,
 ) error {
-	reg := sessions.GetRegistry(req)
-	session, err := reg.Get(m.SessionStore, sessionNameAuth)
+	session, err := m.session(req)
 	if err != nil {
 		return err
 	}
-	session.Values[sessionCookieName] = account.ID
+	for k := range session.Values {
+		// Prevent session fixation. Shouldn't be necessary, as we only store
+		// one value in the session.
+		delete(session.Values, k)
+	}
+	session.Values[sessionAccountKey] = account.ID
 	return session.Save(req, w)
 }
 
@@ -63,10 +67,11 @@ func (m SessionManager) Logout(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	delete(session.Values, sessionCookieName)
+	delete(session.Values, sessionAccountKey)
 	return session.Save(r, w)
 }
 
 func (m SessionManager) session(r *http.Request) (*sessions.Session, error) {
-	return m.SessionStore.Get(r, sessionNameAuth)
+	reg := sessions.GetRegistry(r)
+	return reg.Get(m.SessionStore, sessionNameAuth)
 }
