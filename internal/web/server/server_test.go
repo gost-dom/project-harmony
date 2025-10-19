@@ -26,10 +26,13 @@ type serverSuite struct {
 }
 
 func initServerSuite(t *testing.T) serverSuite {
+	acc := InitAuthenticatedAccount(
+		WithDisplayName("Smithy"),
+	)
 	authMock := router_mock.NewMockAuthenticator(t)
 	authMock.EXPECT().
 		Authenticate(mock.Anything, mock.Anything, mock.Anything).
-		Return(InitAuthenticatedAccount(), nil).Maybe()
+		Return(acc, nil).Maybe()
 	g := surgeon.Replace[router.Authenticator](servertest.Graph, authMock)
 
 	b := servertest.InitBrowser(t, g)
@@ -68,7 +71,11 @@ func TestLoginFlow(t *testing.T) {
 		loginForm.SubmitBtn().Click()
 
 		assert.Equal(t, "/host", s.Win.Location().Pathname(), "path after login name")
-		assert.Equal(t, "Host", s.Get(ByH1).TextContent(), "page heading after login")
+
+		// If the heading change, do something else that verifies that the user
+		// is present in the context when authenticated, e.g., do we show the
+		// user name in the header?
+		assert.Equal(t, "Welcome, Smithy", s.Get(ByH1).TextContent(), "page heading after login")
 	})
 
 	t.Run("Login button disappears after login", func(t *testing.T) {

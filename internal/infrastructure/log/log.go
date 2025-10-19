@@ -64,6 +64,20 @@ func Error(ctx context.Context, msg string, args ...any) {
 	Log(ctx, LevelError, msg, args...)
 }
 
+func LogError(ctx context.Context, msg string, err error, args ...any) {
+	args = append(args, ErrAttr(err))
+	Log(ctx, LevelError, msg, args...)
+}
+
+// ErrAttr creates an slog Attr representing an error.
+func ErrAttr(err error) Attr {
+	// While this function doesn't seem to justify its own precense,
+	// consistently using this to log errors ensures consistency, and will help
+	// in the future when specific error types may have valuable information
+	// that can benefit from being logged explicitly.
+	return slog.Any("err", err)
+}
+
 // Re-exporting names from slog, makes it easier to grep for usages in slog in
 // the system to find what needs to be replaced; or create a rule to not use
 // slog.

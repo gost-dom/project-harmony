@@ -62,12 +62,21 @@ func (s *ValidateEmailTestSuite) TestInvalidCodeShowsError() {
 }
 
 func (s *ValidateEmailTestSuite) TestValidCodeRedirects() {
+	acc := domaintest.InitAuthenticatedAccount()
+
 	validatorMock := router_mock.NewMockEmailValidator(s.T())
 	validatorMock.EXPECT().
 		Validate(mock.Anything, mock.Anything).
-		Return(domaintest.InitAuthenticatedAccount(), nil)
+		Return(acc, nil)
+
+	getterMock := router_mock.NewMockAccountGetter(s.T())
+	getterMock.EXPECT().
+		Get(mock.Anything, acc.ID).
+		Return(*acc.Account, nil)
 
 	s.Graph = surgeon.Replace[router.EmailValidator](s.Graph, validatorMock)
+	s.Graph = surgeon.Replace[router.AccountGetter](s.Graph, getterMock)
+
 	win := s.OpenWindow("https://example.com/auth/validate-email")
 	form := NewValidateEmailForm(s.T(), win)
 	s.Expect(form.Alert()).To(gomega.BeNil())
@@ -77,7 +86,6 @@ func (s *ValidateEmailTestSuite) TestValidCodeRedirects() {
 	form.SubmitButton().Click()
 
 	s.Expect(win.Location().Pathname()).To(gomega.Equal("/host"))
-	s.Expect(s.Get(ByH1)).To(matchers.HaveTextContent("Host"))
 }
 
 func (s *ValidateEmailTestSuite) TestUnexpectedError() {

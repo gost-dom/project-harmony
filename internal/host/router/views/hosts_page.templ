@@ -1,6 +1,15 @@
 package views
 
+import "context"
 import . "harmony/internal/web/server/views"
+import "harmony/internal/auth"
+
+func displayName(ctx context.Context) (res string) {
+     if user, ok := auth.AuthenticatedUser(ctx); ok {
+       res = user.DisplayName
+     }
+     return
+}
 
 templ HostsPage() {
 	@Layout(Contents{Body: hostsPage()})
@@ -8,7 +17,7 @@ templ HostsPage() {
 
 templ hostsPage() {
 	<div class="container mx-auto py-4">
-		<h1 class="text-4xl font-bold text-center py-4">Host</h1>
+		<h1 class="text-4xl font-bold text-center py-4">Welcome, {displayName(ctx)}</h1>
 		<p>
 			Your services
 		</p>

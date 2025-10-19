@@ -26,6 +26,12 @@ func must(prefix string, err error) {
 	}
 }
 
+func WithDisplayName(name string) InitAccountOption {
+	return func(acc *domain.Account) {
+		acc.DisplayName = name
+	}
+}
+
 func WithEmail(email string) InitAccountOption {
 	addr, err := mail.ParseAddress(email)
 	must("domaintest: WithEmail", err)
@@ -42,6 +48,21 @@ func WithEmailAddress(addr *mail.Address) InitAccountOption {
 func WithName(name string) InitAccountOption {
 	return func(acc *domain.Account) {
 		acc.Name = name
+	}
+}
+
+// WithEmailValidation makes sure that the email address has been validated, so
+// the account can be treated as "authenticated".
+//
+// See also: [domain.Account.ValidateEmail]
+func WithEmailValidation() InitAccountOption {
+	return func(acc *domain.Account) {
+		if !acc.Email.Validated {
+			c := acc.Email.NewChallenge()
+			if err := acc.ValidateEmail(c.Code); err != nil {
+				panic("WithValidatedEmail: error validating email: " + err.Error())
+			}
+		}
 	}
 }
 
@@ -64,8 +85,12 @@ func InitAccount(opts ...InitAccountOption) domain.Account {
 // minimal account for use in test scenarios where an authenticated account is
 // required, but the specific user details are irrelevant.
 func InitAuthenticatedAccount(opts ...InitAccountOption) domain.AuthenticatedAccount {
-	acc := InitAccount(opts...)
-	return domain.AuthenticatedAccount{Account: &acc}
+	acc := InitAccount(append(opts, WithEmailValidation())...)
+	res, err := acc.Authenticated()
+	if err != nil {
+		panic("InitAuthenticatedAccount: failed creating authenticated account: " + err.Error())
+	}
+	return res
 }
 
 type InitPasswordOption = func(*domain.PasswordAuthentication)
