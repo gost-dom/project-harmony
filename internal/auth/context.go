@@ -44,7 +44,7 @@ type Contexter[T any] interface {
 	WithContext(context.Context) T
 }
 
-// SetAuthenticatedUser storeds an authenticated user in the request context.
+// SetAuthenticatedUser stores an authenticated user in the request context.
 func SetAuthenticatedUser[T Contexter[T]](r *T, acc domain.AuthenticatedAccount) {
 	ctx := context.WithValue((*r).Context(), CtxKeyAuthAccount, acc)
 	*r = (*r).WithContext(ctx)

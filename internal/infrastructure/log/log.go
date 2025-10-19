@@ -71,7 +71,7 @@ func LogError(ctx context.Context, msg string, err error, args ...any) {
 
 // ErrAttr creates an slog Attr representing an error.
 func ErrAttr(err error) Attr {
-	// While this function doesn't seem to justify it's own precense,
+	// While this function doesn't seem to justify its own precense,
 	// consistently using this to log errors ensures consistency, and will help
 	// in the future when specific error types may have valuable information
 	// that can benefit from being logged explicitly.
