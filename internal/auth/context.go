@@ -38,7 +38,7 @@ func AuthenticatedUser(ctx context.Context) (acc domain.AuthenticatedAccount, ok
 // with a new context can be created using a WithContext function.
 //
 // In reality, this represents a [*net/http.Request], but callers shouldn't be
-// coupled to the reques object.
+// coupled to the request object.
 type Contexter[T any] interface {
 	Context() context.Context
 	WithContext(context.Context) T
