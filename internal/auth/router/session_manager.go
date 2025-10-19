@@ -58,11 +58,7 @@ func (m SessionManager) SetAccount(
 	if err != nil {
 		return err
 	}
-	for k := range session.Values {
-		// Prevent session fixation. Shouldn't be necessary, as we only store
-		// one value in the session.
-		delete(session.Values, k)
-	}
+	deleteAllSessionValues(session)
 	session.Values[sessionAccountKey] = account.ID
 	return session.Save(req, w)
 }
@@ -72,11 +68,25 @@ func (m SessionManager) Logout(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	delete(session.Values, sessionAccountKey)
+	deleteAllSessionValues(session)
 	return session.Save(r, w)
 }
 
 func (m SessionManager) session(r *http.Request) (*sessions.Session, error) {
 	reg := sessions.GetRegistry(r)
 	return reg.Get(m.SessionStore, sessionNameAuth)
+}
+
+// deleteAllSessionValues prevents leftover data from persisting when
+//
+// - Authenticating an already authenticated user
+// - Logging out
+//
+// Although only an accountID is stored in the session, an aggressive strategy
+// is chosen to mitigate security vulnerabilities in future versions of the
+// code.
+func deleteAllSessionValues(s *sessions.Session) {
+	for k := range s.Values {
+		delete(s.Values, k)
+	}
 }
