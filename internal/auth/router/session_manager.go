@@ -44,7 +44,7 @@ func (m *SessionManager) LoggedInUser(
 	authAcc, err = acc.Authenticated()
 	ok = err == nil
 	if err != nil {
-		log.LogError(r.Context(), "SessionManager: Error createing authenticated account", err)
+		log.LogError(r.Context(), "SessionManager: Error creating authenticated account", err)
 	}
 	return
 }
