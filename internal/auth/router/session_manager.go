@@ -60,6 +60,8 @@ func (m SessionManager) SetAccount(
 	}
 	deleteAllSessionValues(session)
 	session.Values[sessionAccountKey] = account.ID
+	// Prevent session fixation. Shouldn't be necessary, as we only store
+	// one value in the session.
 	return session.Save(req, w)
 }
 
@@ -69,6 +71,7 @@ func (m SessionManager) Logout(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	deleteAllSessionValues(session)
+	expireCookie(session)
 	return session.Save(r, w)
 }
 
@@ -88,5 +91,11 @@ func (m SessionManager) session(r *http.Request) (*sessions.Session, error) {
 func deleteAllSessionValues(s *sessions.Session) {
 	for k := range s.Values {
 		delete(s.Values, k)
+	}
+}
+
+func expireCookie(s *sessions.Session) {
+	if s.Options != nil {
+		s.Options.MaxAge = -1
 	}
 }
