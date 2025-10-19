@@ -19,7 +19,7 @@ type Middlewares struct {
 func (s Middlewares) SessionAuth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if account, ok := s.SessionManager.LoggedInUser(r); ok {
-			auth.SetAuthenticatedUser(&r, *account)
+			auth.SetAuthenticatedUser(&r, account)
 		}
 		h.ServeHTTP(w, r)
 	})

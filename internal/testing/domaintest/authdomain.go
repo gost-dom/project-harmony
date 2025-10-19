@@ -51,6 +51,21 @@ func WithName(name string) InitAccountOption {
 	}
 }
 
+// WithEmailValidation makes sure that the email address has been validated, so
+// the account can be treated as "authenticated".
+//
+// See also: [domain.Account.ValidateEmail]
+func WithEmailValidation() InitAccountOption {
+	return func(acc *domain.Account) {
+		if !acc.Email.Validated {
+			c := acc.Email.NewChallenge()
+			if err := acc.ValidateEmail(c.Code); err != nil {
+				panic("WithValidatedEmail: error validating email: " + err.Error())
+			}
+		}
+	}
+}
+
 type InitAccountOption = func(*domain.Account)
 
 // InitAccount creates and returns a valid minimal Account for test scenarios
@@ -70,8 +85,12 @@ func InitAccount(opts ...InitAccountOption) domain.Account {
 // minimal account for use in test scenarios where an authenticated account is
 // required, but the specific user details are irrelevant.
 func InitAuthenticatedAccount(opts ...InitAccountOption) domain.AuthenticatedAccount {
-	acc := InitAccount(opts...)
-	return domain.AuthenticatedAccount{Account: &acc}
+	acc := InitAccount(append(opts, WithEmailValidation())...)
+	res, err := acc.Authenticated()
+	if err != nil {
+		panic("InitAuthenticatedAccount: failed creating authenticated account: " + err.Error())
+	}
+	return res
 }
 
 type InitPasswordOption = func(*domain.PasswordAuthentication)

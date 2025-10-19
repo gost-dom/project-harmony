@@ -12,9 +12,11 @@ import "context"
 import . "harmony/internal/web/server/views"
 import "harmony/internal/auth"
 
-func displayName(ctx context.Context) string {
-	user, _ := auth.AuthenticatedUser(ctx)
-	return user.DisplayName
+func displayName(ctx context.Context) (res string) {
+	if user, ok := auth.AuthenticatedUser(ctx); ok {
+		res = user.DisplayName
+	}
+	return
 }
 
 func HostsPage() templ.Component {
@@ -74,7 +76,7 @@ func hostsPage() templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(displayName(ctx))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/host/router/views/hosts_page.templ`, Line: 18, Col: 76}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/host/router/views/hosts_page.templ`, Line: 20, Col: 76}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {

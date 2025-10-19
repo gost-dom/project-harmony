@@ -3,8 +3,6 @@ package auth
 import (
 	"context"
 	"harmony/internal/auth/domain"
-	"harmony/internal/web"
-	"net/http"
 )
 
 // Auth-related context values
@@ -26,17 +24,28 @@ func UserAuthenticated(c context.Context) (res bool) {
 
 // AuthenticatedUser returns the currently authenticated account. If no user is
 // authenticated, acc will be a zero Account, and ok will be false.
-func AuthenticatedUser(ctx context.Context) (acc domain.Account, ok bool) {
+func AuthenticatedUser(ctx context.Context) (acc domain.AuthenticatedAccount, ok bool) {
 	ctxVal := ctx.Value(CtxKeyAuthAccount)
 	if ok = (ctxVal != nil); !ok {
 		return
 	}
 
-	acc, ok = ctxVal.(domain.Account)
+	acc, ok = ctxVal.(domain.AuthenticatedAccount)
 	return
 }
 
+// WithContext is the interface for a context-bearing value, where a new value
+// with a new context can be created using a WithContext function.
+//
+// In reality, this represents a [*net/http.Request], but callers shouldn't be
+// coupled to the reques object.
+type Contexter[T any] interface {
+	Context() context.Context
+	WithContext(context.Context) T
+}
+
 // SetAuthenticatedUser storeds an authenticated user in the request context.
-func SetAuthenticatedUser(r **http.Request, acc domain.Account) {
-	web.SetReqValue(r, CtxKeyAuthAccount, acc)
+func SetAuthenticatedUser[T Contexter[T]](r *T, acc domain.AuthenticatedAccount) {
+	ctx := context.WithValue((*r).Context(), CtxKeyAuthAccount, acc)
+	*r = (*r).WithContext(ctx)
 }
