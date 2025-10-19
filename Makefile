@@ -48,7 +48,7 @@ test:
 .PHONY: codegen
 codegen:
 	rm -rf internal/testing/mocks
-	mockery
+	go tool mockery
 
 .PHONY: workspace/make
 workspace/make:
