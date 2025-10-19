@@ -25,23 +25,23 @@ type SessionManager struct {
 
 // TODO: Check account id is valid
 // TODO: Return an AuthenticatedAccount if successful
-func (m *SessionManager) LoggedInUser(r *http.Request) (acc *domain.Account) {
+func (m *SessionManager) LoggedInUser(r *http.Request) (*domain.Account, bool) {
 	session, err := m.session(r)
 	if err != nil {
 		log.LogError(r.Context(), "SessionManager: load session error", err)
-		return nil
+		return nil, false
 	}
-	if id, ok := session.Values[sessionAccountKey]; ok {
-		if id, ok := id.(domain.AccountID); ok {
-			acc, err := m.Repo.Get(r.Context(), id)
-			if err != nil {
-				log.LogError(r.Context(), "SessionManager: load account error", err)
-				return nil
-			}
-			return &acc
-		}
+	sessionValue, _ := session.Values[sessionAccountKey]
+	accountID, ok := sessionValue.(domain.AccountID)
+	if !ok {
+		return nil, false
 	}
-	return nil
+	acc, err := m.Repo.Get(r.Context(), accountID)
+	if err != nil {
+		log.LogError(r.Context(), "SessionManager: load account error", err)
+		return nil, false
+	}
+	return &acc, true
 }
 
 func (m SessionManager) SetAccount(

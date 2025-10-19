@@ -18,7 +18,7 @@ type Middlewares struct {
 // writes it to the request context.
 func (s Middlewares) SessionAuth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if account := s.SessionManager.LoggedInUser(r); account != nil {
+		if account, ok := s.SessionManager.LoggedInUser(r); ok {
 			auth.SetAuthenticatedUser(&r, *account)
 		}
 		h.ServeHTTP(w, r)

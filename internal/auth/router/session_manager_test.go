@@ -41,8 +41,18 @@ func TestSessionManagerReturnsAccount(t *testing.T) {
 		r.AddCookie(c)
 	}
 
-	got := mgr.LoggedInUser(r)
-	assert.NotNil(t, got)
+	got, ok := mgr.LoggedInUser(r)
+	assert.True(t, ok)
 	assert.Equal(t, acc.ID, got.ID)
 	assert.Equal(t, "jd@example.com", got.Email.String())
+}
+
+func TestSessionManagerReturnsNilWhenNotAuthenticated(t *testing.T) {
+	store := servertest.NewMemStore()
+	mgr := router.SessionManager{SessionStore: store, Repo: repo{}}
+	r, _ := http.NewRequest("GET", "/", nil)
+
+	got, ok := mgr.LoggedInUser(r)
+	assert.False(t, ok)
+	assert.Zero(t, got)
 }
